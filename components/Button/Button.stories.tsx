@@ -1,7 +1,10 @@
-import type { Meta, StoryObj } from "@storybook/react-native";
-import { fn } from "storybook/test";
 import { View } from "react-native";
+
+import type { Meta, StoryObj } from "@storybook/react-native";
+
 import { MyButton } from "./Button";
+
+import { fn } from "storybook/test";
 
 const meta = {
   title: "MyButton",
@@ -11,7 +14,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <View style={{ padding: 16 }}>
+      <View className="p-[1rem]">
         <Story />
       </View>
     ),

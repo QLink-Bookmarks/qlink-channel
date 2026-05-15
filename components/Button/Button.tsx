@@ -1,4 +1,4 @@
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 
 interface MyButtonProps {
   onPress: () => void;
@@ -7,19 +7,27 @@ interface MyButtonProps {
 
 export const MyButton = ({ onPress, text }: MyButtonProps) => {
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Text style={styles.text}>{text}</Text>
+    <TouchableOpacity
+      className="px-20"
+      style={styles.container}
+      onPress={onPress}
+    >
+      <Text
+        className="text-white"
+        style={styles.text}
+      >
+        {text}
+      </Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 32,
     paddingVertical: 8,
     backgroundColor: "purple",
     alignSelf: "flex-start",
     borderRadius: 8,
   },
-  text: { color: "white", fontSize: 16, fontWeight: "bold" },
+  text: { fontSize: 16, fontWeight: "bold" },
 });
