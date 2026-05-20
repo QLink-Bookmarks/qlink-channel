@@ -7,9 +7,31 @@ import { cn } from "@/lib/utils";
 
 import type { LucideIcon } from "lucide-react-native";
 
+type AlertVariant = "default" | "info" | "warning" | "success" | "danger" | "hint" | "destructive";
+
+const alertVariantClasses: Record<AlertVariant, string> = {
+  default: "border-border bg-card",
+  info: "border-primary/20 bg-primary/10",
+  warning: "border-warning/20 bg-warning/10",
+  success: "border-success/20 bg-success/10",
+  danger: "border-destructive/20 bg-destructive/10",
+  hint: "border-border-soft bg-surface-elevated",
+  destructive: "border-destructive/20 bg-destructive/10",
+};
+
+const alertIconClasses: Record<AlertVariant, string> = {
+  default: "text-foreground",
+  info: "text-primary",
+  warning: "text-warning",
+  success: "text-success",
+  danger: "text-destructive",
+  hint: "text-muted-foreground",
+  destructive: "text-destructive",
+};
+
 function Alert({
   className,
-  variant,
+  variant = "default",
   children,
   icon,
   iconClassName,
@@ -17,21 +39,19 @@ function Alert({
 }: React.ComponentProps<typeof View> &
   React.RefAttributes<View> & {
     icon: LucideIcon;
-    variant?: "default" | "destructive";
+    variant?: AlertVariant;
     iconClassName?: string;
   }) {
+  const isDestructive = variant === "destructive" || variant === "danger";
   return (
     <TextClassContext.Provider
-      value={cn(
-        "text-sm text-foreground",
-        variant === "destructive" && "text-destructive",
-        className,
-      )}
+      value={cn("text-sm text-foreground", isDestructive && "text-destructive", className)}
     >
       <View
         role="alert"
         className={cn(
-          "relative w-full rounded-lg border border-border bg-card px-4 pb-2 pt-3.5",
+          "relative w-full rounded-xl border px-4 pb-2 pt-3.5",
+          alertVariantClasses[variant],
           className,
         )}
         {...props}
@@ -39,7 +59,7 @@ function Alert({
         <View className="absolute left-3.5 top-3">
           <Icon
             as={icon}
-            className={cn("size-4", variant === "destructive" && "text-destructive", iconClassName)}
+            className={cn("size-4", alertIconClasses[variant], iconClassName)}
           />
         </View>
         {children}

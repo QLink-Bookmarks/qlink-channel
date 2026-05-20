@@ -1,5 +1,6 @@
-import { Platform, Pressable } from "react-native";
+import { Platform, Pressable, type PressableStateCallbackType } from "react-native";
 
+import { LinearGradient } from "@/components/ui/linear-gradient";
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
@@ -7,7 +8,7 @@ import { type VariantProps, cva } from "class-variance-authority";
 
 const buttonVariants = cva(
   cn(
-    "group shrink-0 flex-row items-center justify-center gap-2 rounded-md shadow-none",
+    "group shrink-0 self-start flex-row items-center justify-center gap-2 rounded-md shadow-none",
     Platform.select({
       web: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive whitespace-nowrap outline-none transition-all focus-visible:ring-[3px] disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     }),
@@ -19,7 +20,17 @@ const buttonVariants = cva(
           "bg-primary active:bg-primary/90 shadow-sm shadow-black/5",
           Platform.select({ web: "hover:bg-primary/90" }),
         ),
+        primary: cn(
+          "bg-primary active:bg-primary/90 shadow-qlink-sm",
+          Platform.select({ web: "hover:bg-primary/90" }),
+        ),
         destructive: cn(
+          "bg-destructive active:bg-destructive/90 dark:bg-destructive/60 shadow-sm shadow-black/5",
+          Platform.select({
+            web: "hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+          }),
+        ),
+        danger: cn(
           "bg-destructive active:bg-destructive/90 dark:bg-destructive/60 shadow-sm shadow-black/5",
           Platform.select({
             web: "hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
@@ -39,12 +50,37 @@ const buttonVariants = cva(
           "active:bg-accent dark:active:bg-accent/50",
           Platform.select({ web: "hover:bg-accent dark:hover:bg-accent/50" }),
         ),
+        kakao: cn(
+          "bg-accent-yellow active:bg-accent-yellow/90 shadow-sm shadow-black/5",
+          Platform.select({ web: "hover:bg-accent-yellow/90" }),
+        ),
+        social: cn(
+          "border-border bg-card active:bg-accent border shadow-sm shadow-black/5",
+          Platform.select({ web: "hover:bg-accent" }),
+        ),
+        gradient: cn(
+          "relative overflow-hidden bg-transparent shadow-qlink-sm active:opacity-95",
+          Platform.select({ web: "hover:opacity-95" }),
+        ),
         link: "",
       },
       size: {
-        default: cn("h-10 px-4 py-2 sm:h-9", Platform.select({ web: "has-[>svg]:px-3" })),
-        sm: cn("h-9 gap-1.5 rounded-md px-3 sm:h-8", Platform.select({ web: "has-[>svg]:px-2.5" })),
-        lg: cn("h-11 rounded-md px-6 sm:h-10", Platform.select({ web: "has-[>svg]:px-4" })),
+        xs: cn(
+          "h-8 min-w-button-xs gap-1 rounded-sm px-2",
+          Platform.select({ web: "has-[>svg]:px-2" }),
+        ),
+        default: cn(
+          "h-10 min-w-button-default px-4 py-2 sm:h-9",
+          Platform.select({ web: "has-[>svg]:px-3" }),
+        ),
+        sm: cn(
+          "h-9 min-w-button-sm gap-1.5 rounded-md px-3 sm:h-8",
+          Platform.select({ web: "has-[>svg]:px-2.5" }),
+        ),
+        lg: cn(
+          "h-11 min-w-button-lg rounded-md px-6 sm:h-10",
+          Platform.select({ web: "has-[>svg]:px-4" }),
+        ),
         icon: "h-10 w-10 sm:h-9 sm:w-9",
       },
     },
@@ -64,13 +100,18 @@ const buttonTextVariants = cva(
     variants: {
       variant: {
         default: "text-primary-foreground",
+        primary: "text-primary-foreground",
         destructive: "text-white",
+        danger: "text-white",
         outline: cn(
           "group-active:text-accent-foreground",
           Platform.select({ web: "group-hover:text-accent-foreground" }),
         ),
         secondary: "text-secondary-foreground",
         ghost: "group-active:text-accent-foreground",
+        kakao: "text-black",
+        social: "text-foreground",
+        gradient: "text-primary-foreground",
         link: cn(
           "text-primary group-active:underline",
           Platform.select({
@@ -79,6 +120,7 @@ const buttonTextVariants = cva(
         ),
       },
       size: {
+        xs: "text-xs",
         default: "",
         sm: "",
         lg: "",
@@ -96,14 +138,28 @@ type ButtonProps = React.ComponentProps<typeof Pressable> &
   React.RefAttributes<typeof Pressable> &
   VariantProps<typeof buttonVariants>;
 
-function Button({ className, variant, size, ...props }: ButtonProps) {
+function Button({ children, className, variant, size, ...props }: ButtonProps) {
+  const renderChildren = (state: PressableStateCallbackType) => (
+    <>
+      {variant === "gradient" ? (
+        <LinearGradient
+          className="absolute inset-0"
+          pointerEvents="none"
+        />
+      ) : null}
+      {typeof children === "function" ? children(state) : children}
+    </>
+  );
+
   return (
     <TextClassContext.Provider value={buttonTextVariants({ variant, size })}>
       <Pressable
         className={cn(props.disabled && "opacity-50", buttonVariants({ variant, size }), className)}
         role="button"
         {...props}
-      />
+      >
+        {renderChildren}
+      </Pressable>
     </TextClassContext.Provider>
   );
 }

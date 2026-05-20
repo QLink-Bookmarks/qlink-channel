@@ -2,14 +2,43 @@ import { Platform, TextInput } from "react-native";
 
 import { cn } from "@/lib/utils";
 
+import { type VariantProps, cva } from "class-variance-authority";
+
+const inputVariants = cva(
+  "flex w-full min-w-0 flex-row items-center border border-input text-foreground shadow-sm shadow-black/5 dark:bg-input/30",
+  {
+    variants: {
+      variant: {
+        default: "rounded-md bg-background",
+        search: "rounded-full bg-card",
+        pill: "rounded-full bg-surface-elevated",
+        inline: "rounded-none border-0 bg-transparent shadow-none",
+      },
+      size: {
+        sm: "h-9 px-3 py-1 text-sm",
+        md: "h-10 px-3 py-1 text-base leading-5",
+        lg: "h-12 px-4 py-2 text-base",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "md",
+    },
+  },
+);
+
 function Input({
   className,
+  variant,
+  size,
   ...props
-}: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput>) {
+}: React.ComponentProps<typeof TextInput> &
+  React.RefAttributes<TextInput> &
+  VariantProps<typeof inputVariants>) {
   return (
     <TextInput
       className={cn(
-        "flex h-10 w-full min-w-0 flex-row items-center rounded-md border border-input bg-background px-3 py-1 text-base leading-5 text-foreground shadow-sm shadow-black/5 dark:bg-input/30 sm:h-9",
+        inputVariants({ variant, size }),
         props.editable === false &&
           cn(
             "opacity-50",

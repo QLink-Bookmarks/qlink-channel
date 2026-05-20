@@ -14,17 +14,35 @@ function Progress({
   className,
   value,
   indicatorClassName,
+  variant = "linear",
+  size = "md",
+  indeterminate,
   ...props
 }: React.ComponentProps<typeof ProgressPrimitive.Root> & {
   indicatorClassName?: string;
+  variant?: "linear" | "circular";
+  size?: "sm" | "md" | "lg";
+  indeterminate?: boolean;
 }) {
+  const height = size === "sm" ? "h-1.5" : size === "lg" ? "h-3" : "h-2";
   return (
     <ProgressPrimitive.Root
-      className={cn("relative h-2 w-full overflow-hidden rounded-full bg-primary/20", className)}
+      className={cn(
+        "relative overflow-hidden rounded-full bg-primary/20",
+        variant === "circular" ? "aspect-square rounded-full" : "w-full",
+        variant === "circular"
+          ? size === "lg"
+            ? "size-12"
+            : size === "sm"
+              ? "size-8"
+              : "size-10"
+          : height,
+        className,
+      )}
       {...props}
     >
       <Indicator
-        value={value}
+        value={indeterminate ? 45 : value}
         className={indicatorClassName}
       />
     </ProgressPrimitive.Root>

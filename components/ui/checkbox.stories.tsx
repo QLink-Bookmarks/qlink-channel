@@ -6,18 +6,25 @@ import type { Meta, StoryObj } from "@storybook/react-native";
 import { Checkbox } from "./checkbox";
 import { Text } from "./text";
 
-import { fn } from "storybook/test";
+import { useArgs } from "storybook/preview-api";
+
+type CheckboxStoryProps = {
+  label: string;
+  checked: boolean;
+  disabled: boolean;
+  shape: "square" | "round";
+};
 
 function CheckboxDemo({
+  label,
   checked: initialChecked = true,
   disabled = false,
-  onCheckedChange = fn(),
-}: React.ComponentProps<typeof Checkbox>) {
+  shape = "square",
+}: CheckboxStoryProps) {
   const [checked, setChecked] = React.useState(initialChecked);
 
   const handleCheckedChange = (nextChecked: boolean) => {
     setChecked(nextChecked);
-    onCheckedChange(nextChecked);
   };
 
   return (
@@ -25,31 +32,56 @@ function CheckboxDemo({
       <Checkbox
         checked={checked}
         disabled={disabled}
+        shape={shape}
         onCheckedChange={handleCheckedChange}
       />
-      <Text>Accept notifications</Text>
+      <Text>{label}</Text>
     </View>
   );
 }
 
 const meta = {
-  title: "UI/Checkbox",
-  component: Checkbox,
+  title: "공통 UI/체크박스",
+  component: CheckboxDemo,
   args: {
+    label: "알림 받기",
     checked: true,
     disabled: false,
-    onCheckedChange: fn(),
+    shape: "square",
   },
-  render: (args) => <CheckboxDemo {...args} />,
-} satisfies Meta<typeof Checkbox>;
+  argTypes: {
+    label: { control: "text" },
+    checked: { control: "boolean" },
+    disabled: { control: "boolean" },
+    shape: { control: "select", options: ["square", "round"] },
+  },
+  render: function Render(args) {
+    const [, updateArgs] = useArgs();
+
+    return (
+      <View className="flex-row items-center gap-3 p-4">
+        <Checkbox
+          checked={args.checked}
+          disabled={args.disabled}
+          shape={args.shape}
+          onCheckedChange={(nextChecked) => updateArgs({ checked: nextChecked })}
+        />
+        <Text>{args.label}</Text>
+      </View>
+    );
+  },
+} satisfies Meta<typeof CheckboxDemo>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic: Story = {
+  name: "기본",
+};
 
 export const Disabled: Story = {
+  name: "비활성",
   args: {
     disabled: true,
   },

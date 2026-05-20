@@ -5,29 +5,29 @@ import type { Meta, StoryObj } from "@storybook/react-native";
 
 import { RadioGroup, RadioGroupItem } from "./radio-group";
 
-import { fn } from "storybook/test";
-
-type RadioGroupProps = React.ComponentProps<typeof RadioGroup>;
-
 const options = [
-  { value: "email", label: "Email" },
+  { value: "email", label: "이메일" },
   { value: "sms", label: "SMS" },
-  { value: "push", label: "Push notification" },
+  { value: "push", label: "푸시 알림" },
 ];
 
-function RadioGroupDemo(args: RadioGroupProps) {
-  const [value, setValue] = useState(args.value ?? "email");
+type RadioGroupStoryProps = {
+  value: string;
+  disabled: boolean;
+};
+
+function RadioGroupDemo({ value: initialValue, disabled }: RadioGroupStoryProps) {
+  const [value, setValue] = useState(initialValue);
 
   const handleValueChange = (nextValue: string) => {
     setValue(nextValue);
-    args.onValueChange(nextValue);
   };
 
   return (
     <View className="gap-4 p-4">
       <RadioGroup
-        {...args}
         value={value}
+        disabled={disabled}
         onValueChange={handleValueChange}
       >
         {options.map((option) => (
@@ -49,29 +49,35 @@ function RadioGroupDemo(args: RadioGroupProps) {
         ))}
       </RadioGroup>
 
-      <Text className="text-sm text-muted-foreground">Selected: {value}</Text>
+      <Text className="text-sm text-muted-foreground">선택됨: {value}</Text>
     </View>
   );
 }
 
 const meta = {
-  title: "UI/RadioGroup",
-  component: RadioGroup,
+  title: "공통 UI/라디오 그룹",
+  component: RadioGroupDemo,
   args: {
     value: "email",
-    onValueChange: fn(),
     disabled: false,
   },
+  argTypes: {
+    value: { control: "select", options: ["email", "sms", "push"] },
+    disabled: { control: "boolean" },
+  },
   render: (args) => <RadioGroupDemo {...args} />,
-} satisfies Meta<typeof RadioGroup>;
+} satisfies Meta<typeof RadioGroupDemo>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic: Story = {
+  name: "기본",
+};
 
 export const Disabled: Story = {
+  name: "비활성",
   args: {
     disabled: true,
   },

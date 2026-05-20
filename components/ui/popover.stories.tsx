@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Text } from "./text";
 
 const meta = {
-  title: "UI/Popover",
+  title: "공통 UI/팝오버",
   component: Popover,
   decorators: [
     (Story) => (
@@ -23,16 +23,17 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
+  name: "기본",
   render: () => (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline">
-          <Text>Open popover</Text>
+          <Text>팝오버 열기</Text>
         </Button>
       </PopoverTrigger>
       <PopoverContent>
-        <Text variant="large">Workspace</Text>
-        <Text variant="muted">Manage billing, members, and notification settings.</Text>
+        <Text variant="large">워크스페이스</Text>
+        <Text variant="muted">결제, 멤버, 알림 설정을 관리한다.</Text>
       </PopoverContent>
     </Popover>
   ),

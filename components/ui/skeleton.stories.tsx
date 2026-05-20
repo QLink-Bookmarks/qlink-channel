@@ -5,7 +5,7 @@ import type { Meta, StoryObj } from "@storybook/react-native";
 import { Skeleton } from "./skeleton";
 
 const meta = {
-  title: "UI/Skeleton",
+  title: "공통 UI/스켈레톤",
   component: Skeleton,
   decorators: [
     (Story) => (
@@ -21,6 +21,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
+  name: "기본",
   render: () => (
     <View className="gap-3">
       <View className="flex-row items-center gap-3">

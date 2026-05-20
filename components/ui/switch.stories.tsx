@@ -6,18 +6,21 @@ import type { Meta, StoryObj } from "@storybook/react-native";
 import { Switch } from "./switch";
 import { Text } from "./text";
 
-import { fn } from "storybook/test";
+type SwitchStoryProps = {
+  label: string;
+  checked: boolean;
+  disabled: boolean;
+};
 
-function SwitchDemo({
-  checked: initialChecked = true,
-  disabled = false,
-  onCheckedChange = fn(),
-}: React.ComponentProps<typeof Switch>) {
+function SwitchDemo({ label, checked: initialChecked = true, disabled = false }: SwitchStoryProps) {
   const [checked, setChecked] = React.useState(initialChecked);
+
+  React.useEffect(() => {
+    setChecked(initialChecked);
+  }, [initialChecked]);
 
   const handleCheckedChange = (nextChecked: boolean) => {
     setChecked(nextChecked);
-    onCheckedChange(nextChecked);
   };
 
   return (
@@ -27,29 +30,37 @@ function SwitchDemo({
         disabled={disabled}
         onCheckedChange={handleCheckedChange}
       />
-      <Text>Enable notifications</Text>
+      <Text>{label}</Text>
     </View>
   );
 }
 
 const meta = {
-  title: "UI/Switch",
-  component: Switch,
+  title: "공통 UI/스위치",
+  component: SwitchDemo,
   args: {
+    label: "알림 켜기",
     checked: true,
     disabled: false,
-    onCheckedChange: fn(),
+  },
+  argTypes: {
+    label: { control: "text" },
+    checked: { control: "boolean" },
+    disabled: { control: "boolean" },
   },
   render: (args) => <SwitchDemo {...args} />,
-} satisfies Meta<typeof Switch>;
+} satisfies Meta<typeof SwitchDemo>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic: Story = {
+  name: "기본",
+};
 
 export const Disabled: Story = {
+  name: "비활성",
   args: {
     disabled: true,
   },

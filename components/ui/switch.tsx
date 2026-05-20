@@ -1,30 +1,44 @@
-import { Platform } from "react-native";
+import { Platform, View } from "react-native";
 
+import { LinearGradient } from "@/components/ui/linear-gradient";
 import { cn } from "@/lib/utils";
 import * as SwitchPrimitives from "@rn-primitives/switch";
 
-function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimitives.Root>) {
+function Switch({
+  className,
+  size = "md",
+  ...props
+}: React.ComponentProps<typeof SwitchPrimitives.Root> & { size?: "sm" | "md" }) {
+  const isSmall = size === "sm";
   return (
     <SwitchPrimitives.Root
       className={cn(
-        "flex h-[1.15rem] w-8 shrink-0 flex-row items-center rounded-full border border-transparent shadow-sm shadow-black/5",
+        "relative flex shrink-0 flex-row items-center overflow-hidden rounded-full border border-transparent",
+        isSmall ? "h-4 w-7" : "h-[1.15rem] w-8",
         Platform.select({
           web: "peer inline-flex outline-none transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed",
         }),
-        props.checked ? "bg-primary" : "bg-input dark:bg-input/80",
+        props.checked ? "shadow-qlink-sm" : "bg-input shadow-sm shadow-black/5 dark:bg-input/80",
         props.disabled && "opacity-50",
         className,
       )}
       {...props}
     >
+      {props.checked ? <LinearGradient className="absolute inset-0 rounded-full" /> : null}
+      {!props.checked ? (
+        <View className="absolute inset-0 rounded-full bg-input dark:bg-input/80" />
+      ) : null}
       <SwitchPrimitives.Thumb
         className={cn(
-          "size-4 rounded-full bg-background transition-transform",
+          "z-10 rounded-full bg-background shadow-sm shadow-black/10 transition-transform",
+          isSmall ? "size-3.5" : "size-4",
           Platform.select({
             web: "pointer-events-none block ring-0",
           }),
           props.checked
-            ? "translate-x-3.5 dark:bg-primary-foreground"
+            ? isSmall
+              ? "translate-x-3 dark:bg-primary-foreground"
+              : "translate-x-3.5 dark:bg-primary-foreground"
             : "translate-x-0 dark:bg-foreground",
         )}
       />

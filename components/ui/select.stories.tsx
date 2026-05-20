@@ -14,24 +14,27 @@ import {
   SelectValue,
 } from "./select";
 
-import { fn } from "storybook/test";
-
 const options = [
-  { value: "starter", label: "Starter" },
-  { value: "team", label: "Team" },
-  { value: "enterprise", label: "Enterprise" },
+  { value: "starter", label: "스타터" },
+  { value: "team", label: "팀" },
+  { value: "enterprise", label: "엔터프라이즈" },
 ];
 
-function SelectDemo({
-  value: initialValue = options[1],
-  disabled = false,
-  onValueChange = fn(),
-}: React.ComponentProps<typeof Select>) {
-  const [value, setValue] = React.useState<Option>(initialValue);
+type SelectStoryProps = {
+  value: "starter" | "team" | "enterprise";
+  disabled: boolean;
+};
+
+function SelectDemo({ value: initialValue = "team", disabled = false }: SelectStoryProps) {
+  const initialOption = options.find((option) => option.value === initialValue) ?? options[1];
+  const [value, setValue] = React.useState<Option>(initialOption);
+
+  React.useEffect(() => {
+    setValue(options.find((option) => option.value === initialValue) ?? options[1]);
+  }, [initialValue]);
 
   const handleValueChange = (nextValue: Option) => {
     setValue(nextValue);
-    onValueChange(nextValue);
   };
 
   return (
@@ -40,12 +43,15 @@ function SelectDemo({
       disabled={disabled}
       onValueChange={handleValueChange}
     >
-      <SelectTrigger className="w-56">
-        <SelectValue placeholder="Select a plan" />
+      <SelectTrigger
+        className="w-56"
+        disabled={disabled}
+      >
+        <SelectValue placeholder="플랜 선택" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Plans</SelectLabel>
+          <SelectLabel>플랜</SelectLabel>
           {options.map((option) => (
             <SelectItem
               key={option.value}
@@ -60,12 +66,15 @@ function SelectDemo({
 }
 
 const meta = {
-  title: "UI/Select",
-  component: Select,
+  title: "공통 UI/셀렉트",
+  component: SelectDemo,
   args: {
-    value: options[1],
+    value: "team",
     disabled: false,
-    onValueChange: fn(),
+  },
+  argTypes: {
+    value: { control: "select", options: ["starter", "team", "enterprise"] },
+    disabled: { control: "boolean" },
   },
   decorators: [
     (Story) => (
@@ -75,15 +84,18 @@ const meta = {
     ),
   ],
   render: (args) => <SelectDemo {...args} />,
-} satisfies Meta<typeof Select>;
+} satisfies Meta<typeof SelectDemo>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic: Story = {
+  name: "기본",
+};
 
 export const Disabled: Story = {
+  name: "비활성",
   args: {
     disabled: true,
   },

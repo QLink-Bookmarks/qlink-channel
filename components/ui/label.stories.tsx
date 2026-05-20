@@ -6,7 +6,7 @@ import { Input } from "./input";
 import { Label } from "./label";
 
 const meta = {
-  title: "UI/Label",
+  title: "공통 UI/라벨",
   component: Label,
   decorators: [
     (Story) => (
@@ -22,17 +22,19 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
+  name: "기본",
   render: () => (
     <>
-      <Label nativeID="project-label">Project name</Label>
+      <Label nativeID="project-label">프로젝트 이름</Label>
       <Input
         aria-labelledby="project-label"
-        defaultValue="Launch plan"
+        defaultValue="출시 계획"
       />
     </>
   ),
 };
 
 export const Disabled: Story = {
-  render: () => <Label disabled>Disabled label</Label>,
+  name: "비활성",
+  render: () => <Label disabled>비활성 라벨</Label>,
 };

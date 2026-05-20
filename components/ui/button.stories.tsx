@@ -5,13 +5,66 @@ import type { Meta, StoryObj } from "@storybook/react-native";
 import { Button } from "./button";
 import { Text } from "./text";
 
-import { fn } from "storybook/test";
+type ButtonStoryProps = {
+  label: string;
+  variant:
+    | "default"
+    | "primary"
+    | "destructive"
+    | "danger"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "kakao"
+    | "social"
+    | "gradient"
+    | "link";
+  size: "xs" | "default" | "sm" | "lg" | "icon";
+  disabled: boolean;
+};
+
+function ButtonStory({ label, variant, size, disabled }: ButtonStoryProps) {
+  return (
+    <Button
+      variant={variant}
+      size={size}
+      disabled={disabled}
+      onPress={() => {}}
+    >
+      <Text>{label}</Text>
+    </Button>
+  );
+}
 
 const meta = {
-  title: "UI/Button",
-  component: Button,
+  title: "공통 UI/버튼",
+  component: ButtonStory,
   args: {
-    onPress: fn(),
+    label: "버튼",
+    variant: "default",
+    size: "default",
+    disabled: false,
+  },
+  argTypes: {
+    label: { control: "text" },
+    variant: {
+      control: "select",
+      options: [
+        "default",
+        "primary",
+        "destructive",
+        "danger",
+        "outline",
+        "secondary",
+        "ghost",
+        "kakao",
+        "social",
+        "gradient",
+        "link",
+      ],
+    },
+    size: { control: "select", options: ["xs", "default", "sm", "lg", "icon"] },
+    disabled: { control: "boolean" },
   },
   decorators: [
     (Story) => (
@@ -20,55 +73,98 @@ const meta = {
       </View>
     ),
   ],
-} satisfies Meta<typeof Button>;
+} satisfies Meta<typeof ButtonStory>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
-  render: (args) => (
-    <Button {...args}>
-      <Text>Button</Text>
-    </Button>
-  ),
+  name: "기본",
 };
 
 export const Variants: Story = {
-  render: (args) => (
+  name: "변형",
+  render: ({ size, disabled }) => (
     <View className="items-start gap-3">
-      <Button {...args}>
-        <Text>Default</Text>
+      <Button
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
+      >
+        <Text>기본</Text>
       </Button>
       <Button
-        {...args}
+        variant="primary"
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
+      >
+        <Text>주요</Text>
+      </Button>
+      <Button
         variant="secondary"
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
       >
-        <Text>Secondary</Text>
+        <Text>보조</Text>
       </Button>
       <Button
-        {...args}
         variant="outline"
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
       >
-        <Text>Outline</Text>
+        <Text>외곽선</Text>
       </Button>
       <Button
-        {...args}
         variant="destructive"
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
       >
-        <Text>Destructive</Text>
+        <Text>위험</Text>
       </Button>
       <Button
-        {...args}
         variant="ghost"
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
       >
-        <Text>Ghost</Text>
+        <Text>고스트</Text>
       </Button>
       <Button
-        {...args}
-        variant="link"
+        variant="kakao"
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
       >
-        <Text>Link</Text>
+        <Text>Kakao</Text>
+      </Button>
+      <Button
+        variant="social"
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
+      >
+        <Text>소셜</Text>
+      </Button>
+      <Button
+        variant="gradient"
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
+      >
+        <Text>그라디언트</Text>
+      </Button>
+      <Button
+        variant="link"
+        size={size}
+        disabled={disabled}
+        onPress={() => {}}
+      >
+        <Text>링크</Text>
       </Button>
     </View>
   ),

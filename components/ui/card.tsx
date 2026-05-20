@@ -3,17 +3,41 @@ import { View } from "react-native";
 import { Text, TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
+import { type VariantProps, cva } from "class-variance-authority";
+
+const cardVariants = cva("flex flex-col rounded-2xl border bg-card shadow-qlink-card", {
+  variants: {
+    variant: {
+      default: "border-border",
+      flat: "border-transparent shadow-none",
+      elevated: "border-border shadow-qlink-md",
+      interactive:
+        "border-border active:border-primary active:shadow-qlink-md web:hover:border-primary web:hover:shadow-qlink-md",
+      outlined: "border-border bg-transparent shadow-none",
+    },
+    density: {
+      compact: "gap-3 py-4",
+      default: "gap-6 py-6",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+    density: "default",
+  },
+});
+
 function Card({
   className,
+  variant,
+  density,
   ...props
-}: React.ComponentProps<typeof View> & React.RefAttributes<View>) {
+}: React.ComponentProps<typeof View> &
+  React.RefAttributes<View> &
+  VariantProps<typeof cardVariants>) {
   return (
     <TextClassContext.Provider value="text-card-foreground">
       <View
-        className={cn(
-          "flex flex-col gap-6 rounded-xl border border-border bg-card py-6 shadow-sm shadow-black/5",
-          className,
-        )}
+        className={cn(cardVariants({ variant, density }), className)}
         {...props}
       />
     </TextClassContext.Provider>
@@ -84,4 +108,4 @@ function CardFooter({
   );
 }
 
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, cardVariants };

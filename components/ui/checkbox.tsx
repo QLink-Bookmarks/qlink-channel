@@ -13,16 +13,22 @@ function Checkbox({
   checkedClassName,
   indicatorClassName,
   iconClassName,
+  size = "md",
+  shape = "square",
   ...props
 }: React.ComponentProps<typeof CheckboxPrimitive.Root> & {
   checkedClassName?: string;
   indicatorClassName?: string;
   iconClassName?: string;
+  size?: "sm" | "md";
+  shape?: "square" | "round";
 }) {
   return (
     <CheckboxPrimitive.Root
       className={cn(
-        "size-4 shrink-0 rounded-[4px] border border-input shadow-sm shadow-black/5 dark:bg-input/30",
+        "shrink-0 border border-input shadow-sm shadow-black/5 dark:bg-input/30",
+        size === "sm" ? "size-3.5" : "size-4",
+        shape === "round" ? "rounded-full" : "rounded-[4px]",
         Platform.select({
           web: "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive peer cursor-default outline-none transition-shadow focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed",
           native: "overflow-hidden",
@@ -35,11 +41,15 @@ function Checkbox({
       {...props}
     >
       <CheckboxPrimitive.Indicator
-        className={cn("h-full w-full items-center justify-center bg-primary", indicatorClassName)}
+        className={cn(
+          "h-full w-full items-center justify-center bg-primary",
+          shape === "round" ? "rounded-full" : "rounded-[3px]",
+          indicatorClassName,
+        )}
       >
         <Icon
           as={Check}
-          size={12}
+          size={size === "sm" ? 10 : 12}
           strokeWidth={Platform.OS === "web" ? 2.5 : 3.5}
           className={cn("text-primary-foreground", iconClassName)}
         />

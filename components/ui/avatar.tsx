@@ -1,10 +1,33 @@
+import { View } from "react-native";
+
 import { cn } from "@/lib/utils";
 import * as AvatarPrimitive from "@rn-primitives/avatar";
 
-function Avatar({ className, ...props }: React.ComponentProps<typeof AvatarPrimitive.Root>) {
+import { type VariantProps, cva } from "class-variance-authority";
+
+const avatarVariants = cva("relative flex shrink-0 overflow-hidden rounded-full", {
+  variants: {
+    size: {
+      xs: "size-6",
+      sm: "size-8",
+      md: "size-10",
+      lg: "size-12",
+      xl: "size-16",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+function Avatar({
+  className,
+  size,
+  ...props
+}: React.ComponentProps<typeof AvatarPrimitive.Root> & VariantProps<typeof avatarVariants>) {
   return (
     <AvatarPrimitive.Root
-      className={cn("relative flex size-8 shrink-0 overflow-hidden rounded-full", className)}
+      className={cn(avatarVariants({ size }), className)}
       {...props}
     />
   );
@@ -34,4 +57,19 @@ function AvatarFallback({
   );
 }
 
-export { Avatar, AvatarFallback, AvatarImage };
+function AvatarGroup({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof View> & { children?: React.ReactNode }) {
+  return (
+    <View
+      className={cn("flex flex-row -space-x-2", className)}
+      {...props}
+    >
+      {children}
+    </View>
+  );
+}
+
+export { Avatar, AvatarFallback, AvatarGroup, AvatarImage, avatarVariants };

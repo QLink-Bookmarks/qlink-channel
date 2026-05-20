@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Text } from "./text";
 
 const meta = {
-  title: "UI/Card",
+  title: "공통 UI/카드",
   component: Card,
   decorators: [
     (Story) => (
@@ -23,21 +23,42 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
+  name: "기본",
   render: () => (
     <Card>
       <CardHeader>
-        <CardTitle>Team plan</CardTitle>
-        <CardDescription>Shared workspace for growing teams.</CardDescription>
+        <CardTitle>팀 플랜</CardTitle>
+        <CardDescription>성장하는 팀을 위한 공유 작업 공간.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Text variant="h3">$29/mo</Text>
-        <Text variant="muted">Includes unlimited projects and 10 seats.</Text>
+        <Text variant="h3">월 29달러</Text>
+        <Text variant="muted">무제한 프로젝트와 좌석 10개가 포함된다.</Text>
       </CardContent>
       <CardFooter>
         <Button className="w-full">
-          <Text>Upgrade</Text>
+          <Text>업그레이드</Text>
         </Button>
       </CardFooter>
     </Card>
+  ),
+};
+
+export const Variants: Story = {
+  name: "변형",
+  render: () => (
+    <View className="gap-3">
+      {(["flat", "elevated", "interactive", "outlined"] as const).map((variant) => (
+        <Card
+          key={variant}
+          variant={variant}
+          density="compact"
+        >
+          <CardHeader>
+            <CardTitle>{variant}</CardTitle>
+            <CardDescription>QLINK 카드 변형</CardDescription>
+          </CardHeader>
+        </Card>
+      ))}
+    </View>
   ),
 };

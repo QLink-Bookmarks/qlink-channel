@@ -6,17 +6,15 @@ import type { Meta, StoryObj } from "@storybook/react-native";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { Text } from "./text";
 
-import { fn } from "storybook/test";
+type TabsStoryProps = {
+  value: "overview" | "activity";
+};
 
-function TabsDemo({
-  value: initialValue = "overview",
-  onValueChange = fn(),
-}: React.ComponentProps<typeof Tabs>) {
+function TabsDemo({ value: initialValue = "overview" }: TabsStoryProps) {
   const [value, setValue] = React.useState(initialValue);
 
   const handleValueChange = (nextValue: string) => {
-    setValue(nextValue);
-    onValueChange(nextValue);
+    setValue(nextValue as TabsStoryProps["value"]);
   };
 
   return (
@@ -27,36 +25,38 @@ function TabsDemo({
     >
       <TabsList>
         <TabsTrigger value="overview">
-          <Text>Overview</Text>
+          <Text>개요</Text>
         </TabsTrigger>
         <TabsTrigger value="activity">
-          <Text>Activity</Text>
+          <Text>활동</Text>
         </TabsTrigger>
       </TabsList>
       <TabsContent
         value="overview"
         className="rounded-md border border-border p-4"
       >
-        <Text variant="large">Overview</Text>
-        <Text variant="muted">A compact summary of the current workspace.</Text>
+        <Text variant="large">개요</Text>
+        <Text variant="muted">현재 워크스페이스의 간단한 요약이다.</Text>
       </TabsContent>
       <TabsContent
         value="activity"
         className="rounded-md border border-border p-4"
       >
-        <Text variant="large">Activity</Text>
-        <Text variant="muted">Recent changes and events appear here.</Text>
+        <Text variant="large">활동</Text>
+        <Text variant="muted">최근 변경 사항과 이벤트가 여기에 표시된다.</Text>
       </TabsContent>
     </Tabs>
   );
 }
 
 const meta = {
-  title: "UI/Tabs",
-  component: Tabs,
+  title: "공통 UI/탭",
+  component: TabsDemo,
   args: {
     value: "overview",
-    onValueChange: fn(),
+  },
+  argTypes: {
+    value: { control: "select", options: ["overview", "activity"] },
   },
   decorators: [
     (Story) => (
@@ -66,10 +66,12 @@ const meta = {
     ),
   ],
   render: (args) => <TabsDemo {...args} />,
-} satisfies Meta<typeof Tabs>;
+} satisfies Meta<typeof TabsDemo>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Basic: Story = {};
+export const Basic: Story = {
+  name: "기본",
+};
