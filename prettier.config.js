@@ -1,4 +1,5 @@
 module.exports = {
+  endOfLine: "lf",
   printWidth: 100,
   singleAttributePerLine: true,
   plugins: ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
