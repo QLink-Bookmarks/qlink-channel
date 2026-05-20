@@ -7,6 +7,10 @@ module.exports = defineConfig([
   globalIgnores([
     ".expo/**",
     ".storybook-static/**",
+    "storybook-static/**",
+    "**/storybook.requires.ts",
+    "docs/**",
+    ".playwright-cli/**",
     "build/**",
     "coverage/**",
     "dist/**",

@@ -1,7 +1,10 @@
 .expo
 .storybook-static
+storybook-static
 build
 coverage
 dist
 node_modules
 web-build
+docs
+.playwright-cli
