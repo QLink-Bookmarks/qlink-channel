@@ -1,14 +1,23 @@
 import type { StorybookConfig } from "@storybook/react-native-web-vite";
 
 const main: StorybookConfig = {
-  stories: ["../components/**/*.stories.mdx", "../components/**/*.stories.@(js|jsx|ts|tsx)"],
+  stories: [
+    "../components/**/*.stories.mdx",
+    "../components/**/*.stories.@(js|jsx|ts|tsx)",
+    "../features/**/*.stories.@(js|jsx|ts|tsx)",
+  ],
 
   addons: ["@storybook/addon-docs", "@chromatic-com/storybook"],
 
   framework: {
     name: "@storybook/react-native-web-vite",
     options: {
-      modulesToTranspile: ["react-native-reanimated", "react-native-worklets"],
+      modulesToTranspile: [
+        "nativewind",
+        "react-native-css-interop",
+        "react-native-reanimated",
+        "react-native-worklets",
+      ],
 
       pluginReactOptions: {
         jsxImportSource: "nativewind",
@@ -23,7 +32,18 @@ const main: StorybookConfig = {
     ...config,
     define: {
       ...config.define,
-      "process.env.STORYBOOK_VITE": JSON.stringify(process.env.STORYBOOK_VITE),
+      "process.env.STORYBOOK_VITE": true,
+    },
+    optimizeDeps: {
+      ...config.optimizeDeps,
+      include: [...(config.optimizeDeps?.include ?? []), "nativewind", "react-native-css-interop"],
+    },
+    build: {
+      ...config.build,
+      commonjsOptions: {
+        ...config.build?.commonjsOptions,
+        transformMixedEsModules: true,
+      },
     },
   }),
 };

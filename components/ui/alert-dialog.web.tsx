@@ -1,47 +1,34 @@
 import * as React from "react";
-import { Platform, View, type ViewProps } from "react-native";
-import { FadeIn, FadeOut } from "react-native-reanimated";
-import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens";
+import { View, type ViewProps } from "react-native";
 
 import { buttonTextVariants, buttonVariants } from "@/components/ui/button";
-import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view";
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
-import * as AlertDialogPrimitive from "@rn-primitives/alert-dialog";
+import * as DialogPrimitive from "@rn-primitives/dialog";
 
-const AlertDialog = AlertDialogPrimitive.Root;
+const AlertDialog = DialogPrimitive.Root;
 
-const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
+const AlertDialogTrigger = DialogPrimitive.Trigger;
 
-const AlertDialogPortal = AlertDialogPrimitive.Portal;
-
-const FullWindowOverlay = Platform.OS === "ios" ? RNFullWindowOverlay : React.Fragment;
+const AlertDialogPortal = DialogPrimitive.Portal;
 
 function AlertDialogOverlay({
   className,
   children,
   ...props
-}: Omit<React.ComponentProps<typeof AlertDialogPrimitive.Overlay>, "asChild"> & {
+}: Omit<React.ComponentProps<typeof DialogPrimitive.Overlay>, "asChild"> & {
   children?: React.ReactNode;
 }) {
   return (
-    <FullWindowOverlay>
-      <AlertDialogPrimitive.Overlay
-        className={cn(
-          "absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black/50 p-2",
-          className,
-        )}
-        {...props}
-        asChild
-      >
-        <NativeOnlyAnimatedView
-          entering={FadeIn.duration(200).delay(50)}
-          exiting={FadeOut.duration(150)}
-        >
-          <>{children}</>
-        </NativeOnlyAnimatedView>
-      </AlertDialogPrimitive.Overlay>
-    </FullWindowOverlay>
+    <DialogPrimitive.Overlay
+      className={cn(
+        "fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black/50 p-2 animate-in fade-in-0 [&>*]:cursor-auto",
+        className,
+      )}
+      {...props}
+    >
+      <>{children}</>
+    </DialogPrimitive.Overlay>
   );
 }
 
@@ -49,22 +36,32 @@ function AlertDialogContent({
   className,
   portalHost,
   children,
+  onInteractOutside,
+  onPointerDownOutside,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
   portalHost?: string;
 }) {
   return (
     <AlertDialogPortal hostName={portalHost}>
       <AlertDialogOverlay>
-        <AlertDialogPrimitive.Content
+        <DialogPrimitive.Content
           className={cn(
-            "z-50 flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-lg shadow-black/5",
+            "z-50 mx-auto flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-lg shadow-black/5 duration-200 animate-in fade-in-0 zoom-in-95 sm:max-w-lg",
             className,
           )}
+          onInteractOutside={(event) => {
+            event.preventDefault();
+            onInteractOutside?.(event);
+          }}
+          onPointerDownOutside={(event) => {
+            event.preventDefault();
+            onPointerDownOutside?.(event);
+          }}
           {...props}
         >
-          {children}
-        </AlertDialogPrimitive.Content>
+          <>{children}</>
+        </DialogPrimitive.Content>
       </AlertDialogOverlay>
     </AlertDialogPortal>
   );
@@ -72,7 +69,7 @@ function AlertDialogContent({
 
 function AlertDialogHeader({ className, ...props }: ViewProps) {
   return (
-    <TextClassContext.Provider value="text-center">
+    <TextClassContext.Provider value="text-center sm:text-left">
       <View
         className={cn("flex flex-col gap-2", className)}
         {...props}
@@ -84,7 +81,7 @@ function AlertDialogHeader({ className, ...props }: ViewProps) {
 function AlertDialogFooter({ className, ...props }: ViewProps) {
   return (
     <View
-      className={cn("flex flex-col-reverse gap-2", className)}
+      className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
       {...props}
     />
   );
@@ -93,9 +90,9 @@ function AlertDialogFooter({ className, ...props }: ViewProps) {
 function AlertDialogTitle({
   className,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Title>) {
+}: React.ComponentProps<typeof DialogPrimitive.Title>) {
   return (
-    <AlertDialogPrimitive.Title
+    <DialogPrimitive.Title
       className={cn("text-lg font-semibold text-foreground", className)}
       {...props}
     />
@@ -105,9 +102,9 @@ function AlertDialogTitle({
 function AlertDialogDescription({
   className,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Description>) {
+}: React.ComponentProps<typeof DialogPrimitive.Description>) {
   return (
-    <AlertDialogPrimitive.Description
+    <DialogPrimitive.Description
       className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
@@ -117,10 +114,10 @@ function AlertDialogDescription({
 function AlertDialogAction({
   className,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Action>) {
+}: React.ComponentProps<typeof DialogPrimitive.Close>) {
   return (
     <TextClassContext.Provider value={buttonTextVariants({ className })}>
-      <AlertDialogPrimitive.Action
+      <DialogPrimitive.Close
         className={cn(buttonVariants(), className)}
         {...props}
       />
@@ -131,10 +128,10 @@ function AlertDialogAction({
 function AlertDialogCancel({
   className,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
+}: React.ComponentProps<typeof DialogPrimitive.Close>) {
   return (
     <TextClassContext.Provider value={buttonTextVariants({ className, variant: "outline" })}>
-      <AlertDialogPrimitive.Cancel
+      <DialogPrimitive.Close
         className={cn(buttonVariants({ variant: "outline" }), className)}
         {...props}
       />

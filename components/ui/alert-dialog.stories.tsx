@@ -16,10 +16,8 @@ import {
 import { Button } from "./button";
 import { Text } from "./text";
 
-import { fn } from "storybook/test";
-
 const meta = {
-  title: "UI/AlertDialog",
+  title: "공통 UI/확인 다이얼로그",
   component: AlertDialog,
   decorators: [
     (Story) => (
@@ -35,26 +33,27 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
+  name: "기본",
   render: () => (
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button variant="outline">
-          <Text>Open alert dialog</Text>
+          <Text>확인창 열기</Text>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this item?</AlertDialogTitle>
+          <AlertDialogTitle>이 항목을 삭제할까요?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. The item will be permanently removed.
+            이 작업은 되돌릴 수 없으며 항목은 영구적으로 삭제된다.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>
-            <Text>Cancel</Text>
+            <Text>취소</Text>
           </AlertDialogCancel>
-          <AlertDialogAction onPress={fn()}>
-            <Text>Continue</Text>
+          <AlertDialogAction onPress={() => {}}>
+            <Text>계속</Text>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

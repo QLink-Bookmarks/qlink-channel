@@ -17,7 +17,7 @@ import { Input } from "./input";
 import { Text } from "./text";
 
 const meta = {
-  title: "UI/Dialog",
+  title: "공통 UI/다이얼로그",
   component: Dialog,
   decorators: [
     (Story) => (
@@ -33,23 +33,24 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
+  name: "기본",
   render: () => (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Text>Edit profile</Text>
+          <Text>프로필 수정</Text>
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
-          <DialogDescription>Update the display name used across the app.</DialogDescription>
+          <DialogTitle>프로필 수정</DialogTitle>
+          <DialogDescription>앱 전체에서 사용할 표시 이름을 수정한다.</DialogDescription>
         </DialogHeader>
-        <Input defaultValue="Qlink Team" />
+        <Input defaultValue="QLINK 팀" />
         <DialogFooter>
           <DialogClose asChild>
             <Button>
-              <Text>Save changes</Text>
+              <Text>변경사항 저장</Text>
             </Button>
           </DialogClose>
         </DialogFooter>
