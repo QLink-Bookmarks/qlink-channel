@@ -1,0 +1,38 @@
+import { View } from "react-native";
+
+import type { Meta, StoryObj } from "@storybook/react-native";
+
+import { Fab } from "./fab";
+
+import { Plus } from "lucide-react-native/icons";
+
+const meta = {
+  title: "레이아웃/FAB",
+  component: Fab,
+  parameters: {
+    docs: {
+      description: {
+        component: "모바일 전용 주요 액션 버튼이다. md 이상에서는 사용하지 않는다.",
+      },
+    },
+  },
+  args: {
+    icon: Plus,
+    label: "추가",
+  },
+  decorators: [
+    (Story) => (
+      <View className="h-[400px] p-4">
+        <Story />
+      </View>
+    ),
+  ],
+} satisfies Meta<typeof Fab>;
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Basic: Story = {
+  name: "기본",
+};
