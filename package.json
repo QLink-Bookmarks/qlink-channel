@@ -18,12 +18,14 @@
     "storybook-generate": "sb-rn-get-stories",
     "storybook": "cross-env EXPO_PUBLIC_STORYBOOK_ENABLED='true' expo start",
     "storybook:ios": "cross-env EXPO_PUBLIC_STORYBOOK_ENABLED='true' expo start --ios",
-    "storybook:android": "cross-env EXPO_PUBLIC_STORYBOOK_ENABLED='true' expo start --android"
+    "storybook:android": "cross-env EXPO_PUBLIC_STORYBOOK_ENABLED='true' expo start --android",
+    "chromatic": "bunx chromatic"
   },
   "dependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@gorhom/bottom-sheet": "^5.2.6",
     "@radix-ui/react-alert-dialog": "^1.1.15",
+    "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.6.0",
     "@react-native-community/slider": "5.1.2",

@@ -70,16 +70,13 @@ const ARIA_LEVEL: Partial<Record<TextVariant, string>> = {
 
 const TextClassContext = React.createContext<string | undefined>(undefined);
 
-function Text({
-  className,
-  asChild = false,
-  variant = "default",
-  ...props
-}: React.ComponentProps<typeof RNText> &
+type TextProps = React.ComponentProps<typeof RNText> &
   React.RefAttributes<typeof RNText> &
   TextVariantProps & {
     asChild?: boolean;
-  }) {
+  };
+
+function Text({ className, asChild = false, variant = "default", ...props }: TextProps) {
   const textClass = React.useContext(TextClassContext);
   const Component = asChild ? Slot : RNText;
   return (
@@ -92,4 +89,5 @@ function Text({
   );
 }
 
-export { Text, TextClassContext };
+export { Text, TextClassContext, textVariants };
+export type { TextProps, TextVariantProps };

@@ -1,5 +1,6 @@
 import { View } from "react-native";
 
+import { BrandHeader } from "@/components/layout/brand-header";
 import { Text } from "@/components/ui/text";
 import type { Meta, StoryObj } from "@storybook/react-native";
 
@@ -20,7 +21,11 @@ function SidebarContent({
 }) {
   return (
     <Sidebar className="flex">
-      <SidebarCTA label="링크 추가" />
+      <BrandHeader />
+      <SidebarCTA
+        label="링크 추가"
+        className="mt-3"
+      />
       <View className="mt-4 gap-1">
         <SidebarItem
           icon={House}
