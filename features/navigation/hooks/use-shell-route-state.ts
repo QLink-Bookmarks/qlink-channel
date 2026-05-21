@@ -37,11 +37,10 @@ function useShellRouteState() {
     const backHref = getBackHref(pathname);
     const showBackButton =
       !isWideView &&
-      (pathname.startsWith("/folders/") ||
-        pathname.startsWith("/links/") ||
-        pathname === "/settings/profile" ||
-        pathname === "/settings/ai" ||
-        pathname === "/settings/accounts");
+      (pathname.startsWith("/folders") ||
+        pathname.startsWith("/links") ||
+        pathname.startsWith("/todos") ||
+        pathname.startsWith("/settings"));
 
     return {
       pathname,

@@ -111,11 +111,16 @@ function Sheet({
     },
     [onOpenChange],
   );
+  const handleBackdropPress = React.useCallback(() => {
+    onOpenChange?.(false);
+    sheetRef.current?.close();
+  }, [onOpenChange]);
 
   const renderBackdrop = React.useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
         {...props}
+        onPress={dismissible ? handleBackdropPress : undefined}
         appearsOnIndex={0}
         disappearsOnIndex={-1}
         opacity={1}
@@ -123,7 +128,7 @@ function Sheet({
         pressBehavior={dismissible ? "close" : "none"}
       />
     ),
-    [backdropStyle, dismissible],
+    [backdropStyle, dismissible, handleBackdropPress],
   );
   const renderBackground = React.useCallback(
     (props: BottomSheetBackgroundProps) => (
@@ -149,7 +154,7 @@ function Sheet({
   return (
     <BottomSheet
       ref={sheetRef}
-      index={open ? initialSnapIndex : -1}
+      index={-1}
       snapPoints={memoizedSnapPoints}
       enablePanDownToClose={dismissible}
       backdropComponent={renderBackdrop}

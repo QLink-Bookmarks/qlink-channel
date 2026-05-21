@@ -57,7 +57,7 @@ function AppHeader({
       ) : (
         <View className="flex-1" />
       )}
-      <View className="min-w-10 flex-row justify-end">{rightSlot}</View>
+      <View className="min-w-10 flex-row items-center justify-end">{rightSlot}</View>
     </View>
   );
 }
