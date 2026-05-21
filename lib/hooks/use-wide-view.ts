@@ -1,11 +1,22 @@
+import * as React from "react";
 import { useWindowDimensions } from "react-native";
 
 const WIDE_VIEW_MIN_WIDTH = 768;
 
 function useWideView() {
   const { width } = useWindowDimensions();
+  const isWeb = process.env.EXPO_OS === "web";
+  const [hasMounted, setHasMounted] = React.useState(!isWeb);
 
-  return width >= WIDE_VIEW_MIN_WIDTH;
+  React.useEffect(() => {
+    if (!isWeb) {
+      return;
+    }
+
+    setHasMounted(true);
+  }, [isWeb]);
+
+  return hasMounted && width >= WIDE_VIEW_MIN_WIDTH;
 }
 
 export { useWideView };
