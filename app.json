@@ -4,7 +4,7 @@
   "scheme": "qlinkchannel",
   "version": "1.0.0",
   "orientation": "portrait",
-  "icon": "./assets/icon.png",
+  "icon": "./assets/app_icon.png",
   "userInterfaceStyle": "automatic",
   "ios": {
     "supportsTablet": true,
@@ -14,12 +14,12 @@
   },
   "android": {
     "adaptiveIcon": {
-      "foregroundImage": "./assets/adaptive-icon.png",
+      "foregroundImage": "./assets/app_icon.png",
       "backgroundColor": "#FFFFFF"
     }
   },
   "web": {
-    "favicon": "./assets/favicon.png",
+    "favicon": "./assets/web_favicon.png",
     "bundler": "metro",
     "output": "static"
   },
