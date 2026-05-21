@@ -68,6 +68,9 @@ module.exports = {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+          muted: "hsl(var(--sidebar-text-muted))",
+          hover: "hsl(var(--sidebar-text-hover))",
+          "surface-2": "hsl(var(--sidebar-surface-2))",
         },
         success: {
           DEFAULT: "hsl(var(--success))",

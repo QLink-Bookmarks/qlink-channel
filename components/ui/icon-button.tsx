@@ -29,6 +29,7 @@ function IconButton({
   accent = DEFAULT_ACCENT,
   color,
   backgroundColor,
+  active = false,
   disabled,
   style,
   ...props
@@ -38,6 +39,7 @@ function IconButton({
   accent?: AccentName;
   color?: string;
   backgroundColor?: string;
+  active?: boolean;
 }) {
   const tokens = React.useMemo(() => getThemeTokens("light", accent), [accent]);
   const sizeConfig = iconButtonSizes[size];
@@ -54,6 +56,7 @@ function IconButton({
             : undefined,
         }),
         sizeConfig.button,
+        active && "bg-accent",
         disabled && "opacity-50",
         className,
       )}

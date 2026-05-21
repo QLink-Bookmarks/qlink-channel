@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Pressable, View } from "react-native";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,6 +36,7 @@ function SidebarItem({
   className,
   icon,
   label,
+  labelClassName,
   count,
   kbd,
   active,
@@ -43,6 +45,7 @@ function SidebarItem({
   className?: string;
   icon?: LucideIcon;
   label: string;
+  labelClassName?: string;
   count?: number | string;
   kbd?: string;
   active?: boolean;
@@ -51,8 +54,8 @@ function SidebarItem({
   return (
     <Pressable
       className={cn(
-        "relative min-h-10 flex-row items-center gap-3 overflow-hidden rounded-xl px-3 active:bg-sidebar-accent",
-        active && "bg-sidebar-accent shadow-qlink-sm",
+        "group relative min-h-10 flex-row items-center gap-3 overflow-hidden rounded-xl px-3 active:bg-sidebar-surface-2 web:transition-colors web:hover:bg-sidebar-surface-2",
+        active && "bg-sidebar-surface-2 shadow-qlink-sm",
         className,
       )}
       onPress={onPress}
@@ -63,18 +66,31 @@ function SidebarItem({
       {icon ? (
         <Icon
           as={icon}
-          className={cn("size-4", active ? "text-primary" : "text-muted-foreground")}
+          className={cn(
+            "size-4",
+            active ? "text-primary" : "text-sidebar-muted web:group-hover:text-sidebar-hover",
+          )}
         />
       ) : null}
       <Text
         className={cn(
           "flex-1 text-sm font-medium",
-          active ? "text-sidebar-accent-foreground" : "text-sidebar-foreground",
+          active ? "text-primary" : "text-sidebar-muted web:group-hover:text-sidebar-hover",
+          labelClassName,
         )}
       >
         {label}
       </Text>
-      {count ? <Text className="text-xs text-muted-foreground">{count}</Text> : null}
+      {count ? (
+        <Text
+          className={cn(
+            "text-xs",
+            active ? "text-primary" : "text-sidebar-muted web:group-hover:text-sidebar-hover",
+          )}
+        >
+          {count}
+        </Text>
+      ) : null}
       {kbd ? <Kbd size="xs">{kbd}</Kbd> : null}
     </Pressable>
   );
@@ -157,17 +173,27 @@ function SidebarCTA({
   onPress,
 }: {
   className?: string;
-  label: string;
+  label: React.ReactNode;
   onPress?: () => void;
 }) {
+  const content =
+    typeof label === "string" ? (
+      <Text className="font-semibold text-primary-foreground">{label}</Text>
+    ) : (
+      label
+    );
+
   return (
     <Button
-      className={cn("min-h-11 w-full rounded-2xl px-4 shadow-qlink-md", className)}
+      className={cn(
+        "min-h-11 w-full rounded-2xl px-4 shadow-qlink-md web:transition-all web:hover:-translate-y-0.5 web:hover:shadow-qlink-lg",
+        className,
+      )}
       onPress={onPress}
       size="lg"
       variant="gradient"
     >
-      <Text className="font-semibold text-primary-foreground">{label}</Text>
+      <View className="flex-row items-center justify-center gap-3">{content}</View>
     </Button>
   );
 }

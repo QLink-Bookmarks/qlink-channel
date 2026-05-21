@@ -7,6 +7,9 @@ type KbdProps = React.ComponentProps<typeof View> & {
   size?: "xs" | "sm";
   label?: string;
   labelPosition?: "left" | "right";
+  labelClassName?: string;
+  keyClassName?: string;
+  keyTextClassName?: string;
 };
 
 function Kbd({
@@ -15,10 +18,19 @@ function Kbd({
   size = "sm",
   label,
   labelPosition = "right",
+  labelClassName,
+  keyClassName,
+  keyTextClassName,
   ...props
 }: KbdProps) {
   const labelElement = label ? (
-    <Text className={cn("text-muted-foreground", size === "xs" ? "text-2xs" : "text-xs")}>
+    <Text
+      className={cn(
+        "text-muted-foreground",
+        size === "xs" ? "text-2xs" : "text-xs",
+        labelClassName,
+      )}
+    >
       {label}
     </Text>
   ) : null;
@@ -33,12 +45,14 @@ function Kbd({
         className={cn(
           "items-center justify-center rounded-xs border border-border-soft bg-surface-elevated",
           size === "xs" ? "min-h-5 px-1.5" : "min-h-6 px-2",
+          keyClassName,
         )}
       >
         <Text
           className={cn(
             "font-mono font-medium text-muted-foreground",
             size === "xs" ? "text-2xs" : "text-xs",
+            keyTextClassName,
           )}
         >
           {children}
