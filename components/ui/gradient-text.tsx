@@ -2,8 +2,9 @@ import * as React from "react";
 import { Platform, Text as RNText, View } from "react-native";
 
 import { LinearGradient } from "@/components/ui/linear-gradient";
-import { type AccentName, DEFAULT_ACCENT, type ThemeMode, getThemeTokens } from "@/lib/theme";
+import { type AccentName, type ThemeMode, getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { useDisplaySettings } from "@/stores/display-settings";
 import MaskedView from "@react-native-masked-view/masked-view";
 
 import type { TextProps } from "./text";
@@ -19,14 +20,21 @@ type GradientTextProps = Omit<TextProps, "asChild" | "style"> & {
 function GradientText({
   className,
   variant = "default",
-  accent = DEFAULT_ACCENT,
-  mode = "light",
+  accent,
+  mode,
   colors,
   children,
   style,
   ...props
 }: GradientTextProps) {
-  const tokens = React.useMemo(() => getThemeTokens(mode, accent), [accent, mode]);
+  const storeAccent = useDisplaySettings((state) => state.display.accent);
+  const storeMode = useDisplaySettings((state) => state.display.theme);
+  const resolvedAccent = accent ?? storeAccent;
+  const resolvedMode = mode ?? storeMode;
+  const tokens = React.useMemo(
+    () => getThemeTokens(resolvedMode, resolvedAccent),
+    [resolvedAccent, resolvedMode],
+  );
   const gradientColors = colors ?? ([tokens.primary, tokens.primary2, tokens.chart3] as const);
   const textClassName = cn(textVariants({ variant }), className);
 
