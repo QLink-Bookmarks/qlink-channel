@@ -123,6 +123,7 @@ Consult these resources as needed:
 
 ```
 references/
+  rhf-zod-form-guide.md  Form control guide
   route-structure.md     Route conventions, dynamic routes, groups, folder organization
   search.md              Search bar with headers, useSearch hook, filtering patterns
   visual-effects.md      Blur (expo-blur) and liquid glass (expo-glass-effect)
