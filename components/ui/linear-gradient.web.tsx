@@ -1,10 +1,11 @@
 import { View } from "react-native";
 
+import { type AccentName, DEFAULT_ACCENT, type ThemeMode, getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type LinearGradientProps = React.ComponentProps<typeof View> & {
-  accent?: never;
-  mode?: never;
+  accent?: AccentName;
+  mode?: ThemeMode;
   colors?: readonly [string, string, ...string[]];
 };
 
@@ -12,13 +13,14 @@ function LinearGradient({
   className,
   style,
   colors,
-  accent: _accent,
-  mode: _mode,
+  accent,
+  mode = "light",
   ...props
 }: LinearGradientProps) {
-  const backgroundImage = colors
-    ? `linear-gradient(135deg, ${colors.join(", ")})`
-    : "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-2)) 50%, hsl(var(--chart-3)) 100%)";
+  const tokens = getThemeTokens(mode, accent ?? DEFAULT_ACCENT);
+  const tokenColors = [tokens.primary, tokens.primary2, tokens.chart3] as const;
+  const resolvedColors = colors ?? tokenColors;
+  const backgroundImage = `linear-gradient(135deg, ${resolvedColors.join(", ")})`;
 
   return (
     <View

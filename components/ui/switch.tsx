@@ -7,8 +7,12 @@ import * as SwitchPrimitives from "@rn-primitives/switch";
 function Switch({
   className,
   size = "md",
+  thumbContent,
   ...props
-}: React.ComponentProps<typeof SwitchPrimitives.Root> & { size?: "sm" | "md" }) {
+}: React.ComponentProps<typeof SwitchPrimitives.Root> & {
+  size?: "sm" | "md";
+  thumbContent?: React.ReactNode;
+}) {
   const isSmall = size === "sm";
   return (
     <SwitchPrimitives.Root
@@ -30,10 +34,10 @@ function Switch({
       ) : null}
       <SwitchPrimitives.Thumb
         className={cn(
-          "z-10 rounded-full bg-background shadow-sm shadow-black/10 transition-transform",
+          "relative z-10 items-center justify-center rounded-full bg-background shadow-sm shadow-black/10 transition-transform",
           isSmall ? "size-3.5" : "size-4",
           Platform.select({
-            web: "pointer-events-none block ring-0",
+            web: "pointer-events-none inline-flex ring-0",
           }),
           props.checked
             ? isSmall
@@ -41,7 +45,11 @@ function Switch({
               : "translate-x-3.5 dark:bg-primary-foreground"
             : "translate-x-0 dark:bg-foreground",
         )}
-      />
+      >
+        {thumbContent ? (
+          <View className="absolute inset-0 items-center justify-center">{thumbContent}</View>
+        ) : null}
+      </SwitchPrimitives.Thumb>
     </SwitchPrimitives.Root>
   );
 }

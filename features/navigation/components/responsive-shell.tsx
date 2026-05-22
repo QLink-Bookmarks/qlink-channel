@@ -7,6 +7,7 @@ import { BrandHeader } from "@/components/layout/brand-header";
 import { Fab } from "@/components/layout/fab";
 import { Sheet } from "@/components/layout/sheet";
 import { Sidebar, SidebarCTA, SidebarItem, SidebarSection } from "@/components/layout/sidebar";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +18,9 @@ import {
 import { IconButton } from "@/components/ui/icon-button";
 import { Kbd } from "@/components/ui/kbd";
 import { Text } from "@/components/ui/text";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
+import { useDisplaySettings } from "@/stores/display-settings";
 
 import { useAddLinkSheet } from "../hooks/use-add-link-sheet";
 import { useLinkOverlayState } from "../hooks/use-link-overlay-state";
@@ -59,6 +62,10 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const routeState = useShellRouteState();
   const addLinkSheet = useAddLinkSheet();
+  const accent = useDisplaySettings((state) => state.display.accent);
+  const theme = useDisplaySettings((state) => state.display.theme);
+  const setAccent = useDisplaySettings((state) => state.setAccent);
+  const setTheme = useDisplaySettings((state) => state.setTheme);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = React.useState(false);
   const { detail, handleOpenChange, isOpen } = useLinkOverlayState({
     isWideView: routeState.isWideView,
@@ -98,6 +105,10 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
 
   const handleNotificationsPress = React.useCallback(() => {
     console.log("shell:notifications");
+  }, []);
+
+  const handleProfilePress = React.useCallback(() => {
+    console.log("shell:profile");
   }, []);
 
   const handleFabPress = React.useCallback(() => {
@@ -149,54 +160,90 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
       <View className="flex-1 flex-row bg-background">
         <View className="w-[15%] min-w-56 max-w-80">
           <Sidebar className="h-full w-full min-w-0 max-w-none">
-            <View className="gap-6">
-              <BrandHeader />
+            <View className="flex-1 justify-between gap-6">
+              <View className="gap-6">
+                <BrandHeader
+                  accent={accent}
+                  mode={theme}
+                />
 
-              <SidebarCTA
-                label={
-                  <>
-                    <Text className="text-2xl font-semibold leading-none text-primary-foreground">
-                      +
-                    </Text>
-                    <Kbd
-                      keyClassName="border-white/20 bg-white/20"
-                      keyTextClassName="text-primary-foreground"
-                      label="새 링크"
-                      labelClassName="text-base font-semibold text-primary-foreground"
-                      labelPosition="left"
-                    >
-                      N
-                    </Kbd>
-                  </>
-                }
-                onPress={() => {}}
-              />
+                <SidebarCTA
+                  label={
+                    <>
+                      <Text className="text-2xl font-semibold leading-none text-primary-foreground">
+                        +
+                      </Text>
+                      <Kbd
+                        keyClassName="border-white/20 bg-white/20"
+                        keyTextClassName="text-primary-foreground"
+                        label="새 링크"
+                        labelClassName="text-base font-semibold text-primary-foreground"
+                        labelPosition="left"
+                      >
+                        N
+                      </Kbd>
+                    </>
+                  }
+                  onPress={() => {}}
+                />
 
-              <View className="gap-1">
-                {widePrimaryItems.map((item) => (
-                  <SidebarItem
-                    key={item.key}
-                    active={routeState.wideSidebarKey === item.key}
-                    label={item.label}
-                    labelClassName="text-base"
-                    onPress={() => router.replace(item.href as Href)}
-                  />
-                ))}
-              </View>
-
-              <SidebarSection title="내 폴더">
                 <View className="gap-1">
-                  {folderItems.map((item) => (
+                  {widePrimaryItems.map((item) => (
                     <SidebarItem
-                      key={item.id}
-                      active={routeState.pathname === item.href}
+                      key={item.key}
+                      active={routeState.wideSidebarKey === item.key}
                       label={item.label}
-                      labelClassName="text-[15px]"
+                      labelClassName="text-base"
                       onPress={() => router.replace(item.href as Href)}
                     />
                   ))}
                 </View>
-              </SidebarSection>
+
+                <SidebarSection title="내 폴더">
+                  <View className="gap-1">
+                    {folderItems.map((item) => (
+                      <SidebarItem
+                        key={item.id}
+                        active={routeState.pathname === item.href}
+                        label={item.label}
+                        labelClassName="text-[15px]"
+                        onPress={() => router.replace(item.href as Href)}
+                      />
+                    ))}
+                  </View>
+                </SidebarSection>
+              </View>
+
+              <View className="gap-3 border-t border-sidebar-border pt-3">
+                <ThemeSwitcher
+                  accent={accent}
+                  mode={theme}
+                  variant="icon-buttons"
+                  onAccentChange={setAccent}
+                  onModeChange={setTheme}
+                />
+
+                <Button
+                  className="h-auto min-h-0 w-full items-center justify-start gap-3 bg-transparent px-5 py-2 shadow-none web:hover:bg-sidebar-surface-2 sm:h-auto"
+                  variant="ghost"
+                  onPress={handleProfilePress}
+                >
+                  <View className="size-6 items-center justify-center rounded-2xl">
+                    <Text className="text-xl leading-none">🌸</Text>
+                  </View>
+                  <View className="min-w-0 flex-1 items-start">
+                    <Text className="text-left text-base font-semibold text-sidebar-hover">
+                      지훈
+                    </Text>
+                    <Text
+                      numberOfLines={1}
+                      className="text-left text-sm text-sidebar-muted"
+                    >
+                      jihoon
+                    </Text>
+                  </View>
+                </Button>
+              </View>
             </View>
           </Sidebar>
         </View>

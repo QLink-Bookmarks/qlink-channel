@@ -60,6 +60,12 @@
     --border-soft: 220 9% 91%;
     --surface: 0 0% 100%;
     --surface-elevated: 225 14% 95%;
+    --kbd-inverse-surface: 14 9% 42%;
+    --kbd-inverse-border: 18 10% 55%;
+    --kbd-inverse-foreground: 24 18% 96%;
+    --border-soft-inverse: 220 14% 18%;
+    --surface-elevated-inverse: 222 14% 20%;
+    --muted-foreground-inverse: 215 19% 65%;
     --overlay: 0 0% 0% / 0.35;
     --glow-rgb: 107, 114, 128;
     --button-width-xs: 4.5rem;
@@ -113,6 +119,12 @@
     --border-soft: 220 14% 18%;
     --surface: 220 16% 15%;
     --surface-elevated: 222 14% 20%;
+    --kbd-inverse-surface: 24 10% 84%;
+    --kbd-inverse-border: 24 9% 68%;
+    --kbd-inverse-foreground: 22 16% 22%;
+    --border-soft-inverse: 220 9% 91%;
+    --surface-elevated-inverse: 225 14% 95%;
+    --muted-foreground-inverse: 220 9% 46%;
     --overlay: 0 0% 0% / 0.5;
     --glow-rgb: 192, 200, 213;
     --button-width-xs: 4.5rem;
@@ -148,6 +160,9 @@
     --border-soft: 327 56% 92%;
     --surface: 0 0% 100%;
     --surface-elevated: 335 100% 96.7%;
+    --border-soft-inverse: 309 25% 18%;
+    --surface-elevated-inverse: 284 31% 19%;
+    --muted-foreground-inverse: 331 36% 78%;
     --sidebar: 335 100% 96.7%;
     --sidebar-foreground: 326 39% 17%;
     --sidebar-primary: 338 100% 71%;
@@ -189,6 +204,9 @@
     --border-soft: 309 25% 18%;
     --surface: 283 33% 15%;
     --surface-elevated: 284 31% 19%;
+    --border-soft-inverse: 327 56% 92%;
+    --surface-elevated-inverse: 335 100% 96.7%;
+    --muted-foreground-inverse: 327 18% 52%;
     --sidebar: 290 30% 11%;
     --sidebar-foreground: 343 100% 95%;
     --sidebar-primary: 351 100% 78%;
@@ -230,6 +248,9 @@
     --border-soft: 217 56% 92%;
     --surface: 0 0% 100%;
     --surface-elevated: 218 100% 96%;
+    --border-soft-inverse: 222 32% 19%;
+    --surface-elevated-inverse: 222 36% 21%;
+    --muted-foreground-inverse: 218 39% 74%;
     --sidebar: 218 100% 96%;
     --sidebar-foreground: 218 49% 20%;
     --sidebar-primary: 218 100% 65%;
@@ -271,6 +292,9 @@
     --border-soft: 222 32% 19%;
     --surface: 220 28% 15%;
     --surface-elevated: 222 36% 21%;
+    --border-soft-inverse: 217 56% 92%;
+    --surface-elevated-inverse: 218 100% 96%;
+    --muted-foreground-inverse: 218 19% 51%;
     --sidebar: 220 36% 12%;
     --sidebar-foreground: 225 100% 95%;
     --sidebar-primary: 220 100% 78%;

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 type KbdProps = React.ComponentProps<typeof View> & {
   size?: "xs" | "sm";
+  variant?: "default" | "inverse";
   label?: string;
   labelPosition?: "left" | "right";
   labelClassName?: string;
@@ -16,6 +17,7 @@ function Kbd({
   className,
   children,
   size = "sm",
+  variant = "default",
   label,
   labelPosition = "right",
   labelClassName,
@@ -23,13 +25,16 @@ function Kbd({
   keyTextClassName,
   ...props
 }: KbdProps) {
+  const labelTextClassName =
+    variant === "inverse" ? "text-kbd-inverse-foreground" : "text-muted-foreground";
+  const keyContainerClassName =
+    variant === "inverse"
+      ? "border-kbd-inverse-border bg-kbd-inverse"
+      : "border-border-soft bg-surface-elevated";
+
   const labelElement = label ? (
     <Text
-      className={cn(
-        "text-muted-foreground",
-        size === "xs" ? "text-2xs" : "text-xs",
-        labelClassName,
-      )}
+      className={cn(labelTextClassName, size === "xs" ? "text-2xs" : "text-xs", labelClassName)}
     >
       {label}
     </Text>
@@ -43,14 +48,16 @@ function Kbd({
       {labelPosition === "left" ? labelElement : null}
       <View
         className={cn(
-          "items-center justify-center rounded-xs border border-border-soft bg-surface-elevated",
+          "items-center justify-center rounded-xs border",
+          keyContainerClassName,
           size === "xs" ? "min-h-5 px-1.5" : "min-h-6 px-2",
           keyClassName,
         )}
       >
         <Text
           className={cn(
-            "font-mono font-medium text-muted-foreground",
+            "font-mono font-medium",
+            labelTextClassName,
             size === "xs" ? "text-2xs" : "text-xs",
             keyTextClassName,
           )}
@@ -64,3 +71,4 @@ function Kbd({
 }
 
 export { Kbd };
+export type { KbdProps };

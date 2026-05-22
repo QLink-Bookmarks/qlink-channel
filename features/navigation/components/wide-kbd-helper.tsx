@@ -5,18 +5,20 @@ import { Text } from "@/components/ui/text";
 
 function WideKbdHelper() {
   return (
-    <View className="bg-card/92 absolute bottom-6 right-6 z-fixed flex-row items-center gap-4 rounded-full border border-border-soft px-5 py-3 shadow-qlink-md">
+    <View className="absolute bottom-6 right-6 z-fixed flex-row items-center gap-4 rounded-full border border-white/10 bg-black/40 px-5 py-1.5 shadow-qlink-md dark:border-white/15 dark:bg-white/80">
       <View className="flex-row items-center gap-2">
         <Kbd
+          variant="inverse"
           label="검색"
           labelPosition="right"
         >
           ⌘/Ctrl + K
         </Kbd>
       </View>
-      <View className="h-4 w-px bg-background/20" />
+      <View className="h-4 w-px bg-white/20 dark:bg-black/15" />
       <View className="flex-row items-center gap-2">
         <Kbd
+          variant="inverse"
           label="새 링크"
           labelPosition="right"
         >

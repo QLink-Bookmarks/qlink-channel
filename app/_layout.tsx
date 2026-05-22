@@ -1,9 +1,11 @@
 import "../global.css";
 
+import * as React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { getNavTheme } from "@/lib/theme";
 import { QueryProvider } from "@/providers/query-provider";
+import { useDisplaySettings } from "@/stores/display-settings";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 
@@ -15,13 +17,31 @@ export const unstable_settings = {
   initialRouteName: StorybookEnabled ? "(storybook)/index" : "(pages)",
 };
 
+function DisplayThemeBridge() {
+  const theme = useDisplaySettings((state) => state.display.theme);
+  const accent = useDisplaySettings((state) => state.display.accent);
+
+  React.useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.setAttribute("data-accent", accent);
+  }, [accent, theme]);
+
+  return null;
+}
+
 export default function RootLayout() {
-  const colorScheme = "light";
+  const theme = useDisplaySettings((state) => state.display.theme);
+  const accent = useDisplaySettings((state) => state.display.accent);
 
   return (
-    <GestureHandlerRootView className="flex-1">
+    <GestureHandlerRootView className={theme === "dark" ? "dark flex-1" : "flex-1"}>
       <QueryProvider>
-        <ThemeProvider value={getNavTheme(colorScheme, "gray")}>
+        <DisplayThemeBridge />
+        <ThemeProvider value={getNavTheme(theme, accent)}>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Protected guard={StorybookEnabled}>
               <Stack.Screen name="(storybook)/index" />

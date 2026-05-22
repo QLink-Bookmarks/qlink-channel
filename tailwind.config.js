@@ -26,6 +26,11 @@ module.exports = {
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
+        kbd: {
+          inverse: "hsl(var(--kbd-inverse-surface))",
+          "inverse-border": "hsl(var(--kbd-inverse-border))",
+          "inverse-foreground": "hsl(var(--kbd-inverse-foreground))",
+        },
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -45,6 +50,7 @@ module.exports = {
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
+          "foreground-inverse": "hsl(var(--muted-foreground-inverse))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
@@ -83,8 +89,10 @@ module.exports = {
         surface: {
           DEFAULT: "hsl(var(--surface))",
           elevated: "hsl(var(--surface-elevated))",
+          "elevated-inverse": "hsl(var(--surface-elevated-inverse))",
         },
         "border-soft": "hsl(var(--border-soft))",
+        "border-soft-inverse": "hsl(var(--border-soft-inverse))",
         overlay: "hsl(var(--overlay))",
       },
       borderRadius: {

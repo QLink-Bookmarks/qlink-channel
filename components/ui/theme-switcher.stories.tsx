@@ -3,14 +3,15 @@ import { View } from "react-native";
 
 import type { Meta, StoryObj } from "@storybook/react-native";
 
-import { ThemeSwitcher } from "./theme-switcher";
+import { ThemeSwitcher, type ThemeSwitcherVariant } from "./theme-switcher";
 
 type ThemeSwitcherStoryProps = {
   accent: "gray" | "pink" | "blue";
   mode: "light" | "dark";
+  variant: ThemeSwitcherVariant;
 };
 
-function ThemeSwitcherStory({ accent, mode }: ThemeSwitcherStoryProps) {
+function ThemeSwitcherStory({ accent, mode, variant }: ThemeSwitcherStoryProps) {
   const [currentAccent, setCurrentAccent] = React.useState(accent);
   const [currentMode, setCurrentMode] = React.useState(mode);
 
@@ -26,10 +27,9 @@ function ThemeSwitcherStory({ accent, mode }: ThemeSwitcherStoryProps) {
     <ThemeSwitcher
       accent={currentAccent}
       mode={currentMode}
+      variant={variant}
       onAccentChange={setCurrentAccent}
-      onModeToggle={() =>
-        setCurrentMode((previousMode) => (previousMode === "light" ? "dark" : "light"))
-      }
+      onModeChange={setCurrentMode}
     />
   );
 }
@@ -40,10 +40,12 @@ const meta = {
   argTypes: {
     accent: { control: "select", options: ["gray", "pink", "blue"] },
     mode: { control: "select", options: ["light", "dark"] },
+    variant: { control: "select", options: ["icon-buttons", "switch"] },
   },
   args: {
     accent: "gray",
     mode: "light",
+    variant: "icon-buttons",
   },
   decorators: [
     (Story) => (
@@ -60,4 +62,11 @@ type Story = StoryObj<typeof meta>;
 
 export const Basic: Story = {
   name: "기본",
+};
+
+export const SwitchVariant: Story = {
+  name: "스위치 안",
+  args: {
+    variant: "switch",
+  },
 };

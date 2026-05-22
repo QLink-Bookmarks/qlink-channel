@@ -8,13 +8,15 @@ type KbdStoryProps = {
   value: string;
   label?: string;
   size: "xs" | "sm";
+  variant: "default" | "inverse";
   labelPosition: "left" | "right";
 };
 
-function KbdStory({ value, label, size, labelPosition }: KbdStoryProps) {
+function KbdStory({ value, label, size, variant, labelPosition }: KbdStoryProps) {
   return (
     <Kbd
       size={size}
+      variant={variant}
       label={label}
       labelPosition={labelPosition}
     >
@@ -30,12 +32,14 @@ const meta = {
     value: "N",
     label: "새 링크",
     size: "sm",
+    variant: "default",
     labelPosition: "right",
   },
   argTypes: {
     value: { control: "text" },
     label: { control: "text" },
     size: { control: "select", options: ["xs", "sm"] },
+    variant: { control: "select", options: ["default", "inverse"] },
     labelPosition: { control: "select", options: ["left", "right"] },
   },
   decorators: [
@@ -68,6 +72,12 @@ export const Examples: Story = {
         Esc
       </Kbd>
       <Kbd size="xs">Esc</Kbd>
+      <Kbd
+        variant="inverse"
+        label="검색"
+      >
+        ⌘K
+      </Kbd>
     </>
   ),
 };
