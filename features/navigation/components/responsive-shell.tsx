@@ -32,30 +32,34 @@ import { WideKbdHelper } from "./wide-kbd-helper";
 import { type Href, Redirect, useRouter } from "expo-router";
 import {
   Bell,
-  ChevronLeft,
+  BookCopyIcon,
+  CheckSquare,
   Folder,
   House,
   ListTodo,
+  LucideHome,
+  type LucideIcon,
   Plus,
   Search,
   Settings,
 } from "lucide-react-native";
 
 const mobileTabItems = [
-  { key: "home", label: "Home", icon: House },
-  { key: "folders", label: "Folder", icon: Folder },
-  { key: "todos", label: "Todo", icon: ListTodo },
-  { key: "settings", label: "Setting", icon: Settings },
+  { key: "home", label: "홈", icon: House },
+  { key: "folders", label: "폴더", icon: Folder },
+  { key: "todos", label: "할일", icon: ListTodo },
+  { key: "settings", label: "설정", icon: Settings },
 ] satisfies React.ComponentProps<typeof BottomTabs>["items"];
 
 const widePrimaryItems: {
   href: string;
   key: WideSidebarKey;
   label: string;
+  icon: LucideIcon;
 }[] = [
-  { href: "/home", key: "home", label: "🏠 홈" },
-  { href: "/links", key: "links", label: "📚 전체" },
-  { href: "/todos", key: "todos", label: "✅ 할일" },
+  { href: "/home", key: "home", label: "🏠 홈", icon: LucideHome },
+  { href: "/links", key: "links", label: "📚 전체", icon: BookCopyIcon },
+  { href: "/todos", key: "todos", label: "✅ 할일", icon: CheckSquare },
 ];
 
 function ResponsiveShell({ children }: { children: React.ReactNode }) {
@@ -218,7 +222,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                 <ThemeSwitcher
                   accent={accent}
                   mode={theme}
-                  variant="icon-buttons"
+                  variant="switch"
                   onAccentChange={setAccent}
                   onModeChange={setTheme}
                 />
@@ -249,14 +253,14 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
         </View>
 
         <View className="flex-1 bg-background">
-          <View className="hidden min-h-16 flex-row items-center gap-3 border-b border-border-soft bg-background px-5 md:flex">
+          <View className="hidden min-h-14 flex-row items-center gap-3 border-b border-border-soft bg-background px-5 md:flex">
             <Pressable
               className="flex-1 flex-row items-center gap-3 rounded-full border border-input bg-card px-5 py-3 shadow-sm shadow-black/5 web:transition-colors web:hover:border-primary"
               onPress={handleWideSearchPress}
             >
               <Text className="text-xl leading-none">🔍</Text>
               <Text className="flex-1 text-lg text-muted-foreground">링크 · 요약 · 태그 검색…</Text>
-              <Kbd size="sm">⌘K</Kbd>
+              <Kbd size="sm">⌘/Ctrl + K</Kbd>
             </Pressable>
             <IconButton
               icon={Bell}
@@ -334,18 +338,9 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   return (
     <View className="flex-1 bg-background">
       <AppHeader
-        back={false}
-        leftSlot={
-          isMobileHome ? (
-            <BrandHeader className="px-0 pt-0" />
-          ) : routeState.showBackButton ? (
-            <IconButton
-              icon={ChevronLeft}
-              size="sm"
-              onPress={handleBack}
-            />
-          ) : undefined
-        }
+        back={!isMobileHome && !routeState.showBackButton}
+        onBack={handleBack}
+        leftSlot={isMobileHome ? <BrandHeader className="px-0 pt-0" /> : undefined}
         rightSlot={
           isMobileHome ? (
             <View className="flex-row items-center gap-1">
