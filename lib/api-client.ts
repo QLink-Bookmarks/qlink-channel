@@ -1,3 +1,5 @@
+import { DEV_AUTH_TOKEN } from "@/constants/auth";
+
 import { type AxiosRequestConfig, create } from "axios";
 
 export type ApiRequestConfig<D = unknown> = AxiosRequestConfig<D> & {
@@ -14,12 +16,13 @@ export const apiClient = create({
 
 function withAuth<D = unknown>(config: ApiRequestConfig<D> = {}): AxiosRequestConfig<D> {
   const { authToken, headers, ...axiosConfig } = config;
+  const token = authToken === undefined && __DEV__ ? DEV_AUTH_TOKEN : authToken;
 
   return {
     ...axiosConfig,
     headers: {
       ...headers,
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   };
 }

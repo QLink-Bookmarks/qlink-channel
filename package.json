@@ -51,6 +51,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "expo": "^55.0.24",
+    "expo-clipboard": "^56.0.3",
     "expo-constants": "~55.0.16",
     "expo-linear-gradient": "~55.0.14",
     "expo-linking": "~55.0.15",

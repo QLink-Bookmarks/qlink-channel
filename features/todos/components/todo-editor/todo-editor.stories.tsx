@@ -9,29 +9,26 @@ import { useArgs } from "storybook/preview-api";
 type TodoEditorStoryArgs = {
   value: string;
   mode: "none" | "time" | "recurring";
-  visibility: "public" | "private";
 };
 
 function TodoEditorStory({
   value,
   mode,
-  visibility,
   onChangeText,
   onModeChange,
-  onVisibilityChange,
 }: TodoEditorStoryArgs & {
   onChangeText: (value: string) => void;
   onModeChange: (mode: TodoEditorStoryArgs["mode"]) => void;
-  onVisibilityChange: (visibility: TodoEditorStoryArgs["visibility"]) => void;
 }) {
   return (
     <TodoEditor
       value={value}
       mode={mode}
-      visibility={visibility}
       onChangeText={onChangeText}
       onModeChange={onModeChange}
-      onVisibilityChange={onVisibilityChange}
+      onDatePress={() => console.log("storybook:todo-date")}
+      onTimePress={() => console.log("storybook:todo-time")}
+      onRemove={() => console.log("storybook:todo-remove")}
     />
   );
 }
@@ -39,9 +36,8 @@ function TodoEditorStory({
 const meta = {
   title: "기능/할 일/할 일 편집기",
   args: {
-    value: "컴포넌트 스토리 작성",
-    mode: "time",
-    visibility: "private",
+    value: "링크 확인하기",
+    mode: "recurring",
   },
   render: function Render(args) {
     const [, updateArgs] = useArgs();
@@ -51,7 +47,6 @@ const meta = {
         {...args}
         onChangeText={(value) => updateArgs({ value })}
         onModeChange={(mode) => updateArgs({ mode })}
-        onVisibilityChange={(visibility) => updateArgs({ visibility })}
       />
     );
   },

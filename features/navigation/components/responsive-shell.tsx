@@ -20,6 +20,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
+import { LinkCreateForm } from "@/features/links/components/link-create-form";
 import { useDisplaySettings } from "@/stores/display-settings";
 
 import { useAddLinkSheet } from "../hooks/use-add-link-sheet";
@@ -71,6 +72,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const setAccent = useDisplaySettings((state) => state.setAccent);
   const setTheme = useDisplaySettings((state) => state.setTheme);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = React.useState(false);
+  const [isAddLinkDialogOpen, setIsAddLinkDialogOpen] = React.useState(false);
   const { detail, handleOpenChange, isOpen } = useLinkOverlayState({
     isWideView: routeState.isWideView,
     overlayBaseHref: routeState.overlayBaseHref,
@@ -101,6 +103,14 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
 
   const handleWideSearchPress = React.useCallback(() => {
     setIsSearchDialogOpen(true);
+  }, []);
+
+  const handleWideAddLinkPress = React.useCallback(() => {
+    setIsAddLinkDialogOpen(true);
+  }, []);
+
+  const handleWideAddLinkDialogOpenChange = React.useCallback((open: boolean) => {
+    setIsAddLinkDialogOpen(open);
   }, []);
 
   const handleMobileSearchPress = React.useCallback(() => {
@@ -139,6 +149,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
 
       if (key === "n" && !event.metaKey && !event.ctrlKey && !event.altKey) {
         console.log("shortcut:new-link");
+        setIsAddLinkDialogOpen(true);
       }
     };
 
@@ -188,7 +199,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                       </Kbd>
                     </>
                   }
-                  onPress={() => {}}
+                  onPress={handleWideAddLinkPress}
                 />
 
                 <View className="gap-1">
@@ -324,6 +335,26 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
             </View>
           </DialogContent>
         </Dialog>
+
+        <Dialog
+          open={isAddLinkDialogOpen}
+          onOpenChange={handleWideAddLinkDialogOpenChange}
+        >
+          <DialogContent className="max-w-[960px] gap-0 overflow-hidden rounded-2xl p-0">
+            <DialogHeader className="flex-row items-center gap-3 border-b border-border px-8 py-6">
+              <Text className="text-2xl font-normal text-muted-foreground">+</Text>
+              <DialogTitle className="text-xl">새 링크 추가</DialogTitle>
+            </DialogHeader>
+            <View className="px-8 py-6">
+              <LinkCreateForm
+                mode="wide"
+                open={isAddLinkDialogOpen}
+                onCancel={() => setIsAddLinkDialogOpen(false)}
+                onSaved={() => setIsAddLinkDialogOpen(false)}
+              />
+            </View>
+          </DialogContent>
+        </Dialog>
       </View>
     );
   }
@@ -375,16 +406,15 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
       />
       <Sheet
         open={addLinkSheet.isOpen}
-        snapPoints={["42%"]}
-        title="새 링크"
+        snapPoints={["88%"]}
         onOpenChange={addLinkSheet.handleOpenChange}
       >
-        <View className="gap-2">
-          <Text className="text-sm font-semibold text-foreground">addLinkSheet</Text>
-          <Text className="text-sm leading-6 text-muted-foreground">
-            새 링크 추가 플로우가 들어올 자리다. 현재는 FAB 연결 확인용 더미 시트만 띄운다.
-          </Text>
-        </View>
+        <LinkCreateForm
+          mode="mobile"
+          open={addLinkSheet.isOpen}
+          onCancel={addLinkSheet.close}
+          onSaved={addLinkSheet.close}
+        />
       </Sheet>
     </View>
   );

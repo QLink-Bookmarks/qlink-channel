@@ -1,0 +1,4 @@
+const DEV_AUTH_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6Ik5PUk1BTCIsImlhdCI6MTc3ODcxNjgwMCwiZXhwIjoxODEwMjUyODAwfQ.GBuqazyRaag1AgZzgT2g7d_cSLDkMrBMQJt6lxPeK1k";
+
+export { DEV_AUTH_TOKEN };
