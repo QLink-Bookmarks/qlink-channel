@@ -1,4 +1,5 @@
 import { Pressable, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
@@ -16,6 +17,7 @@ function AppHeader({
   rightSlot,
   transparent,
   onBack,
+  style,
   ...props
 }: React.ComponentProps<typeof View> & {
   title?: string;
@@ -26,6 +28,8 @@ function AppHeader({
   sticky?: boolean;
   onBack?: () => void;
 }) {
+  const insets = useSafeAreaInsets();
+
   return (
     <View
       className={cn(
@@ -33,6 +37,13 @@ function AppHeader({
         transparent ? "bg-transparent" : "bg-background",
         className,
       )}
+      style={[
+        {
+          minHeight: 56 + insets.top,
+          paddingTop: insets.top,
+        },
+        style,
+      ]}
       {...props}
     >
       <View className="min-w-10 flex-row items-center">

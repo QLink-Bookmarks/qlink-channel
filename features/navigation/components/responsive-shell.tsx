@@ -393,7 +393,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
       <View className="flex-1">{children}</View>
       {showMobileFab && !addLinkSheet.isOpen ? (
         <Fab
-          className="bottom-24"
+          bottomOffset={96}
           icon={Plus}
           label="새 링크"
           onPress={handleFabPress}

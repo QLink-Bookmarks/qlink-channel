@@ -203,7 +203,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
           <Text className="text-2xl font-bold text-primary">링크 추가</Text>
           <FieldError error={errors.url}>
             <Input
-              className="h-16 rounded-2xl border-primary/30 bg-background px-5 text-lg"
+              className="h-10 rounded-2xl border-primary/30 bg-background px-5 text-lg"
               value={url}
               autoCapitalize="none"
               keyboardType="url"
@@ -216,7 +216,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
             <Text className="px-1 text-sm font-semibold text-muted-foreground">링크 제목</Text>
             <FieldError error={errors.title}>
               <Input
-                className="h-12 rounded-xl border-primary/30 bg-background"
+                className="h-10 rounded-xl border-primary/30 bg-background"
                 value={title}
                 maxLength={300}
                 placeholder="AI 생성으로 자동 정리해보세요"
@@ -227,14 +227,14 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
 
           <View className="flex-row gap-3">
             <Button
-              className="h-14 flex-1 rounded-2xl"
+              className="h-10 flex-1 rounded-2xl"
               disabled={createLinkMutation.isPending}
               onPress={handleSave}
             >
               <Text>저장</Text>
             </Button>
             <Button
-              className="h-14 flex-1 rounded-2xl"
+              className="h-10 flex-1 rounded-2xl"
               variant="gradient"
               onPress={handleAiOrganize}
             >
@@ -305,7 +305,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         </View>
         <FieldError error={errors.url}>
           <Input
-            className="h-14 rounded-xl px-4 text-lg"
+            className="h-10 rounded-xl px-4 text-lg"
             value={url}
             autoCapitalize="none"
             keyboardType="url"
@@ -319,7 +319,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         <Text className="text-sm font-semibold text-muted-foreground">제목</Text>
         <FieldError error={errors.title}>
           <Input
-            className="h-14 rounded-xl px-4 text-lg"
+            className="h-10 rounded-xl px-4 text-lg"
             value={title}
             maxLength={300}
             placeholder="AI 생성으로 자동 정리해보세요"
@@ -331,7 +331,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
       <View className="flex-row gap-4">
         <View className="flex-1 gap-2">
           <Text className="text-sm font-semibold text-muted-foreground">폴더</Text>
-          <Pressable className="h-14 flex-row items-center justify-between rounded-xl border border-input bg-background px-4 shadow-sm shadow-black/5">
+          <Pressable className="h-10 flex-row items-center justify-between rounded-xl border border-input bg-background px-4 shadow-sm shadow-black/5">
             <View className="min-w-0 flex-1 flex-row items-center gap-2">
               <Icon
                 as={FolderOpen}
@@ -355,7 +355,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         <View className="flex-1 gap-2">
           <Text className="text-sm font-semibold text-muted-foreground">메모 (선택)</Text>
           <Textarea
-            className="min-h-14 rounded-xl py-4 text-base"
+            className="min-h-10 rounded-xl py-4 text-base"
             value={memo}
             numberOfLines={1}
             placeholder="간단한 메모"
@@ -382,7 +382,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
           />
         ))}
         <Pressable
-          className="h-14 flex-row items-center justify-center gap-2 rounded-xl border border-dashed border-border"
+          className="h-10 flex-row items-center justify-center gap-2 rounded-xl border border-dashed border-border"
           onPress={handleAddTodo}
         >
           <Icon
@@ -448,13 +448,13 @@ function MobileOptionCard({
   onPress: () => void;
 }) {
   return (
-    <View className="flex-row items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-background px-5 py-4">
-      <View className="min-w-0 flex-1 gap-2">
+    <View className="flex-row items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-background px-4 py-3">
+      <View className="min-w-0 flex-1 gap-1.5">
         <Text className="text-sm font-semibold text-muted-foreground">{eyebrow}</Text>
-        <View className="min-w-0 flex-row items-center gap-2">
+        <View className="min-w-0 flex-row items-center gap-1.5">
           <Text>{icon}</Text>
           <Text
-            className="min-w-0 flex-1 text-lg font-bold text-foreground"
+            className="min-w-0 flex-1 text-base font-bold text-foreground"
             numberOfLines={1}
           >
             {label}
@@ -462,11 +462,11 @@ function MobileOptionCard({
         </View>
       </View>
       <Button
-        className="h-12 rounded-full border-primary px-5"
+        className="h-10 rounded-2xl border-primary px-4"
         variant="outline"
         onPress={onPress}
       >
-        <Text className="font-bold text-primary">변경</Text>
+        <Text className="text-sm font-bold text-primary">변경</Text>
       </Button>
     </View>
   );

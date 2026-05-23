@@ -28,7 +28,17 @@ function Switch({
       )}
       {...props}
     >
-      {props.checked ? <LinearGradient className="absolute inset-0 rounded-full" /> : null}
+      {props.checked ? (
+        <LinearGradient
+          style={{
+            bottom: 0,
+            left: 0,
+            position: "absolute",
+            right: 0,
+            top: 0,
+          }}
+        />
+      ) : null}
       {!props.checked ? (
         <View className="absolute inset-0 rounded-full bg-input dark:bg-input/80" />
       ) : null}

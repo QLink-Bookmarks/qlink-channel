@@ -143,7 +143,13 @@ function Button({ children, className, variant, size, ...props }: ButtonProps) {
     <>
       {variant === "gradient" ? (
         <LinearGradient
-          className="absolute inset-0"
+          style={{
+            bottom: 0,
+            left: 0,
+            position: "absolute",
+            right: 0,
+            top: 0,
+          }}
           pointerEvents="none"
         />
       ) : null}

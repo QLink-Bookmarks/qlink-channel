@@ -2,6 +2,7 @@ import "../global.css";
 
 import * as React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 
 import { getNavTheme } from "@/lib/theme";
 import { QueryProvider } from "@/providers/query-provider";
@@ -39,19 +40,21 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView className={theme === "dark" ? "dark flex-1" : "flex-1"}>
-      <QueryProvider>
-        <DisplayThemeBridge />
-        <ThemeProvider value={getNavTheme(theme, accent)}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Protected guard={StorybookEnabled}>
-              <Stack.Screen name="(storybook)/index" />
-            </Stack.Protected>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <QueryProvider>
+          <DisplayThemeBridge />
+          <ThemeProvider value={getNavTheme(theme, accent)}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Protected guard={StorybookEnabled}>
+                <Stack.Screen name="(storybook)/index" />
+              </Stack.Protected>
 
-            <Stack.Screen name="(pages)" />
-          </Stack>
-          <PortalHost />
-        </ThemeProvider>
-      </QueryProvider>
+              <Stack.Screen name="(pages)" />
+            </Stack>
+            <PortalHost />
+          </ThemeProvider>
+        </QueryProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

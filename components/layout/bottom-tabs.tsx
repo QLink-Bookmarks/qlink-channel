@@ -1,4 +1,5 @@
 import { Pressable, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
@@ -19,18 +20,27 @@ function BottomTabs({
   value,
   items,
   onValueChange,
+  style,
   ...props
 }: React.ComponentProps<typeof View> & {
   value: string;
   items: BottomTabItem[];
   onValueChange?: (value: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
+
   return (
     <View
       className={cn(
         "flex-row border-t border-border bg-background px-2 pb-2 pt-1 md:hidden",
         className,
       )}
+      style={[
+        {
+          paddingBottom: insets.bottom + 8,
+        },
+        style,
+      ]}
       {...props}
     >
       {items.map((item) => {
