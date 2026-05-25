@@ -1,3 +1,5 @@
+import { LinkDetailScreen } from "@/features/links/components/link-detail-screen";
+
 import { useShellRouteState } from "../hooks/use-shell-route-state";
 import { readParamValue } from "../routes";
 import { DummyRouteScreen } from "./dummy-route-screen";
@@ -77,17 +79,16 @@ function LinkDetailRouteScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const linkId = readParamValue(params.id);
 
+  if (!isWideView) {
+    return <LinkDetailScreen linkId={linkId} />;
+  }
+
   return (
     <DummyRouteScreen
-      title={isWideView ? "링크" : "링크 상세"}
+      title="링크"
       routePath="/links/[id]"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description={
-        isWideView
-          ? "와이드에서는 링크 목록 문맥을 유지하고 상세 패널만 오버레이로 띄운다."
-          : "모바일에서는 독립적인 링크 상세 더미 페이지로 이동한다."
-      }
-      params={[{ label: "id", value: linkId }]}
+      viewMode="wide"
+      description="와이드에서는 링크 목록 문맥을 유지하고 상세 패널만 오버레이로 띄운다."
     />
   );
 }

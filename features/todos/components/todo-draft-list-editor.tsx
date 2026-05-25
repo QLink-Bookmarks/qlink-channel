@@ -1,0 +1,79 @@
+import { Pressable, View } from "react-native";
+
+import { Icon } from "@/components/ui/icon";
+import { Text } from "@/components/ui/text";
+import {
+  TodoEditor,
+  type TodoEditorMode,
+  type WeekdayValue,
+} from "@/features/todos/components/todo-editor/todo-editor";
+
+import { Plus } from "lucide-react-native/icons";
+
+type TodoDraftEditorItem = {
+  id: number | string;
+  title: string;
+  mode: TodoEditorMode;
+  selectedWeekdays: WeekdayValue[];
+  timeLabel: string;
+  dateLabel: string;
+  reminderAt?: string | null;
+};
+
+function TodoDraftListEditor({
+  addLabel = "할 일 추가",
+  todos,
+  onAddTodo,
+  onChangeTodoMode,
+  onChangeTodoTitle,
+  onChangeTodoWeekdays,
+  onDatePress,
+  onRemoveTodo,
+  onTimePress,
+}: {
+  addLabel?: string;
+  todos: TodoDraftEditorItem[];
+  onAddTodo: () => void;
+  onChangeTodoMode: (todoId: number | string, nextMode: TodoEditorMode) => void;
+  onChangeTodoTitle: (todoId: number | string, nextTitle: string) => void;
+  onChangeTodoWeekdays: (todoId: number | string, nextWeekdays: WeekdayValue[]) => void;
+  onDatePress: (todoId: number | string) => void;
+  onRemoveTodo: (todoId: number | string) => void;
+  onTimePress: (todoId: number | string) => void;
+}) {
+  return (
+    <View className="gap-3">
+      {todos.map((todo, index) => (
+        <TodoEditor
+          key={todo.id}
+          index={index + 1}
+          value={todo.title}
+          mode={todo.mode}
+          selectedWeekdays={todo.selectedWeekdays}
+          timeLabel={todo.timeLabel}
+          dateLabel={todo.dateLabel}
+          onChangeText={(nextTitle) => onChangeTodoTitle(todo.id, nextTitle)}
+          onModeChange={(nextMode) => onChangeTodoMode(todo.id, nextMode)}
+          onSelectedWeekdaysChange={(nextWeekdays) => onChangeTodoWeekdays(todo.id, nextWeekdays)}
+          onRemove={() => onRemoveTodo(todo.id)}
+          onDatePress={() => onDatePress(todo.id)}
+          onTimePress={() => onTimePress(todo.id)}
+        />
+      ))}
+      <Pressable
+        className="h-10 flex-row items-center justify-center gap-2 rounded-xl border border-dashed border-border"
+        onPress={onAddTodo}
+      >
+        <Icon
+          as={Plus}
+          size={18}
+          className="text-muted-foreground"
+        />
+        <Text className="font-semibold text-muted-foreground">{addLabel}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+export { TodoDraftListEditor };
+export type { TodoDraftEditorItem };

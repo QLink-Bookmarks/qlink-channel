@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { createLink } from "./api";
-import type { CreateLinkRequest } from "./types";
+import { createLink, deleteLink, updateLink } from "./api";
+import type { CreateLinkRequest, UpdateLinkRequest } from "./types";
 
 function useCreateLinkMutation() {
   return useMutation({
@@ -9,4 +9,16 @@ function useCreateLinkMutation() {
   });
 }
 
-export { useCreateLinkMutation };
+function useUpdateLinkMutation(linkId: string | number) {
+  return useMutation({
+    mutationFn: (payload: UpdateLinkRequest) => updateLink(linkId, payload),
+  });
+}
+
+function useDeleteLinkMutation(linkId: string | number) {
+  return useMutation({
+    mutationFn: () => deleteLink(linkId),
+  });
+}
+
+export { useCreateLinkMutation, useDeleteLinkMutation, useUpdateLinkMutation };

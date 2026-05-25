@@ -4,11 +4,20 @@ type CreateLinkRequest = {
   url: string;
   title: string;
   summary?: string;
-  memo?: string;
   tags: string[];
+  memo?: string;
   thumbnailUrl?: string;
   sourceType: SourceType;
   reminderAt?: string;
+};
+
+type UpdateLinkRequest = {
+  url: string;
+  title: string;
+  summary?: string | null;
+  tags: string[];
+  memo?: string | null;
+  sourceType: SourceType;
 };
 
 type CreateLinkResponse = {
@@ -18,4 +27,54 @@ type CreateLinkResponse = {
   };
 };
 
-export type { CreateLinkRequest, CreateLinkResponse, SourceType };
+type LinkTodo = {
+  id: number | string;
+  title?: string | null;
+  content?: string | null;
+  done?: boolean | null;
+  completed?: boolean | null;
+  completedAt?: string | null;
+  reminderAt?: string | null;
+  dueAt?: string | null;
+};
+
+type LinkDetail = {
+  id: number;
+  url: string;
+  title: string;
+  summary?: string | null;
+  tags: string[];
+  memo?: string | null;
+  sourceType: SourceType;
+  createdAt: string;
+  folderId?: number | null;
+  folderEmoji?: string | null;
+  folderName?: string | null;
+  todos: LinkTodo[];
+};
+
+type ApiEnvelope<TData> = {
+  success: boolean;
+  data: TData;
+  error: {
+    code: string;
+    message: string;
+    cause?: string | null;
+    causeMessage?: string | null;
+  } | null;
+};
+
+type LinkDetailResponse = ApiEnvelope<LinkDetail>;
+type DeleteLinkResponse = ApiEnvelope<null>;
+
+export type {
+  ApiEnvelope,
+  CreateLinkRequest,
+  CreateLinkResponse,
+  DeleteLinkResponse,
+  LinkDetail,
+  LinkDetailResponse,
+  LinkTodo,
+  SourceType,
+  UpdateLinkRequest,
+};

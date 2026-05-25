@@ -16,11 +16,11 @@ import {
 } from "../routes";
 import type { RouteParams } from "../types";
 
-import { useLocalSearchParams, usePathname } from "expo-router";
+import { useGlobalSearchParams, usePathname } from "expo-router";
 
 function useShellRouteState() {
   const pathname = normalizePathname(usePathname());
-  const searchParams = useLocalSearchParams() as RouteParams;
+  const searchParams = useGlobalSearchParams() as RouteParams;
   const isWideView = useWideView();
 
   return React.useMemo(() => {

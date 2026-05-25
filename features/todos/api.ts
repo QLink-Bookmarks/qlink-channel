@@ -1,0 +1,32 @@
+import { api } from "@/lib/api-client";
+
+import type {
+  CompleteTodoRequest,
+  CompleteTodoResponse,
+  CreateTodoRequest,
+  CreateTodoResponse,
+  DeleteTodoResponse,
+  UpdateTodoRequest,
+  UpdateTodoResponse,
+} from "./types";
+
+async function createTodo(payload: CreateTodoRequest) {
+  return api.post<CreateTodoResponse, CreateTodoRequest>("/api/todos", payload);
+}
+
+async function updateTodo(todoId: number | string, payload: UpdateTodoRequest) {
+  return api.put<UpdateTodoResponse, UpdateTodoRequest>(`/api/todos/${todoId}`, payload);
+}
+
+async function deleteTodo(todoId: number | string) {
+  return api.delete<DeleteTodoResponse>(`/api/todos/${todoId}`);
+}
+
+async function toggleTodoCompleted(todoId: number | string, payload: CompleteTodoRequest) {
+  return api.put<CompleteTodoResponse, CompleteTodoRequest>(
+    `/api/todos/${todoId}/completed`,
+    payload,
+  );
+}
+
+export { createTodo, deleteTodo, toggleTodoCompleted, updateTodo };

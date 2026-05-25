@@ -1,12 +1,14 @@
 import * as React from "react";
-import { Platform, Pressable, View } from "react-native";
+import { Platform, ScrollView, View } from "react-native";
 
+import { RouteErrorBoundary } from "@/components/error/route-error-boundary";
 import { AppHeader } from "@/components/layout/app-header";
 import { BottomTabs } from "@/components/layout/bottom-tabs";
 import { BrandHeader } from "@/components/layout/brand-header";
 import { Fab } from "@/components/layout/fab";
 import { Sheet } from "@/components/layout/sheet";
 import { Sidebar, SidebarCTA, SidebarItem, SidebarSection } from "@/components/layout/sidebar";
+import { Topbar } from "@/components/layout/topbar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,7 +28,7 @@ import { useDisplaySettings } from "@/stores/display-settings";
 import { useAddLinkSheet } from "../hooks/use-add-link-sheet";
 import { useLinkOverlayState } from "../hooks/use-link-overlay-state";
 import { useShellRouteState } from "../hooks/use-shell-route-state";
-import { getFolderSidebarItems } from "../routes";
+import { canOpenWideOverlayInPlace, getFolderSidebarItems } from "../routes";
 import type { MobileTabKey, WideSidebarKey } from "../types";
 import { WideKbdHelper } from "./wide-kbd-helper";
 
@@ -66,14 +68,20 @@ const widePrimaryItems: {
 function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const routeState = useShellRouteState();
-  const addLinkSheet = useAddLinkSheet();
+  const {
+    close: closeAddLinkSheet,
+    handleOpenChange: handleAddLinkSheetOpenChange,
+    isOpen: isAddLinkSheetOpen,
+    open: openAddLinkSheet,
+  } = useAddLinkSheet();
   const accent = useDisplaySettings((state) => state.display.accent);
   const theme = useDisplaySettings((state) => state.display.theme);
   const setAccent = useDisplaySettings((state) => state.setAccent);
   const setTheme = useDisplaySettings((state) => state.setTheme);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = React.useState(false);
   const [isAddLinkDialogOpen, setIsAddLinkDialogOpen] = React.useState(false);
-  const { detail, handleOpenChange, isOpen } = useLinkOverlayState({
+  const [pendingMobileLinkId, setPendingMobileLinkId] = React.useState<number | null>(null);
+  const { detail, error, handleOpenChange, isLoading, isOpen } = useLinkOverlayState({
     isWideView: routeState.isWideView,
     overlayBaseHref: routeState.overlayBaseHref,
     overlayLinkId: routeState.overlayLinkId,
@@ -126,8 +134,30 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleFabPress = React.useCallback(() => {
-    addLinkSheet.open();
-  }, [addLinkSheet]);
+    openAddLinkSheet();
+  }, [openAddLinkSheet]);
+
+  const handleWideLinkSaved = React.useCallback(
+    (id: number) => {
+      setIsAddLinkDialogOpen(false);
+
+      if (canOpenWideOverlayInPlace(routeState.pathname)) {
+        router.replace(`${routeState.pathname}?linkId=${id}` as Href);
+        return;
+      }
+
+      router.replace(`/links?linkId=${id}` as Href);
+    },
+    [routeState.pathname, router],
+  );
+
+  const handleMobileLinkSaved = React.useCallback(
+    (id: number) => {
+      setPendingMobileLinkId(id);
+      closeAddLinkSheet();
+    },
+    [closeAddLinkSheet],
+  );
 
   const isSettingsRoute = routeState.pathname.startsWith("/settings");
 
@@ -159,6 +189,31 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("keydown", handleWideKeyboardShortcut);
     };
   }, [routeState.isWideView]);
+
+  React.useEffect(() => {
+    if (routeState.isWideView) {
+      return;
+    }
+
+    const canKeepSheetOpen =
+      routeState.pathname === "/home" ||
+      routeState.pathname === "/folders" ||
+      routeState.pathname === "/todos" ||
+      routeState.pathname.startsWith("/folders/");
+
+    if (!canKeepSheetOpen && isAddLinkSheetOpen) {
+      closeAddLinkSheet();
+    }
+  }, [closeAddLinkSheet, isAddLinkSheetOpen, routeState.isWideView, routeState.pathname]);
+
+  React.useEffect(() => {
+    if (routeState.isWideView || isAddLinkSheetOpen || pendingMobileLinkId == null) {
+      return;
+    }
+
+    router.replace(`/links/${pendingMobileLinkId}` as Href);
+    setPendingMobileLinkId(null);
+  }, [isAddLinkSheetOpen, pendingMobileLinkId, routeState.isWideView, router]);
 
   if (routeState.redirectHref) {
     return <Redirect href={routeState.redirectHref as Href} />;
@@ -264,41 +319,53 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
         </View>
 
         <View className="flex-1 bg-background">
-          <View className="hidden min-h-14 flex-row items-center gap-3 border-b border-border-soft bg-background px-5 md:flex">
-            <Pressable
-              className="flex-1 flex-row items-center gap-3 rounded-full border border-input bg-card px-5 py-3 shadow-sm shadow-black/5 web:transition-colors web:hover:border-primary"
-              onPress={handleWideSearchPress}
-            >
-              <Text className="text-xl leading-none">🔍</Text>
-              <Text className="flex-1 text-lg text-muted-foreground">링크 · 요약 · 태그 검색…</Text>
-              <Kbd size="sm">⌘/Ctrl + K</Kbd>
-            </Pressable>
-            <IconButton
-              icon={Bell}
-              size="sm"
-              onPress={handleNotificationsPress}
-            />
-            <IconButton
-              icon={Settings}
-              size="sm"
-              active={isSettingsRoute}
-              onPress={() => router.replace("/settings" as Href)}
-            />
-          </View>
+          <Topbar
+            className="flex"
+            placeholder="링크 · 요약 · 태그 검색…"
+            variant="default"
+            searchReadOnly
+            searchLeftSlot={<Text className="text-xl leading-none">🔍</Text>}
+            searchRightSlot={<Kbd size="sm">⌘/Ctrl + K</Kbd>}
+            onSearchPress={handleWideSearchPress}
+            actions={
+              <>
+                <IconButton
+                  icon={Bell}
+                  size="sm"
+                  onPress={handleNotificationsPress}
+                />
+                <IconButton
+                  icon={Settings}
+                  size="sm"
+                  active={isSettingsRoute}
+                  onPress={() => router.replace("/settings" as Href)}
+                />
+              </>
+            }
+          />
           <View className="relative flex-1">
-            {children}
+            <RouteErrorBoundary resetKeys={[routeState.pathname]}>{children}</RouteErrorBoundary>
             <WideKbdHelper />
           </View>
         </View>
 
         {detail ? (
           <DetailPanel
+            detail={detail}
+            error={error}
+            isLoading={isLoading}
             mode="overlay"
             open={isOpen}
-            summary={detail.summary}
-            tags={detail.tags}
-            title={detail.title}
-            url={detail.url}
+            onDeleted={() => handleOpenChange(false)}
+            onOpenChange={handleOpenChange}
+          />
+        ) : isOpen ? (
+          <DetailPanel
+            error={error}
+            isLoading={isLoading}
+            mode="overlay"
+            open={isOpen}
+            onDeleted={() => handleOpenChange(false)}
             onOpenChange={handleOpenChange}
           />
         ) : null}
@@ -340,19 +407,32 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
           open={isAddLinkDialogOpen}
           onOpenChange={handleWideAddLinkDialogOpenChange}
         >
-          <DialogContent className="max-w-[960px] gap-0 overflow-hidden rounded-2xl p-0">
+          <DialogContent className="max-h-[80vh] max-w-[960px] gap-0 overflow-hidden rounded-2xl p-0">
             <DialogHeader className="flex-row items-center gap-3 border-b border-border px-8 py-6">
               <Text className="text-2xl font-normal text-muted-foreground">+</Text>
               <DialogTitle className="text-xl">새 링크 추가</DialogTitle>
             </DialogHeader>
-            <View className="px-8 py-6">
-              <LinkCreateForm
-                mode="wide"
-                open={isAddLinkDialogOpen}
-                onCancel={() => setIsAddLinkDialogOpen(false)}
-                onSaved={() => setIsAddLinkDialogOpen(false)}
-              />
-            </View>
+            <ScrollView
+              className="flex-1"
+              contentInsetAdjustmentBehavior="automatic"
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="px-8 py-6">
+                <RouteErrorBoundary
+                  description="링크 추가 시트를 다시 열어 시도해주세요."
+                  resetKeys={[isAddLinkDialogOpen]}
+                  title="링크 추가 화면을 불러오지 못했어요"
+                  onClose={() => setIsAddLinkDialogOpen(false)}
+                >
+                  <LinkCreateForm
+                    mode="wide"
+                    open={isAddLinkDialogOpen}
+                    onCancel={() => setIsAddLinkDialogOpen(false)}
+                    onSaved={handleWideLinkSaved}
+                  />
+                </RouteErrorBoundary>
+              </View>
+            </ScrollView>
           </DialogContent>
         </Dialog>
       </View>
@@ -390,8 +470,10 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
         }
         title={isMobileHome ? undefined : routeState.routeTitle}
       />
-      <View className="flex-1">{children}</View>
-      {showMobileFab && !addLinkSheet.isOpen ? (
+      <View className="flex-1">
+        <RouteErrorBoundary resetKeys={[routeState.pathname]}>{children}</RouteErrorBoundary>
+      </View>
+      {showMobileFab && !isAddLinkSheetOpen ? (
         <Fab
           bottomOffset={96}
           icon={Plus}
@@ -404,18 +486,27 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
         value={routeState.mobileTabKey ?? ""}
         onValueChange={handleMobileTabChange}
       />
-      <Sheet
-        open={addLinkSheet.isOpen}
-        snapPoints={["88%"]}
-        onOpenChange={addLinkSheet.handleOpenChange}
-      >
-        <LinkCreateForm
-          mode="mobile"
-          open={addLinkSheet.isOpen}
-          onCancel={addLinkSheet.close}
-          onSaved={addLinkSheet.close}
-        />
-      </Sheet>
+      {isAddLinkSheetOpen ? (
+        <Sheet
+          open={isAddLinkSheetOpen}
+          snapPoints={["88%"]}
+          onOpenChange={handleAddLinkSheetOpenChange}
+        >
+          <RouteErrorBoundary
+            description="시트를 닫고 다시 열어 시도해주세요."
+            resetKeys={[isAddLinkSheetOpen]}
+            title="링크 추가 시트를 불러오지 못했어요"
+            onClose={closeAddLinkSheet}
+          >
+            <LinkCreateForm
+              mode="mobile"
+              open={isAddLinkSheetOpen}
+              onCancel={closeAddLinkSheet}
+              onSaved={handleMobileLinkSaved}
+            />
+          </RouteErrorBoundary>
+        </Sheet>
+      ) : null}
     </View>
   );
 }

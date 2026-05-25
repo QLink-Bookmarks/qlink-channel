@@ -1,5 +1,6 @@
 import { View } from "react-native";
 
+import type { LinkDetail } from "@/features/links/types";
 import type { Meta, StoryObj } from "@storybook/react-native";
 
 import { DetailPanel } from "./detail-panel";
@@ -8,29 +9,20 @@ import { useArgs } from "storybook/preview-api";
 
 type DetailPanelStoryArgs = {
   open: boolean;
-  title: string;
-  url: string;
-  summary?: string;
-  tags: string[];
+  detail: LinkDetail;
   mode?: "inline" | "overlay";
 };
 
 function DetailPanelStory({
   open,
-  title,
-  url,
-  summary,
-  tags,
+  detail,
   mode,
   onOpenChange,
 }: DetailPanelStoryArgs & { onOpenChange: (open: boolean) => void }) {
   return (
     <DetailPanel
+      detail={detail}
       open={open}
-      title={title}
-      url={url}
-      summary={summary}
-      tags={tags}
       mode={mode}
       className="flex"
       onOpenChange={onOpenChange}
@@ -49,10 +41,19 @@ const meta = {
   },
   args: {
     open: true,
-    title: "QLINK 컴포넌트 시스템",
-    url: "https://qlink.app/reference",
-    summary: "저장한 링크의 요약, 태그, 액션을 확인하는 상세 미리보기다.",
-    tags: ["레퍼런스", "디자인"],
+    detail: {
+      id: 1,
+      url: "https://qlink.app/reference",
+      title: "QLINK 컴포넌트 시스템",
+      summary: "저장한 링크의 요약, 태그, 액션을 확인하는 상세 미리보기다.",
+      tags: ["레퍼런스", "디자인"],
+      memo: "와이드 상세 패널 스토리북용 메모다.",
+      sourceType: "INPUT",
+      createdAt: "2026-05-24T00:00:00.000Z",
+      folderId: 1,
+      folderName: "레퍼런스",
+      todos: [],
+    },
   },
   render: function Render(args) {
     const [, updateArgs] = useArgs();

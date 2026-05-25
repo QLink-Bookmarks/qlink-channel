@@ -12,13 +12,6 @@ type ShellRouteStateInput = {
   searchParams: RouteParams;
 };
 
-type LinkDetailMock = {
-  title: string;
-  url: string;
-  summary: string;
-  tags: string[];
-};
-
 const folderLabels: Record<string, string> = {
   inbox: "Inbox",
   design: "Design",
@@ -261,15 +254,6 @@ function getRedirectHref({ isWideView, pathname, searchParams }: ShellRouteState
   return undefined;
 }
 
-function getLinkDetailMock(linkId: string): LinkDetailMock {
-  return {
-    title: `링크 ${linkId}`,
-    url: `https://qlink.app/links/${linkId}`,
-    summary: `${linkId} 링크의 상세 패널 더미 데이터다. 이후 실제 요약, 태그, 액션 영역으로 교체될 예정이다.`,
-    tags: ["더미", "링크", "오버레이"],
-  };
-}
-
 function getFolderSidebarItems(activeFolderId?: string) {
   const fallbackFolderId = activeFolderId ?? "inbox";
   const folderIds = ["inbox", "design", fallbackFolderId];
@@ -286,7 +270,6 @@ export {
   canOpenWideOverlayInPlace,
   getBackHref,
   getFolderSidebarItems,
-  getLinkDetailMock,
   getMobileTabActiveItem,
   getOverlayBaseHref,
   getOverlayLinkId,

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { getLinkDetailMock } from "../routes";
+import { useLinkDetailQuery } from "@/features/links/queries";
 
 import { type Href, useRouter } from "expo-router";
 
@@ -14,14 +14,7 @@ function useLinkOverlayState({
   overlayLinkId?: string;
 }) {
   const router = useRouter();
-
-  const detail = React.useMemo(() => {
-    if (!overlayLinkId) {
-      return undefined;
-    }
-
-    return getLinkDetailMock(overlayLinkId);
-  }, [overlayLinkId]);
+  const linkDetailQuery = useLinkDetailQuery(overlayLinkId);
 
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -35,9 +28,11 @@ function useLinkOverlayState({
   );
 
   return {
-    isOpen: isWideView && Boolean(overlayLinkId && detail),
-    detail,
+    detail: linkDetailQuery.data,
+    error: linkDetailQuery.isError,
     handleOpenChange,
+    isLoading: linkDetailQuery.isLoading,
+    isOpen: isWideView && Boolean(overlayLinkId),
   };
 }
 
