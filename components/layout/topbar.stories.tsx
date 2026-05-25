@@ -1,6 +1,7 @@
 import { View } from "react-native";
 
 import { Icon } from "@/components/ui/icon";
+import { Kbd } from "@/components/ui/kbd";
 import type { Meta, StoryObj } from "@storybook/react-native";
 
 import { Topbar } from "./topbar";
@@ -47,6 +48,7 @@ export const Basic: Story = {
           className="size-4 text-muted-foreground"
         />
       }
+      searchRightSlot={<Kbd size="sm">⌘K</Kbd>}
       searchAction={{ label: "적용" }}
     />
   ),

@@ -29,7 +29,7 @@ function SelectValue({
     <SelectPrimitive.Value
       ref={ref}
       className={cn(
-        "line-clamp-1 flex flex-row items-center gap-2 text-sm text-foreground",
+        "min-w-0 flex-1 truncate text-sm text-foreground",
         !value && "text-muted-foreground",
         className,
       )}

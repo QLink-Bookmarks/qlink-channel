@@ -26,6 +26,7 @@ function IconButton({
   className,
   icon,
   size = "md",
+  variant = "solid",
   accent = DEFAULT_ACCENT,
   color,
   backgroundColor,
@@ -36,6 +37,7 @@ function IconButton({
 }: React.ComponentProps<typeof Pressable> & {
   icon: LucideIcon;
   size?: keyof typeof iconButtonSizes;
+  variant?: "solid" | "ghost";
   accent?: AccentName;
   color?: string;
   backgroundColor?: string;
@@ -43,20 +45,23 @@ function IconButton({
 }) {
   const tokens = React.useMemo(() => getThemeTokens("light", accent), [accent]);
   const sizeConfig = iconButtonSizes[size];
-  const defaultIconColor = color ?? tokens.accentForeground;
-  const activeBackgroundColor = backgroundColor ?? tokens.accent;
+  const defaultIconColor =
+    color ?? (variant === "ghost" ? tokens.foreground : tokens.accentForeground);
+  const activeBackgroundColor =
+    backgroundColor ?? (variant === "ghost" ? `${tokens.foreground}14` : tokens.accent);
 
   return (
     <Pressable
       className={cn(
         "items-center justify-center overflow-hidden",
         Platform.select({
-          web: !disabled
-            ? "transition-colors duration-150 ease-out hover:bg-accent focus-visible:bg-accent"
-            : undefined,
+          web:
+            !disabled && variant === "solid"
+              ? "transition-colors duration-150 ease-out hover:bg-accent focus-visible:bg-accent"
+              : undefined,
         }),
         sizeConfig.button,
-        active && "bg-accent",
+        variant === "ghost" ? "bg-transparent" : active && "bg-accent",
         disabled && "opacity-50",
         className,
       )}

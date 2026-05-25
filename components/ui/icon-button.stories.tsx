@@ -17,14 +17,16 @@ const iconOptions = {
 type IconButtonStoryProps = {
   iconName: keyof typeof iconOptions;
   size: "sm" | "md" | "lg";
+  variant: "solid" | "ghost";
   disabled: boolean;
 };
 
-function IconButtonStory({ iconName, size, disabled }: IconButtonStoryProps) {
+function IconButtonStory({ iconName, size, variant, disabled }: IconButtonStoryProps) {
   return (
     <IconButton
       icon={iconOptions[iconName]}
       size={size}
+      variant={variant}
       disabled={disabled}
       onPress={() => {}}
     />
@@ -37,6 +39,7 @@ const meta = {
   args: {
     iconName: "search",
     size: "md",
+    variant: "solid",
     disabled: false,
   },
   argTypes: {
@@ -47,6 +50,10 @@ const meta = {
     size: {
       control: "select",
       options: ["sm", "md", "lg"],
+    },
+    variant: {
+      control: "select",
+      options: ["solid", "ghost"],
     },
     disabled: {
       control: "boolean",
@@ -76,18 +83,21 @@ export const Sizes: Story = {
       <IconButton
         icon={Search}
         size="sm"
+        variant="ghost"
         disabled={disabled}
         onPress={() => {}}
       />
       <IconButton
         icon={Search}
         size="md"
+        variant="ghost"
         disabled={disabled}
         onPress={() => {}}
       />
       <IconButton
         icon={Search}
         size="lg"
+        variant="ghost"
         disabled={disabled}
         onPress={() => {}}
       />
@@ -101,6 +111,7 @@ export const StatePreview: Story = {
     <View className="flex-row items-center gap-4">
       <IconButton
         icon={Search}
+        variant="ghost"
         onPress={() => {}}
       />
       <View className="rounded-full bg-accent">

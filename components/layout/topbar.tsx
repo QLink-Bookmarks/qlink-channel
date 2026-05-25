@@ -21,8 +21,11 @@ function Topbar({
   searchValue,
   placeholder = "검색",
   searchLeftSlot,
+  searchRightSlot,
   searchAction,
   actions,
+  searchReadOnly,
+  onSearchPress,
   onSearchChange,
   onSubmit,
   ...props
@@ -31,11 +34,16 @@ function Topbar({
   searchValue?: string;
   placeholder?: string;
   searchLeftSlot?: React.ReactNode;
+  searchRightSlot?: React.ReactNode;
   searchAction?: TopbarSearchAction;
   actions?: React.ReactNode;
+  searchReadOnly?: boolean;
+  onSearchPress?: () => void;
   onSearchChange?: (value: string) => void;
   onSubmit?: () => void;
 }) {
+  const SearchContainer = searchReadOnly ? Pressable : View;
+
   return (
     <View
       className={cn(
@@ -44,24 +52,29 @@ function Topbar({
       )}
       {...props}
     >
-      <View
+      <SearchContainer
         className={cn(
           "max-w-xl flex-1 flex-row items-center gap-2 border border-input px-3 shadow-sm shadow-black/5",
-          variant === "search" ? "rounded-full bg-card py-1.5" : "rounded-2xl bg-card py-2",
+          variant === "search" ? "rounded-full bg-card py-1" : "rounded-2xl bg-card py-1",
+          searchReadOnly && "web:cursor-pointer web:hover:border-primary",
         )}
+        onPress={searchReadOnly ? onSearchPress : undefined}
       >
         {searchLeftSlot ? <View className="shrink-0">{searchLeftSlot}</View> : null}
         <Input
+          editable={!searchReadOnly}
           variant="inline"
           className={cn(
             "flex-1 border-none px-0 py-0",
             variant === "search" ? "text-sm" : "text-base",
+            searchReadOnly && "web:pointer-events-none",
           )}
           placeholder={placeholder}
           value={searchValue}
           onChangeText={onSearchChange}
           onSubmitEditing={onSubmit}
         />
+        {searchRightSlot ? <View className="shrink-0">{searchRightSlot}</View> : null}
         {searchAction ? (
           <Pressable
             className={cn(
@@ -80,7 +93,7 @@ function Topbar({
             ) : null}
           </Pressable>
         ) : null}
-      </View>
+      </SearchContainer>
       <View className="flex-row items-center gap-2">{actions}</View>
     </View>
   );

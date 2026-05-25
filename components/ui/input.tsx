@@ -1,6 +1,9 @@
+import * as React from "react";
 import { Platform, TextInput } from "react-native";
 
+import { getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { useDisplaySettings } from "@/stores/display-settings";
 
 import { type VariantProps, cva } from "class-variance-authority";
 
@@ -31,10 +34,18 @@ function Input({
   className,
   variant,
   size,
+  onBlur,
+  onFocus,
+  style,
   ...props
 }: React.ComponentProps<typeof TextInput> &
   React.RefAttributes<TextInput> &
   VariantProps<typeof inputVariants>) {
+  const accent = useDisplaySettings((state) => state.display.accent);
+  const theme = useDisplaySettings((state) => state.display.theme);
+  const tokens = React.useMemo(() => getThemeTokens(theme, accent), [accent, theme]);
+  const [isFocused, setIsFocused] = React.useState(false);
+
   return (
     <TextInput
       className={cn(
@@ -56,6 +67,24 @@ function Input({
         }),
         className,
       )}
+      onBlur={(event) => {
+        setIsFocused(false);
+        onBlur?.(event);
+      }}
+      onFocus={(event) => {
+        setIsFocused(true);
+        onFocus?.(event);
+      }}
+      style={[
+        Platform.OS !== "web" && isFocused
+          ? {
+              borderColor: tokens.ring,
+              borderWidth: 1.5,
+              boxShadow: `0 0 0 3px ${tokens.primary}26`,
+            }
+          : undefined,
+        style,
+      ]}
       {...props}
     />
   );

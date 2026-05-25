@@ -95,14 +95,6 @@ function Sheet({
     [sheetTokens],
   );
 
-  React.useEffect(() => {
-    if (open) {
-      sheetRef.current?.snapToIndex(initialSnapIndex);
-    } else {
-      sheetRef.current?.close();
-    }
-  }, [initialSnapIndex, open]);
-
   const handleChange = React.useCallback(
     (index: number) => {
       if (index < 0) {
@@ -154,7 +146,8 @@ function Sheet({
   return (
     <BottomSheet
       ref={sheetRef}
-      index={-1}
+      animateOnMount={open}
+      index={open ? initialSnapIndex : -1}
       snapPoints={memoizedSnapPoints}
       enablePanDownToClose={dismissible}
       backdropComponent={renderBackdrop}

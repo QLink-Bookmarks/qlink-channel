@@ -10,23 +10,26 @@ type SegmentedOption = {
 };
 
 type SegmentedControlProps = React.ComponentProps<typeof View> & {
-  value: string;
+  value: string | string[];
   options: SegmentedOption[];
   variant?: "chips" | "chipsBadge" | "chipsRound" | "pills" | "cells";
+  selectionMode?: "single" | "multiple";
   block?: boolean;
-  onValueChange?: (value: string) => void;
+  onValueChange?: (value: string | string[]) => void;
 };
 
 function SegmentedControl({
   value,
   options,
   variant = "pills",
+  selectionMode = "single",
   block,
   className,
   onValueChange,
   ...props
 }: SegmentedControlProps) {
   const isChipVariant = variant === "chips" || variant === "chipsRound" || variant === "chipsBadge";
+  const selectedValues = Array.isArray(value) ? value : [value];
 
   return (
     <View
@@ -39,7 +42,7 @@ function SegmentedControl({
       {...props}
     >
       {options.map((option) => {
-        const selected = option.value === value;
+        const selected = selectedValues.includes(option.value);
 
         return (
           <Pressable
@@ -49,13 +52,25 @@ function SegmentedControl({
               "min-h-9 flex-row items-center justify-center rounded-xl px-3",
               block && "flex-1",
               variant === "cells" && "rounded-lg",
-              variant === "chips" && "rounded-lg border border-border bg-card",
-              variant === "chipsRound" && "rounded-xl border border-border bg-card",
-              variant === "chipsBadge" && "rounded-full border border-border bg-card",
+              variant === "chips" && "min-h-8 rounded-lg border border-border bg-card px-2.5",
+              variant === "chipsRound" && "min-h-8 rounded-xl border border-border bg-card px-2.5",
+              variant === "chipsBadge" &&
+                "min-h-8 rounded-full border border-border bg-card px-2.5",
               selected && cn("bg-primary", isChipVariant && "border-primary shadow-qlink-sm"),
               option.disabled && "opacity-50",
             )}
-            onPress={() => onValueChange?.(option.value)}
+            onPress={() => {
+              if (selectionMode === "multiple") {
+                const nextValue = selected
+                  ? selectedValues.filter((currentValue) => currentValue !== option.value)
+                  : [...selectedValues, option.value];
+
+                onValueChange?.(nextValue);
+                return;
+              }
+
+              onValueChange?.(option.value);
+            }}
           >
             <Text
               className={cn(
