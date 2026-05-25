@@ -16,7 +16,8 @@ export const apiClient = create({
 
 function withAuth<D = unknown>(config: ApiRequestConfig<D> = {}): AxiosRequestConfig<D> {
   const { authToken, headers, ...axiosConfig } = config;
-  const token = authToken === undefined && __DEV__ ? DEV_AUTH_TOKEN : authToken;
+  // TODO: Replace this fallback with real authentication once auth is implemented.
+  const token = authToken === undefined ? DEV_AUTH_TOKEN : authToken;
 
   return {
     ...axiosConfig,
