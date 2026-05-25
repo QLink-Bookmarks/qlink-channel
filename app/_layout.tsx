@@ -4,6 +4,8 @@ import * as React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 
+import { AppErrorBoundary } from "@/components/error/app-error-boundary";
+import { ToastViewport } from "@/components/ui/toast-viewport";
 import { getNavTheme } from "@/lib/theme";
 import { QueryProvider } from "@/providers/query-provider";
 import { useDisplaySettings } from "@/stores/display-settings";
@@ -43,16 +45,19 @@ export default function RootLayout() {
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <QueryProvider>
           <DisplayThemeBridge />
-          <ThemeProvider value={getNavTheme(theme, accent)}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Protected guard={StorybookEnabled}>
-                <Stack.Screen name="(storybook)/index" />
-              </Stack.Protected>
+          <AppErrorBoundary>
+            <ThemeProvider value={getNavTheme(theme, accent)}>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Protected guard={StorybookEnabled}>
+                  <Stack.Screen name="(storybook)/index" />
+                </Stack.Protected>
 
-              <Stack.Screen name="(pages)" />
-            </Stack>
-            <PortalHost />
-          </ThemeProvider>
+                <Stack.Screen name="(pages)" />
+              </Stack>
+              <PortalHost />
+              <ToastViewport />
+            </ThemeProvider>
+          </AppErrorBoundary>
         </QueryProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
