@@ -1,0 +1,104 @@
+name: 개발환경 배포
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_dev:
+    name: Deploy Dev
+    runs-on: ubuntu-latest
+    environment: dev
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    env:
+      AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
+      AMPLIFY_BRANCH_NAME: dev
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      APP_VARIANT: ${{ vars.APP_VARIANT }}
+      EXPO_PUBLIC_API_BASE_URL: ${{ vars.EXPO_PUBLIC_API_BASE_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate environment variables
+        run: |
+          required_names=(
+            AMPLIFY_APP_ID
+            AWS_ACCESS_KEY_ID
+            AWS_SECRET_ACCESS_KEY
+            APP_VARIANT
+            EXPO_PUBLIC_API_BASE_URL
+          )
+
+          missing_names=()
+          for name in "${required_names[@]}"; do
+            if [ -z "${!name}" ]; then
+              missing_names+=("${name}")
+            fi
+          done
+
+          if [ "${#missing_names[@]}" -gt 0 ]; then
+            printf "Missing required environment values:\n"
+            printf " - %s\n" "${missing_names[@]}"
+            exit 1
+          fi
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Export web
+        run: bunx expo export --platform web --clear
+
+      - name: Zip web artifact
+        run: |
+          cd dist
+          zip -r ../dist.zip .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Create Amplify deployment
+        id: create-deployment
+        run: |
+          read -r JOB_ID ZIP_UPLOAD_URL < <(aws amplify create-deployment \
+            --app-id "${AMPLIFY_APP_ID}" \
+            --branch-name "${AMPLIFY_BRANCH_NAME}" \
+            --query "[jobId, zipUploadUrl]" \
+            --output text)
+
+          echo "job_id=${JOB_ID}" >> "${GITHUB_OUTPUT}"
+          echo "zip_upload_url=${ZIP_UPLOAD_URL}" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload artifact to Amplify
+        env:
+          ZIP_UPLOAD_URL: ${{ steps.create-deployment.outputs.zip_upload_url }}
+        run: |
+          curl --fail --silent --show-error \
+            --request PUT \
+            --header "Content-Type: application/zip" \
+            --upload-file dist.zip \
+            "${ZIP_UPLOAD_URL}"
+
+      - name: Start Amplify deployment
+        env:
+          JOB_ID: ${{ steps.create-deployment.outputs.job_id }}
+        run: |
+          aws amplify start-deployment \
+            --app-id "${AMPLIFY_APP_ID}" \
+            --branch-name "${AMPLIFY_BRANCH_NAME}" \
+            --job-id "${JOB_ID}"
