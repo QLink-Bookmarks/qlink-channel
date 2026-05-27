@@ -1,3 +1,11 @@
+import { ScrollView, View } from "react-native";
+
+import { PageHeader } from "@/components/layout/page-header";
+import { ActivityIndicator } from "@/components/ui/activity-indicator";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useFoldersQuery } from "@/features/folders/queries";
+import { LinkListView } from "@/features/home/components/link-list-view";
+import { MobileHomeScreen } from "@/features/home/components/mobile-home-screen";
 import { LinkDetailScreen } from "@/features/links/components/link-detail-screen";
 
 import { useShellRouteState } from "../hooks/use-shell-route-state";
@@ -6,17 +14,54 @@ import { DummyRouteScreen } from "./dummy-route-screen";
 
 import { useLocalSearchParams } from "expo-router";
 
+function WidePlaceholderScreen({
+  title,
+  emoji,
+  meta,
+  description,
+}: {
+  title: string;
+  emoji: string;
+  meta: string;
+  description: string;
+}) {
+  return (
+    <ScrollView
+      className="flex-1"
+      contentInsetAdjustmentBehavior="automatic"
+      showsVerticalScrollIndicator={false}
+    >
+      <PageHeader
+        title={title}
+        emoji={emoji}
+        meta={meta}
+      />
+      <View className="px-6 pb-6">
+        <EmptyState
+          emoji="🛠"
+          title="준비 중"
+          description={description}
+        />
+      </View>
+    </ScrollView>
+  );
+}
+
 function HomeRouteScreen() {
   const { isWideView } = useShellRouteState();
 
-  return (
-    <DummyRouteScreen
-      title="홈"
-      routePath="/home"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="기본 홈 더미 화면이다. 와이드에서는 sidebar의 home, 모바일에서는 bottom tab의 home에 해당한다."
-    />
-  );
+  if (isWideView) {
+    return (
+      <WidePlaceholderScreen
+        title="홈"
+        emoji="🏠"
+        meta="홈 대시보드는 준비 중이다."
+        description="홈 위젯이 곧 추가될 예정이다."
+      />
+    );
+  }
+
+  return <MobileHomeScreen />;
 }
 
 function FoldersRouteScreen() {
@@ -34,16 +79,55 @@ function FoldersRouteScreen() {
 
 function FolderDetailRouteScreen() {
   const { isWideView } = useShellRouteState();
-  const params = useLocalSearchParams<{ id?: string | string[] }>();
+  const params = useLocalSearchParams<{ id?: string | string[]; linkId?: string | string[] }>();
   const folderId = readParamValue(params.id);
+  const linkIdParam = readParamValue(params.linkId);
+  const foldersQuery = useFoldersQuery({ size: 15 });
+
+  if (!isWideView) {
+    return (
+      <DummyRouteScreen
+        title="폴더 상세"
+        routePath="/folders/[id]"
+        viewMode="mobile"
+        description="모바일 폴더 상세는 추후 구현 예정이다."
+        params={[{ label: "id", value: folderId }]}
+      />
+    );
+  }
+
+  if (foldersQuery.isLoading) {
+    return (
+      <ActivityIndicator
+        size="large"
+        className="flex-1 py-16"
+      />
+    );
+  }
+
+  const folders = foldersQuery.data?.contents ?? [];
+  const folderIdNumber = folderId ? Number(folderId) : Number.NaN;
+  const folder = folders.find((entry) => entry.id === folderIdNumber);
+
+  if (!folder) {
+    return (
+      <WidePlaceholderScreen
+        title="폴더를 찾을 수 없어요"
+        emoji="📁"
+        meta={folderId ?? ""}
+        description="삭제된 폴더이거나 접근 권한이 없는 폴더예요."
+      />
+    );
+  }
 
   return (
-    <DummyRouteScreen
-      title="폴더 상세"
-      routePath="/folders/[id]"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="특정 폴더 상세 더미 화면이다. 와이드에서는 sidebar의 폴더 섹션을 유지하고, 모바일에서는 folder 탭 문맥에서 진입한다."
-      params={[{ label: "id", value: folderId }]}
+    <LinkListView
+      folderId={folder.id}
+      title={folder.name}
+      emoji={folder.emoji ?? undefined}
+      meta={`${folder.linkCounts}개 링크`}
+      basePath={`/folders/${folder.id}`}
+      activeLinkId={linkIdParam ? Number(linkIdParam) : undefined}
     />
   );
 }
@@ -51,25 +135,49 @@ function FolderDetailRouteScreen() {
 function TodosRouteScreen() {
   const { isWideView } = useShellRouteState();
 
+  if (isWideView) {
+    return (
+      <WidePlaceholderScreen
+        title="할 일"
+        emoji="✅"
+        meta="할 일 보드는 준비 중이다."
+        description="할 일 목록 위젯이 곧 추가될 예정이다."
+      />
+    );
+  }
+
   return (
     <DummyRouteScreen
       title="투두"
       routePath="/todos"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="투두 목록 더미 화면이다. 와이드와 모바일 모두 해당 네비게이션 키를 활성화한다."
+      viewMode="mobile"
+      description="투두 목록 더미 화면이다."
     />
   );
 }
 
 function LinksRouteScreen() {
   const { isWideView } = useShellRouteState();
+  const params = useLocalSearchParams<{ linkId?: string | string[] }>();
+  const linkIdParam = readParamValue(params.linkId);
+
+  if (!isWideView) {
+    return (
+      <DummyRouteScreen
+        title="링크"
+        routePath="/links"
+        viewMode="mobile"
+        description="모바일에서는 /home으로 리다이렉트된다."
+      />
+    );
+  }
 
   return (
-    <DummyRouteScreen
-      title="링크"
-      routePath="/links"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="링크 목록 더미 화면이다. 와이드에서는 detail-panel overlay의 base route로도 사용된다."
+    <LinkListView
+      title="전체 보기"
+      emoji="📚"
+      basePath="/links"
+      activeLinkId={linkIdParam ? Number(linkIdParam) : undefined}
     />
   );
 }
