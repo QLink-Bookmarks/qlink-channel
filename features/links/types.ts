@@ -67,13 +67,58 @@ type ApiEnvelope<TData> = {
 type LinkDetailResponse = ApiEnvelope<LinkDetail>;
 type DeleteLinkResponse = ApiEnvelope<null>;
 
+type LinkListTodo = {
+  id: number;
+  title: string;
+  completedAt?: string | null;
+  reminderAt?: string | null;
+};
+
+type LinkListItem = {
+  id: number;
+  folderId?: number | null;
+  folderName?: string | null;
+  folderEmoji?: string | null;
+  url: string;
+  title: string;
+  tags: string[];
+  createdAt: string;
+  todos: LinkListTodo[];
+  countMoreTodos: number;
+};
+
+type LinkScrollResponse = {
+  isEmpty: boolean;
+  contents: LinkListItem[];
+  nextCursor: string | null;
+  hasNext: boolean;
+};
+
+type GetLinksResponse = ApiEnvelope<LinkScrollResponse>;
+
+type LinkOrder = "latest" | "earliest" | "laxico" | "similar";
+
+type GetLinksParams = {
+  query?: string;
+  folderId?: number;
+  order?: LinkOrder;
+  cursor?: string;
+  size?: number;
+};
+
 export type {
   ApiEnvelope,
   CreateLinkRequest,
   CreateLinkResponse,
   DeleteLinkResponse,
+  GetLinksParams,
+  GetLinksResponse,
   LinkDetail,
   LinkDetailResponse,
+  LinkListItem,
+  LinkListTodo,
+  LinkOrder,
+  LinkScrollResponse,
   LinkTodo,
   SourceType,
   UpdateLinkRequest,
