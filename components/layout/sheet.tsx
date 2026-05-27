@@ -10,6 +10,7 @@ import BottomSheet, {
   type BottomSheetBackdropProps,
   type BottomSheetBackgroundProps,
   BottomSheetScrollView,
+  BottomSheetView,
 } from "@gorhom/bottom-sheet";
 
 // View scope: 모바일 전용. md >= 768px에서는 사용하지 않는다.
@@ -50,8 +51,12 @@ type SheetProps = {
   open: boolean;
   title?: string;
   dismissible?: boolean;
-  snapPoints?: (string | number)[];
-  initialSnapIndex?: number;
+  /** fitContent=false일 때 기본 스냅 포인트. 기본값 "35%" */
+  defaultSize?: string | number;
+  /** fitContent=false일 때 최대 스냅 포인트. 기본값 "80%" */
+  maxSize?: string | number;
+  /** true면 콘텐츠 높이에 맞게 동적 사이징. defaultSize/maxSize는 무시된다. */
+  fitContent?: boolean;
   accent?: AccentName;
   mode?: ThemeMode;
   backgroundStyle?: StyleProp<ViewStyle>;
@@ -64,8 +69,9 @@ function Sheet({
   open,
   title,
   dismissible = true,
-  snapPoints = ["50%"],
-  initialSnapIndex = 0,
+  defaultSize = "35%",
+  maxSize = "80%",
+  fitContent = false,
   accent = DEFAULT_ACCENT,
   mode = "light",
   backgroundStyle,
@@ -73,7 +79,10 @@ function Sheet({
   onOpenChange,
 }: SheetProps) {
   const sheetRef = React.useRef<BottomSheet>(null);
-  const memoizedSnapPoints = React.useMemo(() => snapPoints, [snapPoints]);
+  const snapPoints = React.useMemo(
+    () => (fitContent ? undefined : [defaultSize, maxSize]),
+    [fitContent, defaultSize, maxSize],
+  );
   const sheetTokens = React.useMemo(() => getThemeTokens(mode, accent), [accent, mode]);
   const backdropStyle = React.useMemo<StyleProp<ViewStyle>>(
     () => ({
@@ -143,12 +152,21 @@ function Sheet({
     [],
   );
 
+  const content = (
+    <View className={cn("gap-4 p-4", className)}>
+      {title ? <Text className="text-lg font-semibold">{title}</Text> : null}
+      {children}
+    </View>
+  );
+
   return (
     <BottomSheet
       ref={sheetRef}
       animateOnMount={open}
-      index={open ? initialSnapIndex : -1}
-      snapPoints={memoizedSnapPoints}
+      index={open ? 0 : -1}
+      snapPoints={snapPoints}
+      enableDynamicSizing={fitContent}
+      enableContentPanningGesture={false}
       enablePanDownToClose={dismissible}
       backdropComponent={renderBackdrop}
       backgroundComponent={renderBackground}
@@ -156,15 +174,16 @@ function Sheet({
       style={sheetStyle}
       onChange={handleChange}
     >
-      <BottomSheetScrollView
-        className="scrollbar-none"
-        showsVerticalScrollIndicator={false}
-      >
-        <View className={cn("gap-4 p-4", className)}>
-          {title ? <Text className="text-lg font-semibold">{title}</Text> : null}
-          {children}
-        </View>
-      </BottomSheetScrollView>
+      {fitContent ? (
+        <BottomSheetView>{content}</BottomSheetView>
+      ) : (
+        <BottomSheetScrollView
+          className="scrollbar-none"
+          showsVerticalScrollIndicator={false}
+        >
+          {content}
+        </BottomSheetScrollView>
+      )}
     </BottomSheet>
   );
 }

@@ -10,8 +10,9 @@ type SheetStoryProps = {
   open: boolean;
   title: string;
   dismissible: boolean;
-  snapHeight: "45%" | "60%" | "80%";
-  initialSnapIndex: number;
+  fitContent: boolean;
+  defaultSize: "30%" | "50%" | "80%";
+  maxSize: "50%" | "80%" | "95%";
   accent: AccentName;
   mode: ThemeMode;
 };
@@ -30,17 +31,19 @@ const meta = {
     open: true,
     title: "시트 제목",
     dismissible: true,
-    snapHeight: "45%",
-    initialSnapIndex: 0,
+    fitContent: true,
+    defaultSize: "30%",
+    maxSize: "80%",
     accent: "gray",
     mode: "light",
   },
   argTypes: {
     open: { control: "boolean" },
     dismissible: { control: "boolean" },
+    fitContent: { control: "boolean" },
     title: { control: "text" },
-    snapHeight: { control: "select", options: ["45%", "60%", "80%"] },
-    initialSnapIndex: { control: { type: "number", min: 0, max: 0, step: 1 } },
+    defaultSize: { control: "select", options: ["30%", "50%", "80%"] },
+    maxSize: { control: "select", options: ["50%", "80%", "95%"] },
     accent: { table: { disable: true } },
     mode: { table: { disable: true } },
   },
@@ -64,11 +67,19 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-function SheetContent() {
+function ShortContent() {
+  return (
+    <Text className="text-muted-foreground">
+      짧은 콘텐츠다. fitContent 모드에서는 이 높이에 딱 맞게 시트가 열린다.
+    </Text>
+  );
+}
+
+function LongContent() {
   return (
     <>
       <Text className="text-muted-foreground">
-        모바일 전용 바텀시트 콘텐츠 예시다. 긴 콘텐츠에서도 패널 안쪽 스크롤을 확인한다.
+        긴 콘텐츠 예시다. 고정 크기 모드에서는 시트 안쪽에서 스크롤된다.
       </Text>
       {Array.from({ length: 8 }).map((_, index) => (
         <View
@@ -89,8 +100,9 @@ function SheetStory({
   open,
   title,
   dismissible,
-  snapHeight,
-  initialSnapIndex,
+  fitContent,
+  defaultSize,
+  maxSize,
   accent,
   mode,
 }: SheetStoryProps) {
@@ -99,40 +111,89 @@ function SheetStory({
       open={open}
       title={title}
       dismissible={dismissible}
-      snapPoints={[snapHeight]}
-      initialSnapIndex={initialSnapIndex}
+      fitContent={fitContent}
+      defaultSize={fitContent ? undefined : defaultSize}
+      maxSize={fitContent ? undefined : maxSize}
       accent={accent}
       mode={mode}
       onOpenChange={() => {}}
     >
-      <SheetContent />
+      <ShortContent />
     </Sheet>
   );
 }
 
-export const Basic: Story = {
-  name: "기본",
-};
-
-export const LongContent: Story = {
-  name: "긴 콘텐츠",
+/** fitContent=true: 콘텐츠 높이에 맞게 자동 사이징 */
+export const FitContent: Story = {
+  name: "콘텐츠 맞춤",
   args: {
-    snapHeight: "80%",
+    fitContent: true,
+    title: "콘텐츠 맞춤 시트",
   },
 };
 
-export const NotDismissible: Story = {
-  name: "닫기 비활성",
+/** fitContent=false, defaultSize만: 단일 고정 스냅포인트 */
+export const FixedSize: Story = {
+  name: "고정 크기",
   args: {
-    dismissible: false,
+    fitContent: false,
+    defaultSize: "50%",
+    maxSize: "50%",
+    title: "고정 크기 시트",
   },
-  render: ({ open, title, dismissible, snapHeight, initialSnapIndex }, context) => (
+};
+
+/** fitContent=false, defaultSize + maxSize: 두 스냅포인트 간 드래그 가능 */
+export const FixedSizeWithMax: Story = {
+  name: "고정 크기 (최대 포함)",
+  args: {
+    fitContent: false,
+    defaultSize: "30%",
+    maxSize: "80%",
+    title: "스냅포인트 2개",
+  },
+};
+
+/** fitContent=false, 큰 고정 크기 + 긴 콘텐츠: 내부 스크롤 확인 */
+export const LongContentFixed: Story = {
+  name: "긴 콘텐츠 (고정)",
+  args: {
+    fitContent: false,
+    defaultSize: "50%",
+    maxSize: "80%",
+    title: "긴 콘텐츠 스크롤",
+  },
+  render: ({ open, title, dismissible, defaultSize, maxSize }, context) => (
     <Sheet
       open={open}
       title={title}
       dismissible={dismissible}
-      snapPoints={[snapHeight]}
-      initialSnapIndex={initialSnapIndex}
+      fitContent={false}
+      defaultSize={defaultSize}
+      maxSize={maxSize}
+      accent={(context.globals.accent ?? "gray") as AccentName}
+      mode={(context.globals.mode ?? "light") as ThemeMode}
+      onOpenChange={() => {}}
+    >
+      <LongContent />
+    </Sheet>
+  ),
+};
+
+/** fitContent=true, dismissible=false: 배경 클릭해도 닫히지 않음 */
+export const NotDismissible: Story = {
+  name: "닫기 비활성",
+  args: {
+    fitContent: true,
+    dismissible: false,
+    title: "닫기 비활성 시트",
+  },
+  render: ({ open, title, dismissible }, context) => (
+    <Sheet
+      open={open}
+      title={title}
+      dismissible={dismissible}
+      fitContent
       accent={(context.globals.accent ?? "gray") as AccentName}
       mode={(context.globals.mode ?? "light") as ThemeMode}
       onOpenChange={() => {}}

@@ -489,7 +489,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
       {isAddLinkSheetOpen ? (
         <Sheet
           open={isAddLinkSheetOpen}
-          snapPoints={["88%"]}
+          fitContent
           onOpenChange={handleAddLinkSheetOpenChange}
         >
           <RouteErrorBoundary

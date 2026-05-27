@@ -989,7 +989,7 @@ function LinkDetailView({
       ) : (
         <Sheet
           open={isFolderMoveOpen}
-          snapPoints={["80%"]}
+          fitContent
           onOpenChange={setIsFolderMoveOpen}
         >
           <View className="gap-3">
@@ -1038,7 +1038,7 @@ function LinkDetailView({
       ) : (
         <Sheet
           open={isTodoEditorOpen}
-          snapPoints={["80%"]}
+          fitContent
           onOpenChange={(open) => {
             if (!open) {
               handleTodoEditorClose();
