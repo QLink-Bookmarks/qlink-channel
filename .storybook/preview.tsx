@@ -3,6 +3,7 @@ import "../global.css";
 import { type ReactNode, useEffect } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { PortalHost } from "@rn-primitives/portal";
 import type { Preview } from "@storybook/react-native-web-vite";
@@ -108,12 +109,14 @@ const preview: Preview = {
           accent={accent}
           mode={mode}
         >
-          <GestureHandlerRootView className="flex-1">
-            <View className="flex-1 bg-background">
-              <Story />
-              <PortalHost />
-            </View>
-          </GestureHandlerRootView>
+          <SafeAreaProvider>
+            <GestureHandlerRootView className="flex-1">
+              <View className="flex-1 bg-background">
+                <Story />
+                <PortalHost />
+              </View>
+            </GestureHandlerRootView>
+          </SafeAreaProvider>
         </ThemeRootDecorator>
       );
     },
