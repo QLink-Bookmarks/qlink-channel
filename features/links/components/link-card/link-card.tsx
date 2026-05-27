@@ -28,6 +28,7 @@ function LinkCard({
   active,
   todos = [],
   remainingTodoCount,
+  todoLayout = "row",
   leadingHoverActions,
   trailingHoverActions,
   onPress,
@@ -44,6 +45,7 @@ function LinkCard({
   active?: boolean;
   todos?: LinkCardTodo[];
   remainingTodoCount?: number;
+  todoLayout?: "row" | "stack";
   leadingHoverActions?: React.ReactNode;
   trailingHoverActions?: React.ReactNode;
   onPress?: () => void;
@@ -141,47 +143,80 @@ function LinkCard({
       ) : null}
       {visibleTodos.length ? (
         <View className="gap-2 border-t border-dashed border-border-soft pt-4">
-          {visibleTodos.map((todo) => (
-            <View
-              key={todo.id}
-              className="flex-row items-center gap-3"
-            >
-              <Checkbox
-                checked={todo.done ?? false}
-                disabled={!onTodoToggle}
-                shape="round"
-                size="sm"
-                onCheckedChange={(value) => onTodoToggle?.(todo.id, value === true)}
-              />
-              <Text
-                className={cn("flex-1 text-sm", todo.done && "text-muted-foreground line-through")}
-                numberOfLines={1}
+          {visibleTodos.map((todo) => {
+            const dueBadge = todo.dueLabel ? (
+              <View
+                className={cn(
+                  "flex-row items-center gap-1 rounded-full px-3 py-1.5",
+                  todo.overdue ? "bg-destructive/10" : "bg-primary/10",
+                )}
               >
-                {todo.text}
-              </Text>
-              {todo.dueLabel ? (
-                <View
+                <Icon
+                  as={AlarmClock}
+                  className={cn("size-3.5", todo.overdue ? "text-destructive" : "text-primary")}
+                />
+                <Text
                   className={cn(
-                    "flex-row items-center gap-1 rounded-full px-3 py-1.5",
-                    todo.overdue ? "bg-destructive/10" : "bg-primary/10",
+                    "text-xs font-semibold",
+                    todo.overdue ? "text-destructive" : "text-primary",
                   )}
                 >
-                  <Icon
-                    as={AlarmClock}
-                    className={cn("size-3.5", todo.overdue ? "text-destructive" : "text-primary")}
+                  {todo.dueLabel}
+                </Text>
+              </View>
+            ) : null;
+
+            if (todoLayout === "stack") {
+              return (
+                <View
+                  key={todo.id}
+                  className="flex-row items-start gap-3"
+                >
+                  <Checkbox
+                    checked={todo.done ?? false}
+                    disabled={!onTodoToggle}
+                    shape="round"
+                    size="sm"
+                    onCheckedChange={(value) => onTodoToggle?.(todo.id, value === true)}
                   />
-                  <Text
-                    className={cn(
-                      "text-xs font-semibold",
-                      todo.overdue ? "text-destructive" : "text-primary",
-                    )}
-                  >
-                    {todo.dueLabel}
-                  </Text>
+                  <View className="min-w-0 flex-1 gap-1.5">
+                    <Text
+                      className={cn("text-sm", todo.done && "text-muted-foreground line-through")}
+                      numberOfLines={1}
+                    >
+                      {todo.text}
+                    </Text>
+                    {dueBadge ? <View className="self-start">{dueBadge}</View> : null}
+                  </View>
                 </View>
-              ) : null}
-            </View>
-          ))}
+              );
+            }
+
+            return (
+              <View
+                key={todo.id}
+                className="flex-row items-center gap-3"
+              >
+                <Checkbox
+                  checked={todo.done ?? false}
+                  disabled={!onTodoToggle}
+                  shape="round"
+                  size="sm"
+                  onCheckedChange={(value) => onTodoToggle?.(todo.id, value === true)}
+                />
+                <Text
+                  className={cn(
+                    "flex-1 text-sm",
+                    todo.done && "text-muted-foreground line-through",
+                  )}
+                  numberOfLines={1}
+                >
+                  {todo.text}
+                </Text>
+                {dueBadge}
+              </View>
+            );
+          })}
           {extraTodoCount > 0 ? (
             <Text className="pl-8 text-sm text-muted-foreground">+{extraTodoCount}개 더</Text>
           ) : null}
