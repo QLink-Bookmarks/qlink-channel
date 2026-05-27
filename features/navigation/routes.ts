@@ -254,22 +254,9 @@ function getRedirectHref({ isWideView, pathname, searchParams }: ShellRouteState
   return undefined;
 }
 
-function getFolderSidebarItems(activeFolderId?: string) {
-  const fallbackFolderId = activeFolderId ?? "inbox";
-  const folderIds = ["inbox", "design", fallbackFolderId];
-  const uniqueFolderIds = Array.from(new Set(folderIds));
-
-  return uniqueFolderIds.map((folderId) => ({
-    href: `/folders/${folderId}`,
-    id: folderId,
-    label: getFolderLabel(folderId),
-  }));
-}
-
 export {
   canOpenWideOverlayInPlace,
   getBackHref,
-  getFolderSidebarItems,
   getMobileTabActiveItem,
   getOverlayBaseHref,
   getOverlayLinkId,
