@@ -28,6 +28,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
+import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
 import { useDeleteLinkMutation, useUpdateLinkMutation } from "@/features/links/mutations";
 import { getLinkDetailQueryKey } from "@/features/links/queries";
 import type {
@@ -971,18 +972,20 @@ function LinkDetailView({
           <DialogContent className="max-h-[80vh] max-w-md">
             <DialogHeader>
               <DialogTitle>폴더 이동</DialogTitle>
-              <DialogDescription>
-                폴더 이동 API가 연결되면 이 모달을 실제 선택기로 교체합니다.
-              </DialogDescription>
+              <DialogDescription>이동할 폴더를 선택해주세요.</DialogDescription>
             </DialogHeader>
             <ScrollView
               className="flex-1"
               contentInsetAdjustmentBehavior="automatic"
               showsVerticalScrollIndicator={false}
             >
-              <View className="rounded-2xl border border-dashed border-border px-4 py-6">
-                <Text className="text-sm text-muted-foreground">폴더 선택 더미</Text>
-              </View>
+              <FolderPickerList
+                noneOption={null}
+                selectedFolderId={detail.folderId ?? null}
+                onSelect={() => {
+                  setIsFolderMoveOpen(false);
+                }}
+              />
             </ScrollView>
           </DialogContent>
         </Dialog>
@@ -994,9 +997,13 @@ function LinkDetailView({
         >
           <View className="gap-3">
             <Text className="text-lg font-semibold text-foreground">폴더 이동</Text>
-            <View className="rounded-2xl border border-dashed border-border px-4 py-6">
-              <Text className="text-sm text-muted-foreground">폴더 선택 더미</Text>
-            </View>
+            <FolderPickerList
+              noneOption={null}
+              selectedFolderId={detail.folderId ?? null}
+              onSelect={() => {
+                setIsFolderMoveOpen(false);
+              }}
+            />
             <Button
               className="h-10 self-stretch"
               variant="outline"

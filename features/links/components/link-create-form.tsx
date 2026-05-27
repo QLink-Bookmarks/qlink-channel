@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
+import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
+import { useFoldersQuery } from "@/features/folders/queries";
 import {
   type TodoDraftEditorItem,
   TodoDraftListEditor,
@@ -23,13 +25,12 @@ import {
 } from "@/features/todos/components/todo-editor/todo-editor";
 import { useClipboardFailureFeedback } from "@/lib/clipboard-feedback";
 import { reportError } from "@/lib/error-reporting";
-import { cn } from "@/lib/utils";
 import { useToastStore } from "@/stores/toast-store";
 
 import { useCreateLinkMutation } from "../mutations";
 
 import * as Clipboard from "expo-clipboard";
-import { ChevronLeft, FolderOpen, Sparkles, X } from "lucide-react-native/icons";
+import { ChevronLeft, FolderOpen, X } from "lucide-react-native/icons";
 
 type LinkCreateFormMode = "wide" | "mobile";
 type MobileSheetStep = "form" | "folder-picker" | "ai-provider-picker";
@@ -56,7 +57,6 @@ const defaultFolder: FolderDraft = {
   label: "없음 - ✨ AI 생성으로 자동 분류해보세요",
 };
 
-const folderOptions: FolderDraft[] = [defaultFolder];
 const defaultFolderOptionValue = "__default-folder__";
 
 const aiProviderOptions: AiProviderDraft[] = [
@@ -77,6 +77,15 @@ function getFolderOptionValue(folderId: string | null) {
 function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) {
   const createLinkMutation = useCreateLinkMutation();
   const resetMutation = createLinkMutation.reset;
+  const foldersQuery = useFoldersQuery({ size: 15 });
+  const folderContents = foldersQuery.data?.contents;
+  const folderOptions: FolderDraft[] = React.useMemo(() => {
+    const apiFolders: FolderDraft[] = (folderContents ?? []).map((entry) => ({
+      id: String(entry.id),
+      label: entry.emoji ? `${entry.emoji} ${entry.name}` : entry.name,
+    }));
+    return [defaultFolder, ...apiFolders];
+  }, [folderContents]);
   const clipboardFeedback = useClipboardFailureFeedback();
   const showToast = useToastStore((state) => state.showToast);
   const [url, setUrl] = React.useState("");
@@ -127,9 +136,6 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
       resetForm();
       return;
     }
-
-    // TODO: Replace with real folder initial-load API.
-    console.log("link-create:load-folders:todo");
 
     Clipboard.getStringAsync()
       .then((clipboardText) => {
@@ -266,16 +272,20 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
             ) : null}
           </View>
           <Text className="flex-1 text-center text-xl font-bold text-primary">{stepTitle}</Text>
-          <Pressable
-            className="size-10 items-center justify-center rounded-full active:bg-accent"
-            onPress={handleCancel}
-          >
-            <Icon
-              as={X}
-              size={18}
-              className="text-muted-foreground"
-            />
-          </Pressable>
+          {mobileSheetStep === "form" ? (
+            <Pressable
+              className="size-10 items-center justify-center rounded-full active:bg-accent"
+              onPress={handleCancel}
+            >
+              <Icon
+                as={X}
+                size={18}
+                className="text-muted-foreground"
+              />
+            </Pressable>
+          ) : (
+            <View className="size-10" />
+          )}
         </View>
 
         {mobileSheetStep === "form" ? (
@@ -344,39 +354,21 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
             </Button>
           </>
         ) : (
-          <View className="gap-2">
-            {folderOptions.map((option) => {
-              const selected = option.id === folder.id;
-
-              return (
-                <Pressable
-                  key={option.id ?? "none"}
-                  className={cn(
-                    "flex-row items-center justify-between rounded-xl border border-border bg-card px-4 py-3",
-                    selected && "border-primary bg-accent",
-                  )}
-                  onPress={() => {
-                    setFolder(option);
-                    setMobileSheetStep("form");
-                  }}
-                >
-                  <Text
-                    className={cn("font-semibold", selected && "text-accent-foreground")}
-                    numberOfLines={1}
-                  >
-                    {option.label}
-                  </Text>
-                  {selected ? (
-                    <Icon
-                      as={Sparkles}
-                      size={18}
-                      className="text-primary"
-                    />
-                  ) : null}
-                </Pressable>
-              );
-            })}
-          </View>
+          <FolderPickerList
+            selectedFolderId={folder.id ? Number(folder.id) : null}
+            onSelect={(selection) => {
+              setFolder({
+                id: selection.id == null ? null : String(selection.id),
+                label:
+                  selection.id == null
+                    ? defaultFolder.label
+                    : selection.emoji
+                      ? `${selection.emoji} ${selection.label}`
+                      : selection.label,
+              });
+              setMobileSheetStep("form");
+            }}
+          />
         )}
       </View>
     );
