@@ -72,7 +72,7 @@ function MobileHomeScreen() {
             options={folderOptions}
             selectionMode="single"
             value={selectedFolder}
-            variant="chipsRound"
+            variant="chipsBadge"
             onValueChange={(next) => {
               if (typeof next === "string") {
                 setSelectedFolder(next);
@@ -81,15 +81,13 @@ function MobileHomeScreen() {
           />
         </ScrollView>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
+        <View className="flex-row justify-end">
           <OrderFilter
             value={order}
+            variant="chipsBadge"
             onValueChange={setOrder}
           />
-        </ScrollView>
+        </View>
 
         {isLoading ? (
           <ActivityIndicator
