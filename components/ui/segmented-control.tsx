@@ -1,7 +1,16 @@
-import { Pressable, View } from "react-native";
+import * as React from "react";
+import {
+  Text as RNText,
+  type StyleProp,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+} from "react-native";
 
-import { Text } from "@/components/ui/text";
+import { type ThemeTokens, getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { useDisplaySettings } from "@/stores/display-settings";
 
 type SegmentedOption = {
   label: string;
@@ -9,14 +18,21 @@ type SegmentedOption = {
   disabled?: boolean;
 };
 
+type SegmentedVariant = "chips" | "chipsBadge" | "chipsRound" | "pills" | "cells";
+type SegmentedSelectionMode = "single" | "multiple";
+
 type SegmentedControlProps = React.ComponentProps<typeof View> & {
   value: string | string[];
   options: SegmentedOption[];
-  variant?: "chips" | "chipsBadge" | "chipsRound" | "pills" | "cells";
-  selectionMode?: "single" | "multiple";
+  variant?: SegmentedVariant;
+  selectionMode?: SegmentedSelectionMode;
   block?: boolean;
   onValueChange?: (value: string | string[]) => void;
 };
+
+function isChipVariantName(variant: SegmentedVariant) {
+  return variant === "chips" || variant === "chipsRound" || variant === "chipsBadge";
+}
 
 function SegmentedControl({
   value,
@@ -28,8 +44,27 @@ function SegmentedControl({
   onValueChange,
   ...props
 }: SegmentedControlProps) {
-  const isChipVariant = variant === "chips" || variant === "chipsRound" || variant === "chipsBadge";
-  const selectedValues = Array.isArray(value) ? value : [value];
+  const isChipVariant = isChipVariantName(variant);
+  const theme = useDisplaySettings((state) => state.display.theme);
+  const accent = useDisplaySettings((state) => state.display.accent);
+  const tokens = React.useMemo(() => getThemeTokens(theme, accent), [theme, accent]);
+  const selectedValues = React.useMemo(() => (Array.isArray(value) ? value : [value]), [value]);
+
+  const handleSelect = React.useCallback(
+    (optionValue: string) => {
+      if (selectionMode === "multiple") {
+        const isSelected = selectedValues.includes(optionValue);
+        const nextValue = isSelected
+          ? selectedValues.filter((current) => current !== optionValue)
+          : [...selectedValues, optionValue];
+        onValueChange?.(nextValue);
+        return;
+      }
+
+      onValueChange?.(optionValue);
+    },
+    [onValueChange, selectedValues, selectionMode],
+  );
 
   return (
     <View
@@ -41,51 +76,137 @@ function SegmentedControl({
       )}
       {...props}
     >
-      {options.map((option) => {
-        const selected = selectedValues.includes(option.value);
-
-        return (
-          <Pressable
-            key={option.value}
-            disabled={option.disabled}
-            className={cn(
-              "min-h-9 flex-row items-center justify-center rounded-xl px-3",
-              block && "flex-1",
-              variant === "cells" && "rounded-lg",
-              variant === "chips" && "min-h-8 rounded-lg border border-border bg-card px-2.5",
-              variant === "chipsRound" && "min-h-8 rounded-xl border border-border bg-card px-2.5",
-              variant === "chipsBadge" &&
-                "min-h-8 rounded-full border border-border bg-card px-2.5",
-              selected && cn("bg-primary", isChipVariant && "border-primary shadow-qlink-sm"),
-              option.disabled && "opacity-50",
-            )}
-            onPress={() => {
-              if (selectionMode === "multiple") {
-                const nextValue = selected
-                  ? selectedValues.filter((currentValue) => currentValue !== option.value)
-                  : [...selectedValues, option.value];
-
-                onValueChange?.(nextValue);
-                return;
-              }
-
-              onValueChange?.(option.value);
-            }}
-          >
-            <Text
-              className={cn(
-                "text-sm font-medium",
-                selected ? "text-primary-foreground" : "text-muted-foreground",
-              )}
-            >
-              {option.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+      {options.map((option) => (
+        <SegmentedItem
+          key={option.value}
+          block={block}
+          isChipVariant={isChipVariant}
+          option={option}
+          selected={selectedValues.includes(option.value)}
+          tokens={tokens}
+          variant={variant}
+          onSelect={handleSelect}
+        />
+      ))}
     </View>
   );
 }
+
+type SegmentedItemProps = {
+  option: SegmentedOption;
+  selected: boolean;
+  variant: SegmentedVariant;
+  isChipVariant: boolean;
+  block?: boolean;
+  tokens: ThemeTokens;
+  onSelect: (value: string) => void;
+};
+
+function buildChipStyle(
+  variant: SegmentedVariant,
+  selected: boolean,
+  isChipVariant: boolean,
+  block: boolean | undefined,
+  disabled: boolean | undefined,
+  tokens: ThemeTokens,
+): StyleProp<ViewStyle> {
+  const base: ViewStyle = {
+    minHeight: 36,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+  };
+
+  if (block) {
+    base.flex = 1;
+  }
+
+  if (variant === "cells") {
+    base.borderRadius = 8;
+  } else if (variant === "chips") {
+    base.minHeight = 32;
+    base.borderRadius = 8;
+    base.borderWidth = 1;
+    base.borderColor = tokens.border;
+    base.backgroundColor = tokens.card;
+    base.paddingHorizontal = 10;
+  } else if (variant === "chipsRound") {
+    base.minHeight = 32;
+    base.borderRadius = 12;
+    base.borderWidth = 1;
+    base.borderColor = tokens.border;
+    base.backgroundColor = tokens.card;
+    base.paddingHorizontal = 10;
+  } else if (variant === "chipsBadge") {
+    base.minHeight = 32;
+    base.borderRadius = 9999;
+    base.borderWidth = 1;
+    base.borderColor = tokens.border;
+    base.backgroundColor = tokens.card;
+    base.paddingHorizontal = 10;
+  }
+
+  if (selected) {
+    base.backgroundColor = tokens.primary;
+    if (isChipVariant) {
+      base.borderColor = tokens.primary;
+    }
+  }
+
+  if (disabled) {
+    base.opacity = 0.5;
+  }
+
+  return base;
+}
+
+function SegmentedItemBase({
+  option,
+  selected,
+  variant,
+  isChipVariant,
+  block,
+  tokens,
+  onSelect,
+}: SegmentedItemProps) {
+  const handlePress = React.useCallback(() => {
+    onSelect(option.value);
+  }, [onSelect, option.value]);
+
+  const chipStyle = React.useMemo(
+    () => buildChipStyle(variant, selected, isChipVariant, block, option.disabled, tokens),
+    [block, isChipVariant, option.disabled, selected, tokens, variant],
+  );
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      disabled={option.disabled}
+      style={chipStyle}
+      onPress={handlePress}
+    >
+      <RNText
+        style={[
+          styles.label,
+          { color: selected ? tokens.primaryForeground : tokens.mutedForeground },
+        ]}
+      >
+        {option.label}
+      </RNText>
+    </TouchableOpacity>
+  );
+}
+
+const SegmentedItem = React.memo(SegmentedItemBase);
+
+const styles = StyleSheet.create({
+  label: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+});
 
 export { SegmentedControl };
 export type { SegmentedControlProps, SegmentedOption };
