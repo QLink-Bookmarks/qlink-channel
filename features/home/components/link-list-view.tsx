@@ -35,7 +35,7 @@ function LinkListView({
   const router = useRouter();
   const [order, setOrder] = React.useState<LinkOrder>("latest");
   const linksQuery = useLinksQuery({
-    folderId: uncategorizedOnly ? undefined : folderId,
+    folderId: uncategorizedOnly ? 0 : folderId,
     order,
     size: 30,
     uncategorizedOnly,
