@@ -27,4 +27,20 @@ type GetFoldersParams = {
   size?: number;
 };
 
-export type { Folder, FolderOrder, FolderScrollResponse, GetFoldersParams, GetFoldersResponse };
+type CreateFolderRequest = {
+  name: string;
+  emoji?: string | null;
+  isShared?: boolean | null;
+};
+
+type CreateFolderResponse = ApiEnvelope<{ id: number }>;
+
+export type {
+  CreateFolderRequest,
+  CreateFolderResponse,
+  Folder,
+  FolderOrder,
+  FolderScrollResponse,
+  GetFoldersParams,
+  GetFoldersResponse,
+};

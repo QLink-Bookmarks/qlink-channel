@@ -1,9 +1,18 @@
 import { api } from "@/lib/api-client";
 
-import type { GetFoldersParams, GetFoldersResponse } from "./types";
+import type {
+  CreateFolderRequest,
+  CreateFolderResponse,
+  GetFoldersParams,
+  GetFoldersResponse,
+} from "./types";
 
 async function getFolders(params: GetFoldersParams = {}) {
   return api.get<GetFoldersResponse>("/api/folders", { params });
 }
 
-export { getFolders };
+async function createFolder(payload: CreateFolderRequest) {
+  return api.post<CreateFolderResponse, CreateFolderRequest>("/api/folders", payload);
+}
+
+export { createFolder, getFolders };

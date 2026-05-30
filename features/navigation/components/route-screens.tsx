@@ -3,6 +3,7 @@ import { ScrollView, View } from "react-native";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
+import { MobileFoldersScreen } from "@/features/folders/components/mobile-folders-screen";
 import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkListView } from "@/features/home/components/link-list-view";
 import { MobileHomeScreen } from "@/features/home/components/mobile-home-screen";
@@ -67,14 +68,18 @@ function HomeRouteScreen() {
 function FoldersRouteScreen() {
   const { isWideView } = useShellRouteState();
 
-  return (
-    <DummyRouteScreen
-      title="폴더"
-      routePath="/folders"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="모바일에서는 폴더 목록 더미를 보여주고, 와이드에서는 레이아웃 레벨에서 /home으로 리다이렉트된다."
-    />
-  );
+  if (isWideView) {
+    return (
+      <DummyRouteScreen
+        title="폴더"
+        routePath="/folders"
+        viewMode="wide"
+        description="와이드에서는 레이아웃 레벨에서 /home으로 리다이렉트된다."
+      />
+    );
+  }
+
+  return <MobileFoldersScreen />;
 }
 
 function FolderDetailRouteScreen() {
