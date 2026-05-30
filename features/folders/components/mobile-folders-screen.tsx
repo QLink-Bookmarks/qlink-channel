@@ -5,15 +5,17 @@ import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
+import { useLinksQuery } from "@/features/links/queries";
 
 import { useFoldersQuery } from "../queries";
-import type { Folder } from "../types";
+import type { Folder, FolderOrder } from "../types";
 import { CreateFolderDialog } from "./create-folder-dialog";
 import { FolderTile } from "./folder-tile";
 
 import { type Href, useRouter } from "expo-router";
 
 type FilterValue = "all" | "mine" | "shared";
+const UNCATEGORIZED_FOLDER_ID = 0;
 
 const FILTER_OPTIONS = [
   { label: "전체", value: "all" },
@@ -21,15 +23,24 @@ const FILTER_OPTIONS = [
   { label: "공유 폴더", value: "shared" },
 ] as const;
 
+const ORDER_OPTIONS: { label: string; value: FolderOrder }[] = [
+  { label: "최신순", value: "latest" },
+  { label: "오래된순", value: "earliest" },
+  { label: "가나다순", value: "laxico" },
+];
+
 function MobileFoldersScreen() {
   const router = useRouter();
-  const foldersQuery = useFoldersQuery({ size: 15 });
+  const [order, setOrder] = React.useState<FolderOrder>("latest");
+  const foldersQuery = useFoldersQuery({ size: 15, order });
+  const uncategorizedLinksQuery = useLinksQuery({ size: 100, uncategorizedOnly: true });
   const [filter, setFilter] = React.useState<FilterValue>("all");
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
 
   const folders = foldersQuery.data?.contents ?? [];
   const myFolders = folders.filter((folder) => !folder.isShared);
   const sharedFolders = folders.filter((folder) => folder.isShared);
+  const uncategorizedCount = uncategorizedLinksQuery.data?.contents.length ?? 0;
 
   const showMine = filter !== "shared";
   const showShared = filter !== "mine";
@@ -41,6 +52,10 @@ function MobileFoldersScreen() {
     [router],
   );
 
+  const handleUncategorizedPress = React.useCallback(() => {
+    router.push(`/folders/${UNCATEGORIZED_FOLDER_ID}` as Href);
+  }, [router]);
+
   return (
     <>
       <ScrollView
@@ -49,12 +64,14 @@ function MobileFoldersScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-5 px-4 pb-24 pt-2">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          >
-            <View className="flex-row justify-end">
+          <View className="flex-row items-start justify-between gap-3">
+            <ScrollView
+              horizontal
+              className="flex-1"
+              showsHorizontalScrollIndicator={false}
+            >
               <SegmentedControl
+                labelClassName="text-sm"
                 options={[...FILTER_OPTIONS]}
                 selectionMode="single"
                 value={filter}
@@ -65,8 +82,20 @@ function MobileFoldersScreen() {
                   }
                 }}
               />
-            </View>
-          </ScrollView>
+            </ScrollView>
+            <SegmentedControl
+              labelClassName="text-sm"
+              options={ORDER_OPTIONS}
+              selectionMode="single"
+              value={order}
+              variant="chipsBadge"
+              onValueChange={(next) => {
+                if (typeof next === "string") {
+                  setOrder(next as FolderOrder);
+                }
+              }}
+            />
+          </View>
 
           {foldersQuery.isLoading ? (
             <ActivityIndicator
@@ -81,8 +110,11 @@ function MobileFoldersScreen() {
                   count={myFolders.length}
                   folders={myFolders}
                   addLabel="새 폴더"
+                  uncategorizedCount={uncategorizedCount}
+                  showUncategorized
                   onAddPress={() => setIsCreateOpen(true)}
                   onFolderPress={handleFolderPress}
+                  onUncategorizedPress={handleUncategorizedPress}
                 />
               ) : null}
               {showShared ? (
@@ -121,8 +153,11 @@ type FolderSectionProps = {
   count: number;
   folders: Folder[];
   addLabel: string;
+  showUncategorized?: boolean;
+  uncategorizedCount?: number;
   onAddPress: () => void;
   onFolderPress: (folder: Folder) => void;
+  onUncategorizedPress?: () => void;
 };
 
 function FolderSection({
@@ -130,8 +165,11 @@ function FolderSection({
   count,
   folders,
   addLabel,
+  showUncategorized,
+  uncategorizedCount,
   onAddPress,
   onFolderPress,
+  onUncategorizedPress,
 }: FolderSectionProps) {
   return (
     <View className="gap-3">
@@ -143,23 +181,40 @@ function FolderSection({
           </View>
         ) : null}
       </View>
-      <View className="flex-row flex-wrap gap-3">
+      <View className="-mx-1.5 w-full flex-row flex-wrap">
         {folders.map((folder) => (
-          <FolderTile
+          <View
             key={folder.id}
-            className="w-[calc(50%-6px)]"
-            count={folder.linkCounts}
-            emoji={folder.emoji}
-            name={folder.name}
-            onPress={() => onFolderPress(folder)}
-          />
+            className="w-1/2 px-1.5 pb-3"
+          >
+            <FolderTile
+              className="w-full"
+              count={folder.linkCounts}
+              emoji={folder.emoji}
+              name={folder.name}
+              onPress={() => onFolderPress(folder)}
+            />
+          </View>
         ))}
-        <FolderTile
-          add
-          className="w-[calc(50%-6px)]"
-          name={addLabel}
-          onPress={onAddPress}
-        />
+        {showUncategorized ? (
+          <View className="w-1/2 px-1.5 pb-3">
+            <FolderTile
+              className="w-full"
+              count={uncategorizedCount}
+              emoji="🗂️"
+              name="미분류"
+              onPress={onUncategorizedPress}
+            />
+          </View>
+        ) : null}
+        <View className="w-1/2 px-1.5 pb-3">
+          <FolderTile
+            add
+            className="w-full"
+            name={addLabel}
+            onPress={onAddPress}
+          />
+        </View>
       </View>
     </View>
   );

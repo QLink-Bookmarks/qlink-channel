@@ -21,7 +21,7 @@ type OrderFilterProps = {
 function OrderFilter({
   value,
   onValueChange,
-  variant = "chipsRound",
+  variant = "chipsBadge",
   className,
 }: OrderFilterProps) {
   const isBadge = variant === "chipsBadge";
@@ -29,6 +29,7 @@ function OrderFilter({
   return (
     <View className={cn("flex-row items-center gap-2", className)}>
       <SegmentedControl
+        labelClassName="text-sm"
         options={ORDER_OPTIONS}
         selectionMode="single"
         value={value}

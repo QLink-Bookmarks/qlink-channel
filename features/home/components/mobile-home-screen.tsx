@@ -1,11 +1,11 @@
 import * as React from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
+import { TopbarSearchField } from "@/components/layout/topbar-search-field";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Icon } from "@/components/ui/icon";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import { Text } from "@/components/ui/text";
 import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkCard } from "@/features/links/components/link-card/link-card";
 import { useLinksQuery } from "@/features/links/queries";
@@ -24,6 +24,18 @@ function MobileHomeScreen() {
   const foldersQuery = useFoldersQuery({ size: 15 });
   const [selectedFolder, setSelectedFolder] = React.useState<string>(ALL_VALUE);
   const [order, setOrder] = React.useState<LinkOrder>("latest");
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState("");
+
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery.trim());
+    }, 300);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [searchQuery]);
 
   const folderContents = foldersQuery.data?.contents;
 
@@ -39,7 +51,12 @@ function MobileHomeScreen() {
   );
 
   const folderId = selectedFolder === ALL_VALUE ? undefined : Number(selectedFolder) || undefined;
-  const linksQuery = useLinksQuery({ folderId, order, size: 30 });
+  const linksQuery = useLinksQuery({
+    folderId,
+    order,
+    query: debouncedSearchQuery || undefined,
+    size: 30,
+  });
   const links = linksQuery.data?.contents ?? [];
   const isLoading = linksQuery.isLoading;
   const isEmpty = !isLoading && links.length === 0;
@@ -51,24 +68,25 @@ function MobileHomeScreen() {
       showsVerticalScrollIndicator={false}
     >
       <View className="gap-4 px-4 pb-24 pt-2">
-        <Pressable
-          className="min-h-12 flex-row items-center gap-2 rounded-3xl border border-border bg-card px-4"
-          onPress={() => {
-            console.log("mobile:search");
-          }}
-        >
-          <Icon
-            as={Search}
-            className="size-5 text-muted-foreground"
-          />
-          <Text className="flex-1 text-sm text-muted-foreground">링크 · 요약 · 태그 검색…</Text>
-        </Pressable>
+        <TopbarSearchField
+          className="min-h-12"
+          leftSlot={
+            <Icon
+              as={Search}
+              className="size-5 text-muted-foreground"
+            />
+          }
+          onChange={setSearchQuery}
+          placeholder="링크 · 요약 · 태그 검색…"
+          value={searchQuery}
+        />
 
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
         >
           <SegmentedControl
+            labelClassName="text-sm"
             options={folderOptions}
             selectionMode="single"
             value={selectedFolder}

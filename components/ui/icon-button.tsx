@@ -46,9 +46,9 @@ function IconButton({
   const tokens = React.useMemo(() => getThemeTokens("light", accent), [accent]);
   const sizeConfig = iconButtonSizes[size];
   const defaultIconColor =
-    color ?? (variant === "ghost" ? tokens.foreground : tokens.accentForeground);
+    color ?? (variant === "ghost" || !active ? tokens.accent : tokens.accentForeground);
   const activeBackgroundColor =
-    backgroundColor ?? (variant === "ghost" ? `${tokens.foreground}14` : tokens.accent);
+    backgroundColor ?? (variant === "ghost" ? `${tokens.accent}14` : tokens.accent);
 
   return (
     <Pressable
@@ -61,7 +61,7 @@ function IconButton({
               : undefined,
         }),
         sizeConfig.button,
-        variant === "ghost" ? "bg-transparent" : active && "bg-accent",
+        variant === "ghost" ? "bg-transparent" : active ? "bg-accent" : "bg-accent/10",
         disabled && "opacity-50",
         className,
       )}

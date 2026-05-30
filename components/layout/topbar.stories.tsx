@@ -38,7 +38,7 @@ export const Basic: Story = {
     searchValue: "",
     placeholder: "링크 검색",
   },
-  render: (args) => (
+  render: (args: React.ComponentProps<typeof Topbar>) => (
     <Topbar
       {...args}
       className="flex"

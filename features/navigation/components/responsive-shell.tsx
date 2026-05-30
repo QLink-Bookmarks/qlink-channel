@@ -84,6 +84,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const [isSearchDialogOpen, setIsSearchDialogOpen] = React.useState(false);
   const [isAddLinkDialogOpen, setIsAddLinkDialogOpen] = React.useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = React.useState(false);
+  const [hasOpenedAddLinkSheet, setHasOpenedAddLinkSheet] = React.useState(false);
   const [pendingMobileLinkId, setPendingMobileLinkId] = React.useState<number | null>(null);
   const foldersQuery = useFoldersQuery({ size: 15 });
   const { detail, error, handleOpenChange, isLoading, isOpen } = useLinkOverlayState({
@@ -139,6 +140,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleFabPress = React.useCallback(() => {
+    setHasOpenedAddLinkSheet(true);
     openAddLinkSheet();
   }, [openAddLinkSheet]);
 
@@ -197,6 +199,8 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     if (routeState.isWideView) {
+      setHasOpenedAddLinkSheet(false);
+      closeAddLinkSheet();
       return;
     }
 
@@ -290,13 +294,13 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                               active={routeState.pathname === href}
                               count={folder.linkCounts}
                               label={folder.emoji ? `${folder.emoji} ${folder.name}` : folder.name}
-                              labelClassName="text-[15px]"
+                              labelClassName="text-base"
                               onPress={() => router.replace(href as Href)}
                             />
                           );
                         })}
                         <SidebarAddItem
-                          label="+ 폴더 추가"
+                          label="+  폴더 추가"
                           onPress={() => setIsCreateFolderOpen(true)}
                         />
                       </>
@@ -316,13 +320,13 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                               active={routeState.pathname === href}
                               count={folder.shareCounts}
                               label={folder.emoji ? `${folder.emoji} ${folder.name}` : folder.name}
-                              labelClassName="text-[15px]"
+                              labelClassName="text-base"
                               onPress={() => router.replace(href as Href)}
                             />
                           );
                         })}
                         <SidebarAddItem
-                          label="+ 공유 추가/참여"
+                          label="+  공유 추가/참여"
                           onPress={() => console.log("sidebar:share-join:todo")}
                         />
                       </>
@@ -539,7 +543,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
         value={routeState.mobileTabKey ?? ""}
         onValueChange={handleMobileTabChange}
       />
-      {isAddLinkSheetOpen ? (
+      {hasOpenedAddLinkSheet && isAddLinkSheetOpen ? (
         <Sheet
           open={isAddLinkSheetOpen}
           fitContent
@@ -567,10 +571,12 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
 function SidebarAddItem({ label, onPress }: { label: string; onPress?: () => void }) {
   return (
     <Pressable
-      className="min-h-10 flex-row items-center justify-center rounded-xl border border-dashed border-sidebar-border px-3 active:bg-sidebar-surface-2 web:transition-colors web:hover:bg-sidebar-surface-2"
+      className="group min-h-8 flex-row items-center rounded-xl border border-dashed border-border px-4 active:bg-sidebar-surface-2 web:transition-colors web:hover:bg-sidebar-surface-2"
       onPress={onPress}
     >
-      <Text className="text-sm font-medium text-sidebar-muted">{label}</Text>
+      <Text className="text-sm font-medium text-sidebar-muted web:group-hover:text-primary">
+        {label}
+      </Text>
     </Pressable>
   );
 }

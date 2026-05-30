@@ -83,20 +83,22 @@ function FoldersRouteScreen() {
 }
 
 function FolderDetailRouteScreen() {
-  const { isWideView } = useShellRouteState();
   const params = useLocalSearchParams<{ id?: string | string[]; linkId?: string | string[] }>();
   const folderId = readParamValue(params.id);
   const linkIdParam = readParamValue(params.linkId);
   const foldersQuery = useFoldersQuery({ size: 15 });
+  const folderIdNumber = folderId ? Number(folderId) : Number.NaN;
+  const isUncategorizedFolder = folderIdNumber === 0;
 
-  if (!isWideView) {
+  if (isUncategorizedFolder) {
     return (
-      <DummyRouteScreen
-        title="폴더 상세"
-        routePath="/folders/[id]"
-        viewMode="mobile"
-        description="모바일 폴더 상세는 추후 구현 예정이다."
-        params={[{ label: "id", value: folderId }]}
+      <LinkListView
+        title="미분류"
+        emoji="🗂️"
+        meta="폴더가 지정되지 않은 링크"
+        basePath="/folders/0"
+        activeLinkId={linkIdParam ? Number(linkIdParam) : undefined}
+        uncategorizedOnly
       />
     );
   }
@@ -111,7 +113,6 @@ function FolderDetailRouteScreen() {
   }
 
   const folders = foldersQuery.data?.contents ?? [];
-  const folderIdNumber = folderId ? Number(folderId) : Number.NaN;
   const folder = folders.find((entry) => entry.id === folderIdNumber);
 
   if (!folder) {

@@ -15,6 +15,7 @@ import { type Href, useRouter } from "expo-router";
 
 type LinkListViewProps = {
   folderId?: number;
+  uncategorizedOnly?: boolean;
   title: string;
   emoji?: string;
   meta?: string;
@@ -22,10 +23,23 @@ type LinkListViewProps = {
   activeLinkId?: number | null;
 };
 
-function LinkListView({ folderId, title, emoji, meta, basePath, activeLinkId }: LinkListViewProps) {
+function LinkListView({
+  folderId,
+  uncategorizedOnly,
+  title,
+  emoji,
+  meta,
+  basePath,
+  activeLinkId,
+}: LinkListViewProps) {
   const router = useRouter();
   const [order, setOrder] = React.useState<LinkOrder>("latest");
-  const linksQuery = useLinksQuery({ folderId, order, size: 30 });
+  const linksQuery = useLinksQuery({
+    folderId: uncategorizedOnly ? undefined : folderId,
+    order,
+    size: 30,
+    uncategorizedOnly,
+  });
 
   const links = linksQuery.data?.contents ?? [];
   const isEmpty = !linksQuery.isLoading && links.length === 0;

@@ -1,13 +1,7 @@
 import * as React from "react";
-import {
-  Text as RNText,
-  type StyleProp,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { type StyleProp, TouchableOpacity, View, type ViewStyle } from "react-native";
 
+import { Text } from "@/components/ui/text";
 import { type ThemeTokens, getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { useDisplaySettings } from "@/stores/display-settings";
@@ -27,6 +21,7 @@ type SegmentedControlProps = React.ComponentProps<typeof View> & {
   variant?: SegmentedVariant;
   selectionMode?: SegmentedSelectionMode;
   block?: boolean;
+  labelClassName?: string;
   onValueChange?: (value: string | string[]) => void;
 };
 
@@ -41,6 +36,7 @@ function SegmentedControl({
   selectionMode = "single",
   block,
   className,
+  labelClassName,
   onValueChange,
   ...props
 }: SegmentedControlProps) {
@@ -83,6 +79,7 @@ function SegmentedControl({
           isChipVariant={isChipVariant}
           option={option}
           selected={selectedValues.includes(option.value)}
+          labelClassName={labelClassName}
           tokens={tokens}
           variant={variant}
           onSelect={handleSelect}
@@ -98,6 +95,7 @@ type SegmentedItemProps = {
   variant: SegmentedVariant;
   isChipVariant: boolean;
   block?: boolean;
+  labelClassName?: string;
   tokens: ThemeTokens;
   onSelect: (value: string) => void;
 };
@@ -168,6 +166,7 @@ function SegmentedItemBase({
   variant,
   isChipVariant,
   block,
+  labelClassName,
   tokens,
   onSelect,
 }: SegmentedItemProps) {
@@ -187,26 +186,19 @@ function SegmentedItemBase({
       style={chipStyle}
       onPress={handlePress}
     >
-      <RNText
-        style={[
-          styles.label,
-          { color: selected ? tokens.primaryForeground : tokens.mutedForeground },
-        ]}
+      <Text
+        className={cn("text-sm font-medium", labelClassName)}
+        style={{
+          color: selected ? tokens.primaryForeground : tokens.mutedForeground,
+        }}
       >
         {option.label}
-      </RNText>
+      </Text>
     </TouchableOpacity>
   );
 }
 
 const SegmentedItem = React.memo(SegmentedItemBase);
-
-const styles = StyleSheet.create({
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-});
 
 export { SegmentedControl };
 export type { SegmentedControlProps, SegmentedOption };

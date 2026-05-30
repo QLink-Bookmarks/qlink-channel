@@ -140,6 +140,10 @@ function getFolderLabel(folderId?: string) {
     return "폴더";
   }
 
+  if (folderId === "0") {
+    return "미분류";
+  }
+
   return folderLabels[folderId] ?? `Folder ${folderId}`;
 }
 

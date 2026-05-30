@@ -109,6 +109,10 @@ function CreateFolderDialog({ mode, open, onOpenChange, onCreated }: CreateFolde
     );
   }
 
+  if (!open) {
+    return null;
+  }
+
   return (
     <Sheet
       open={open}
