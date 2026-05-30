@@ -21,6 +21,7 @@ type SegmentedControlProps = React.ComponentProps<typeof View> & {
   variant?: SegmentedVariant;
   selectionMode?: SegmentedSelectionMode;
   block?: boolean;
+  size?: "md" | "sm";
   labelClassName?: string;
   onValueChange?: (value: string | string[]) => void;
 };
@@ -35,6 +36,7 @@ function SegmentedControl({
   variant = "pills",
   selectionMode = "single",
   block,
+  size = "md",
   className,
   labelClassName,
   onValueChange,
@@ -80,6 +82,7 @@ function SegmentedControl({
           option={option}
           selected={selectedValues.includes(option.value)}
           labelClassName={labelClassName}
+          size={size}
           tokens={tokens}
           variant={variant}
           onSelect={handleSelect}
@@ -95,6 +98,7 @@ type SegmentedItemProps = {
   variant: SegmentedVariant;
   isChipVariant: boolean;
   block?: boolean;
+  size: "md" | "sm";
   labelClassName?: string;
   tokens: ThemeTokens;
   onSelect: (value: string) => void;
@@ -105,11 +109,12 @@ function buildChipStyle(
   selected: boolean,
   isChipVariant: boolean,
   block: boolean | undefined,
+  size: "md" | "sm",
   disabled: boolean | undefined,
   tokens: ThemeTokens,
 ): StyleProp<ViewStyle> {
   const base: ViewStyle = {
-    minHeight: 36,
+    minHeight: size === "sm" ? 32 : 36,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -124,21 +129,21 @@ function buildChipStyle(
   if (variant === "cells") {
     base.borderRadius = 8;
   } else if (variant === "chips") {
-    base.minHeight = 32;
+    base.minHeight = size === "sm" ? 28 : 32;
     base.borderRadius = 8;
     base.borderWidth = 1;
     base.borderColor = tokens.border;
     base.backgroundColor = tokens.card;
     base.paddingHorizontal = 10;
   } else if (variant === "chipsRound") {
-    base.minHeight = 32;
+    base.minHeight = size === "sm" ? 28 : 32;
     base.borderRadius = 12;
     base.borderWidth = 1;
     base.borderColor = tokens.border;
     base.backgroundColor = tokens.card;
     base.paddingHorizontal = 10;
   } else if (variant === "chipsBadge") {
-    base.minHeight = 32;
+    base.minHeight = size === "sm" ? 28 : 32;
     base.borderRadius = 9999;
     base.borderWidth = 1;
     base.borderColor = tokens.border;
@@ -166,6 +171,7 @@ function SegmentedItemBase({
   variant,
   isChipVariant,
   block,
+  size,
   labelClassName,
   tokens,
   onSelect,
@@ -175,8 +181,8 @@ function SegmentedItemBase({
   }, [onSelect, option.value]);
 
   const chipStyle = React.useMemo(
-    () => buildChipStyle(variant, selected, isChipVariant, block, option.disabled, tokens),
-    [block, isChipVariant, option.disabled, selected, tokens, variant],
+    () => buildChipStyle(variant, selected, isChipVariant, block, size, option.disabled, tokens),
+    [block, isChipVariant, option.disabled, selected, size, tokens, variant],
   );
 
   return (

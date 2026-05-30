@@ -33,7 +33,7 @@ function MobileFoldersScreen() {
   const router = useRouter();
   const [order, setOrder] = React.useState<FolderOrder>("latest");
   const foldersQuery = useFoldersQuery({ size: 15, order });
-  const uncategorizedLinksQuery = useLinksQuery({ size: 100, uncategorizedOnly: true });
+  const uncategorizedLinksQuery = useLinksQuery({ folderId: UNCATEGORIZED_FOLDER_ID, size: 100 });
   const [filter, setFilter] = React.useState<FilterValue>("all");
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
 
@@ -63,7 +63,7 @@ function MobileFoldersScreen() {
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
-        <View className="gap-5 px-4 pb-24 pt-2">
+        <View className="gap-5 px-4 pb-24 pt-4">
           <View className="flex-row items-start justify-between gap-3">
             <ScrollView
               horizontal
@@ -74,6 +74,7 @@ function MobileFoldersScreen() {
                 labelClassName="text-sm"
                 options={[...FILTER_OPTIONS]}
                 selectionMode="single"
+                size="sm"
                 value={filter}
                 variant="chipsBadge"
                 onValueChange={(next) => {
@@ -87,6 +88,7 @@ function MobileFoldersScreen() {
               labelClassName="text-sm"
               options={ORDER_OPTIONS}
               selectionMode="single"
+              size="sm"
               value={order}
               variant="chipsBadge"
               onValueChange={(next) => {

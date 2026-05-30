@@ -26,6 +26,7 @@ import { CreateFolderDialog } from "@/features/folders/components/create-folder-
 import { useFoldersQuery } from "@/features/folders/queries";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
 import { LinkCreateForm } from "@/features/links/components/link-create-form";
+import { useLinksQuery } from "@/features/links/queries";
 import { useDisplaySettings } from "@/stores/display-settings";
 
 import { useAddLinkSheet } from "../hooks/use-add-link-sheet";
@@ -67,6 +68,7 @@ const widePrimaryItems: {
   { href: "/links", key: "links", label: "📚 전체", icon: BookCopyIcon },
   { href: "/todos", key: "todos", label: "✅ 할일", icon: CheckSquare },
 ];
+const UNCATEGORIZED_FOLDER_ID = 0;
 
 function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -87,6 +89,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const [hasOpenedAddLinkSheet, setHasOpenedAddLinkSheet] = React.useState(false);
   const [pendingMobileLinkId, setPendingMobileLinkId] = React.useState<number | null>(null);
   const foldersQuery = useFoldersQuery({ size: 15 });
+  const uncategorizedLinksQuery = useLinksQuery({ folderId: UNCATEGORIZED_FOLDER_ID, size: 100 });
   const { detail, error, handleOpenChange, isLoading, isOpen } = useLinkOverlayState({
     isWideView: routeState.isWideView,
     overlayBaseHref: routeState.overlayBaseHref,
@@ -233,6 +236,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
     const myFolders = allFolders.filter((folder) => !folder.isShared);
     const sharedFolders = allFolders.filter((folder) => folder.isShared);
     const isFoldersLoading = foldersQuery.isLoading;
+    const uncategorizedCount = uncategorizedLinksQuery.data?.contents.length ?? 0;
 
     return (
       <View className="flex-1 flex-row bg-background">
@@ -299,6 +303,15 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                             />
                           );
                         })}
+                        <SidebarItem
+                          active={routeState.pathname === `/folders/${UNCATEGORIZED_FOLDER_ID}`}
+                          count={uncategorizedCount}
+                          label="🗂️ 미분류"
+                          labelClassName="text-base"
+                          onPress={() =>
+                            router.replace(`/folders/${UNCATEGORIZED_FOLDER_ID}` as Href)
+                          }
+                        />
                         <SidebarAddItem
                           label="+  폴더 추가"
                           onPress={() => setIsCreateFolderOpen(true)}

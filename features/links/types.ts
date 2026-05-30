@@ -101,7 +101,6 @@ type LinkOrder = "latest" | "earliest" | "laxico" | "similar";
 type GetLinksParams = {
   query?: string;
   folderId?: number;
-  uncategorizedOnly?: boolean;
   order?: LinkOrder;
   cursor?: string;
   size?: number;

@@ -18,6 +18,7 @@ import { type Href, useRouter } from "expo-router";
 import { Search } from "lucide-react-native";
 
 const ALL_VALUE = "all";
+const UNCATEGORIZED_FOLDER_VALUE = "0";
 
 function MobileHomeScreen() {
   const router = useRouter();
@@ -42,6 +43,7 @@ function MobileHomeScreen() {
   const folderOptions = React.useMemo(
     () => [
       { label: "전체", value: ALL_VALUE },
+      { label: "🗂️ 미분류", value: UNCATEGORIZED_FOLDER_VALUE },
       ...(folderContents ?? []).map((folder) => ({
         label: folder.emoji ? `${folder.emoji} ${folder.name}` : folder.name,
         value: String(folder.id),
@@ -50,7 +52,12 @@ function MobileHomeScreen() {
     [folderContents],
   );
 
-  const folderId = selectedFolder === ALL_VALUE ? undefined : Number(selectedFolder) || undefined;
+  const folderId =
+    selectedFolder === ALL_VALUE
+      ? undefined
+      : Number.isNaN(Number(selectedFolder))
+        ? undefined
+        : Number(selectedFolder);
   const linksQuery = useLinksQuery({
     folderId,
     order,
