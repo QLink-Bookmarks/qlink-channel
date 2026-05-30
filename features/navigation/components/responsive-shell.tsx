@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Platform, ScrollView, View } from "react-native";
+import { Platform, Pressable, ScrollView, View } from "react-native";
 
 import { RouteErrorBoundary } from "@/components/error/route-error-boundary";
 import { AppHeader } from "@/components/layout/app-header";
@@ -22,6 +22,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Kbd } from "@/components/ui/kbd";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { CreateFolderDialog } from "@/features/folders/components/create-folder-dialog";
 import { useFoldersQuery } from "@/features/folders/queries";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
 import { LinkCreateForm } from "@/features/links/components/link-create-form";
@@ -82,6 +83,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const setTheme = useDisplaySettings((state) => state.setTheme);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = React.useState(false);
   const [isAddLinkDialogOpen, setIsAddLinkDialogOpen] = React.useState(false);
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = React.useState(false);
   const [pendingMobileLinkId, setPendingMobileLinkId] = React.useState<number | null>(null);
   const foldersQuery = useFoldersQuery({ size: 15 });
   const { detail, error, handleOpenChange, isLoading, isOpen } = useLinkOverlayState({
@@ -279,42 +281,54 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                         className="py-3"
                       />
                     ) : (
-                      myFolders.map((folder) => {
-                        const href = `/folders/${folder.id}`;
-                        return (
-                          <SidebarItem
-                            key={folder.id}
-                            active={routeState.pathname === href}
-                            count={folder.linkCounts}
-                            label={folder.emoji ? `${folder.emoji} ${folder.name}` : folder.name}
-                            labelClassName="text-[15px]"
-                            onPress={() => router.replace(href as Href)}
-                          />
-                        );
-                      })
+                      <>
+                        {myFolders.map((folder) => {
+                          const href = `/folders/${folder.id}`;
+                          return (
+                            <SidebarItem
+                              key={folder.id}
+                              active={routeState.pathname === href}
+                              count={folder.linkCounts}
+                              label={folder.emoji ? `${folder.emoji} ${folder.name}` : folder.name}
+                              labelClassName="text-[15px]"
+                              onPress={() => router.replace(href as Href)}
+                            />
+                          );
+                        })}
+                        <SidebarAddItem
+                          label="+ 폴더 추가"
+                          onPress={() => setIsCreateFolderOpen(true)}
+                        />
+                      </>
                     )}
                   </View>
                 </SidebarSection>
 
-                {sharedFolders.length > 0 ? (
-                  <SidebarSection title="공유 폴더">
-                    <View className="gap-1">
-                      {sharedFolders.map((folder) => {
-                        const href = `/folders/${folder.id}`;
-                        return (
-                          <SidebarItem
-                            key={folder.id}
-                            active={routeState.pathname === href}
-                            count={folder.shareCounts}
-                            label={folder.emoji ? `${folder.emoji} ${folder.name}` : folder.name}
-                            labelClassName="text-[15px]"
-                            onPress={() => router.replace(href as Href)}
-                          />
-                        );
-                      })}
-                    </View>
-                  </SidebarSection>
-                ) : null}
+                <SidebarSection title="공유 폴더">
+                  <View className="gap-1">
+                    {isFoldersLoading ? null : (
+                      <>
+                        {sharedFolders.map((folder) => {
+                          const href = `/folders/${folder.id}`;
+                          return (
+                            <SidebarItem
+                              key={folder.id}
+                              active={routeState.pathname === href}
+                              count={folder.shareCounts}
+                              label={folder.emoji ? `${folder.emoji} ${folder.name}` : folder.name}
+                              labelClassName="text-[15px]"
+                              onPress={() => router.replace(href as Href)}
+                            />
+                          );
+                        })}
+                        <SidebarAddItem
+                          label="+ 공유 추가/참여"
+                          onPress={() => console.log("sidebar:share-join:todo")}
+                        />
+                      </>
+                    )}
+                  </View>
+                </SidebarSection>
               </View>
 
               <View className="gap-3 border-t border-sidebar-border pt-3">
@@ -436,6 +450,12 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
           </DialogContent>
         </Dialog>
 
+        <CreateFolderDialog
+          mode="wide"
+          open={isCreateFolderOpen}
+          onOpenChange={setIsCreateFolderOpen}
+        />
+
         <Dialog
           open={isAddLinkDialogOpen}
           onOpenChange={handleWideAddLinkDialogOpenChange}
@@ -482,7 +502,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   return (
     <View className="flex-1 bg-background">
       <AppHeader
-        back={!isMobileHome && !routeState.showBackButton}
+        back={!isMobileHome && routeState.showBackButton}
         onBack={handleBack}
         leftSlot={isMobileHome ? <BrandHeader className="px-0 pt-0" /> : undefined}
         rightSlot={
@@ -541,6 +561,17 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
         </Sheet>
       ) : null}
     </View>
+  );
+}
+
+function SidebarAddItem({ label, onPress }: { label: string; onPress?: () => void }) {
+  return (
+    <Pressable
+      className="min-h-10 flex-row items-center justify-center rounded-xl border border-dashed border-sidebar-border px-3 active:bg-sidebar-surface-2 web:transition-colors web:hover:bg-sidebar-surface-2"
+      onPress={onPress}
+    >
+      <Text className="text-sm font-medium text-sidebar-muted">{label}</Text>
+    </Pressable>
   );
 }
 
