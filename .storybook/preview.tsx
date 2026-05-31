@@ -5,6 +5,7 @@ import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { PortalHost } from "@rn-primitives/portal";
 import type { Preview } from "@storybook/react-native-web-vite";
 
@@ -111,10 +112,12 @@ const preview: Preview = {
         >
           <SafeAreaProvider>
             <GestureHandlerRootView className="flex-1">
-              <View className="flex-1 bg-background">
-                <Story />
-                <PortalHost />
-              </View>
+              <BottomSheetModalProvider>
+                <View className="flex-1 bg-background">
+                  <Story />
+                  <PortalHost />
+                </View>
+              </BottomSheetModalProvider>
             </GestureHandlerRootView>
           </SafeAreaProvider>
         </ThemeRootDecorator>

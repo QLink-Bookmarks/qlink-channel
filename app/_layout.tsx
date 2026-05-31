@@ -9,6 +9,7 @@ import { ToastViewport } from "@/components/ui/toast-viewport";
 import { getNavTheme } from "@/lib/theme";
 import { QueryProvider } from "@/providers/query-provider";
 import { useDisplaySettings } from "@/stores/display-settings";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 
@@ -47,15 +48,17 @@ export default function RootLayout() {
           <DisplayThemeBridge />
           <AppErrorBoundary>
             <ThemeProvider value={getNavTheme(theme, accent)}>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Protected guard={StorybookEnabled}>
-                  <Stack.Screen name="(storybook)/index" />
-                </Stack.Protected>
+              <BottomSheetModalProvider>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Protected guard={StorybookEnabled}>
+                    <Stack.Screen name="(storybook)/index" />
+                  </Stack.Protected>
 
-                <Stack.Screen name="(pages)" />
-              </Stack>
-              <PortalHost />
-              <ToastViewport />
+                  <Stack.Screen name="(pages)" />
+                </Stack>
+                <PortalHost />
+                <ToastViewport />
+              </BottomSheetModalProvider>
             </ThemeProvider>
           </AppErrorBoundary>
         </QueryProvider>

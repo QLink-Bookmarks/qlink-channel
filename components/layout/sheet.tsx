@@ -1,16 +1,17 @@
 import * as React from "react";
 import { type StyleProp, View, type ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Text } from "@/components/ui/text";
 import { type AccentName, DEFAULT_ACCENT, type ThemeMode, getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import BottomSheet, {
+import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
   type BottomSheetBackgroundProps,
+  BottomSheetModal,
   BottomSheetScrollView,
-  BottomSheetView,
 } from "@gorhom/bottom-sheet";
 
 // View scope: 모바일 전용. md >= 768px에서는 사용하지 않는다.
@@ -57,6 +58,8 @@ type SheetProps = {
   maxSize?: string | number;
   /** true면 콘텐츠 높이에 맞게 동적 사이징. defaultSize/maxSize는 무시된다. */
   fitContent?: boolean;
+  /** fitContent=true일 때 시트가 커질 수 있는 최대 높이(px). 콘텐츠가 더 길면 내부에서 스크롤된다. */
+  maxDynamicContentSize?: number;
   accent?: AccentName;
   mode?: ThemeMode;
   backgroundStyle?: StyleProp<ViewStyle>;
@@ -72,17 +75,31 @@ function Sheet({
   defaultSize = "35%",
   maxSize = "80%",
   fitContent = false,
+  maxDynamicContentSize = 700,
   accent = DEFAULT_ACCENT,
   mode = "light",
   backgroundStyle,
   children,
   onOpenChange,
 }: SheetProps) {
-  const sheetRef = React.useRef<BottomSheet>(null);
+  const sheetRef = React.useRef<BottomSheetModal>(null);
+  const insets = useSafeAreaInsets();
+  const safeTopInset = Math.max(insets.top, 12);
   const snapPoints = React.useMemo(
     () => (fitContent ? undefined : [defaultSize, maxSize]),
     [fitContent, defaultSize, maxSize],
   );
+
+  const wasOpenRef = React.useRef(false);
+  React.useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      sheetRef.current?.present();
+      wasOpenRef.current = true;
+    } else if (!open && wasOpenRef.current) {
+      sheetRef.current?.dismiss();
+      wasOpenRef.current = false;
+    }
+  }, [open]);
   const sheetTokens = React.useMemo(() => getThemeTokens(mode, accent), [accent, mode]);
   const backdropStyle = React.useMemo<StyleProp<ViewStyle>>(
     () => ({
@@ -112,9 +129,12 @@ function Sheet({
     },
     [onOpenChange],
   );
+  const handleDismiss = React.useCallback(() => {
+    onOpenChange?.(false);
+  }, [onOpenChange]);
   const handleBackdropPress = React.useCallback(() => {
     onOpenChange?.(false);
-    sheetRef.current?.close();
+    sheetRef.current?.dismiss();
   }, [onOpenChange]);
 
   const renderBackdrop = React.useCallback(
@@ -152,20 +172,24 @@ function Sheet({
     [],
   );
 
+  const safeBottomInset = Math.max(insets.bottom, 16);
   const content = (
-    <View className={cn("gap-4 p-4", className)}>
+    <View
+      className={cn("gap-4 p-4", className)}
+      style={{ paddingBottom: safeBottomInset }}
+    >
       {title ? <Text className="text-lg font-semibold">{title}</Text> : null}
       {children}
     </View>
   );
 
   return (
-    <BottomSheet
+    <BottomSheetModal
       ref={sheetRef}
-      animateOnMount={open}
-      index={open ? 0 : -1}
       snapPoints={snapPoints}
+      topInset={safeTopInset}
       enableDynamicSizing={fitContent}
+      maxDynamicContentSize={fitContent ? maxDynamicContentSize : undefined}
       enableContentPanningGesture={false}
       enablePanDownToClose={dismissible}
       backdropComponent={renderBackdrop}
@@ -173,18 +197,15 @@ function Sheet({
       handleComponent={renderHandle}
       style={sheetStyle}
       onChange={handleChange}
+      onDismiss={handleDismiss}
     >
-      {fitContent ? (
-        <BottomSheetView>{content}</BottomSheetView>
-      ) : (
-        <BottomSheetScrollView
-          className="scrollbar-none"
-          showsVerticalScrollIndicator={false}
-        >
-          {content}
-        </BottomSheetScrollView>
-      )}
-    </BottomSheet>
+      <BottomSheetScrollView
+        className="scrollbar-none"
+        showsVerticalScrollIndicator={false}
+      >
+        {content}
+      </BottomSheetScrollView>
+    </BottomSheetModal>
   );
 }
 
