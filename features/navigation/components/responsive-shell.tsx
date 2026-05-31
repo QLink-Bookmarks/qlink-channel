@@ -477,7 +477,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
           open={isAddLinkDialogOpen}
           onOpenChange={handleWideAddLinkDialogOpenChange}
         >
-          <DialogContent className="max-h-[80vh] max-w-[960px] gap-0 overflow-hidden rounded-2xl p-0">
+          <DialogContent className="max-h-[80vh] w-[42rem] max-w-[90vw] gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-[42rem]">
             <DialogHeader className="flex-row items-center gap-3 border-b border-border px-8 py-6">
               <Text className="text-2xl font-normal text-muted-foreground">+</Text>
               <DialogTitle className="text-xl">새 링크 추가</DialogTitle>

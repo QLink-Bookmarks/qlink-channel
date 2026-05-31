@@ -1,5 +1,10 @@
 type SourceType = "INPUT" | "QR";
 
+type CreateLinkTodoRequest = {
+  title: string;
+  reminderAt?: string | null;
+};
+
 type CreateLinkRequest = {
   url: string;
   title: string;
@@ -8,7 +13,8 @@ type CreateLinkRequest = {
   memo?: string;
   thumbnailUrl?: string;
   sourceType: SourceType;
-  reminderAt?: string;
+  folderId?: number | null;
+  todos: CreateLinkTodoRequest[];
 };
 
 type UpdateLinkRequest = {
@@ -110,6 +116,7 @@ export type {
   ApiEnvelope,
   CreateLinkRequest,
   CreateLinkResponse,
+  CreateLinkTodoRequest,
   DeleteLinkResponse,
   GetLinksParams,
   GetLinksResponse,

@@ -28,6 +28,7 @@ import { reportError } from "@/lib/error-reporting";
 import { useToastStore } from "@/stores/toast-store";
 
 import { useCreateLinkMutation } from "../mutations";
+import type { CreateLinkTodoRequest } from "../types";
 
 import * as Clipboard from "expo-clipboard";
 import { ChevronLeft, FolderOpen, X } from "lucide-react-native/icons";
@@ -236,12 +237,19 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     }
 
     try {
+      const todoPayload: CreateLinkTodoRequest[] = todos
+        .map((todo) => todo.title.trim())
+        .filter((trimmedTitle) => trimmedTitle.length > 0)
+        .map((trimmedTitle) => ({ title: trimmedTitle, reminderAt: null }));
+
       const response = await createLinkMutation.mutateAsync({
         url: url.trim(),
         title: title.trim(),
         memo: memo.trim() || undefined,
         tags: [],
         sourceType: "INPUT",
+        folderId: folder.id ? Number(folder.id) : null,
+        todos: todoPayload,
       });
 
       resetForm();
@@ -249,7 +257,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     } catch (error: unknown) {
       console.log("link-create:save-failed", error);
     }
-  }, [createLinkMutation, memo, onSaved, resetForm, title, url, validate]);
+  }, [createLinkMutation, folder.id, memo, onSaved, resetForm, title, todos, url, validate]);
 
   if (mode === "mobile") {
     const stepTitle = mobileSheetStep === "folder-picker" ? "폴더 선택" : "링크 추가";
@@ -407,7 +415,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
       </View>
 
       <View className="flex-row gap-4">
-        <View className="flex-1 gap-2">
+        <View className="min-w-0 flex-1 gap-2">
           <Text className="text-sm font-semibold text-muted-foreground">폴더</Text>
           <Select
             value={{
@@ -450,7 +458,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
             </SelectContent>
           </Select>
         </View>
-        <View className="flex-1 gap-2">
+        <View className="min-w-0 flex-1 gap-2">
           <Text className="text-sm font-semibold text-muted-foreground">메모 (선택)</Text>
           <Textarea
             className="scrollbar-none h-10 min-h-10 rounded-xl py-2.5 text-base web:resize-none"
