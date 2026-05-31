@@ -226,11 +226,13 @@ function ActionButton({
       variant={variant}
       onPress={onPress}
     >
-      <Icon
-        as={icon}
-        size={16}
-        className={iconClassName}
-      />
+      <View>
+        <Icon
+          as={icon}
+          size={16}
+          className={iconClassName}
+        />
+      </View>
       <Text>{label}</Text>
     </Button>
   );
@@ -776,7 +778,7 @@ function LinkDetailView({
 
           <DetailSection title="한 줄 요약">
             {detail.summary ? (
-              <Text className="text-base leading-7 text-foreground">{detail.summary}</Text>
+              <Text className="text-base leading-5 text-foreground">{detail.summary}</Text>
             ) : (
               <DetailPlaceholder label="요약이 아직 없어요" />
             )}
@@ -924,7 +926,7 @@ function LinkDetailView({
               />
             ) : detail.memo ? (
               <View className="rounded-2xl border border-border bg-card px-4 py-4">
-                <Text className="text-base leading-7 text-foreground">{detail.memo}</Text>
+                <Text className="text-base leading-5 text-foreground">{detail.memo}</Text>
               </View>
             ) : (
               <DetailPlaceholder label="메모가 아직 없어요" />
