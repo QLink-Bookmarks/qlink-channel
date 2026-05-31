@@ -25,13 +25,15 @@ import {
 } from "@/features/todos/components/todo-editor/todo-editor";
 import { useClipboardFailureFeedback } from "@/lib/clipboard-feedback";
 import { reportError } from "@/lib/error-reporting";
+import { useQrScanStore } from "@/stores/qr-scan";
 import { useToastStore } from "@/stores/toast-store";
 
 import { useCreateLinkMutation } from "../mutations";
 import type { CreateLinkTodoRequest } from "../types";
 
 import * as Clipboard from "expo-clipboard";
-import { ChevronLeft, FolderOpen, X } from "lucide-react-native/icons";
+import { type Href, useRouter } from "expo-router";
+import { ChevronLeft, FolderOpen, QrCode, X } from "lucide-react-native/icons";
 
 type LinkCreateFormMode = "wide" | "mobile";
 type MobileSheetStep = "form" | "folder-picker" | "ai-provider-picker";
@@ -76,6 +78,9 @@ function getFolderOptionValue(folderId: string | null) {
 }
 
 function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) {
+  const router = useRouter();
+  const pendingQrResult = useQrScanStore((state) => state.pendingResult);
+  const clearQrResult = useQrScanStore((state) => state.clear);
   const createLinkMutation = useCreateLinkMutation();
   const resetMutation = createLinkMutation.reset;
   const foldersQuery = useFoldersQuery({ size: 15 });
@@ -204,6 +209,18 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     console.log(`link-create:${picker}-picker:todo`);
   }, []);
 
+  const handleScanQr = React.useCallback(() => {
+    router.push("/qr-scan" as Href);
+  }, [router]);
+
+  React.useEffect(() => {
+    if (!open || pendingQrResult == null) {
+      return;
+    }
+    setUrl(pendingQrResult);
+    clearQrResult();
+  }, [clearQrResult, open, pendingQrResult]);
+
   const handleAiOrganize = React.useCallback(() => {
     // TODO: Call AI organization flow after provider and folder APIs are ready.
     console.log("link-create:ai-organize:todo", {
@@ -298,16 +315,31 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
 
         {mobileSheetStep === "form" ? (
           <>
-            <FieldError error={errors.url}>
-              <Input
-                className="h-10 rounded-2xl border-primary/30 bg-background px-5 text-lg"
-                value={url}
-                autoCapitalize="none"
-                keyboardType="url"
-                placeholder="https://..."
-                onChangeText={setUrl}
-              />
-            </FieldError>
+            <View className="flex-row items-start gap-2">
+              <View className="min-w-0 flex-1">
+                <FieldError error={errors.url}>
+                  <Input
+                    className="h-10 rounded-2xl border-primary/30 bg-background px-5 text-lg"
+                    value={url}
+                    autoCapitalize="none"
+                    keyboardType="url"
+                    placeholder="https://..."
+                    onChangeText={setUrl}
+                  />
+                </FieldError>
+              </View>
+              <Button
+                className="h-10 shrink-0 flex-row items-center gap-1 rounded-2xl bg-primary px-2.5"
+                onPress={handleScanQr}
+              >
+                <Icon
+                  as={QrCode}
+                  size={14}
+                  className="text-primary-foreground"
+                />
+                <Text className="text-xs font-semibold text-primary-foreground">QR</Text>
+              </Button>
+            </View>
 
             <View className="gap-2">
               <Text className="px-1 text-sm font-semibold text-muted-foreground">링크 제목</Text>

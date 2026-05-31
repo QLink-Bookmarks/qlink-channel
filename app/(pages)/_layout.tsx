@@ -1,11 +1,14 @@
 import { ResponsiveShell } from "@/features/navigation/components/responsive-shell";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import { Slot } from "expo-router";
 
 export default function PagesLayout() {
   return (
-    <ResponsiveShell>
-      <Slot />
-    </ResponsiveShell>
+    <BottomSheetModalProvider>
+      <ResponsiveShell>
+        <Slot />
+      </ResponsiveShell>
+    </BottomSheetModalProvider>
   );
 }
