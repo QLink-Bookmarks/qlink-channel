@@ -96,7 +96,6 @@ function FolderDetailRouteScreen() {
         folderId={0}
         title="미분류"
         emoji="🗂️"
-        meta="폴더가 지정되지 않은 링크"
         basePath="/folders/0"
         activeLinkId={linkIdParam ? Number(linkIdParam) : undefined}
       />

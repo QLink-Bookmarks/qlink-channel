@@ -81,7 +81,7 @@ function SidebarItem({
       >
         {label}
       </Text>
-      {count ? (
+      {count != null ? (
         <Text
           className={cn(
             "text-xs",

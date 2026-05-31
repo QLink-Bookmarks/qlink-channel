@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Pressable, View } from "react-native";
 
 import { Icon } from "@/components/ui/icon";
@@ -38,6 +39,7 @@ function TopbarSearchField({
   onSubmit?: () => void;
 }) {
   const SearchContainer = readOnly ? Pressable : View;
+  const [isFocused, setIsFocused] = React.useState(false);
 
   return (
     <SearchContainer
@@ -45,6 +47,7 @@ function TopbarSearchField({
         "flex-row items-center gap-2 border border-input px-3 shadow-sm shadow-black/5",
         variant === "search" ? "rounded-full bg-card py-1" : "rounded-2xl bg-card py-1",
         readOnly && "web:cursor-pointer web:hover:border-primary",
+        isFocused && "border-2 border-primary",
         className,
       )}
       onPress={readOnly ? onPress : undefined}
@@ -54,13 +57,15 @@ function TopbarSearchField({
         editable={!readOnly}
         variant="inline"
         className={cn(
-          "flex-1 border-none px-0 py-0",
+          "h-7 flex-1 border-none px-0 py-0",
           variant === "search" ? "text-sm" : "text-base",
           readOnly && "web:pointer-events-none",
         )}
         placeholder={placeholder}
         value={value}
         onChangeText={onChange}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         onSubmitEditing={onSubmit}
       />
       {rightSlot ? <View className="shrink-0">{rightSlot}</View> : null}
