@@ -67,28 +67,22 @@ function MobileFoldersScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View className="gap-5 px-4 pb-24 pt-4">
-          <View className="flex-row items-start justify-between gap-3">
-            <ScrollView
-              horizontal
-              className="flex-1"
-              showsHorizontalScrollIndicator={false}
-            >
-              <SegmentedControl
-                labelClassName="text-sm"
-                options={[...FILTER_OPTIONS]}
-                selectionMode="single"
-                size="sm"
-                value={filter}
-                variant="chipsBadge"
-                onValueChange={(next) => {
-                  if (typeof next === "string") {
-                    setFilter(next as FilterValue);
-                  }
-                }}
-              />
-            </ScrollView>
+          <View className="items-start gap-2">
             <SegmentedControl
-              labelClassName="text-sm"
+              labelClassName="text-xs"
+              options={[...FILTER_OPTIONS]}
+              selectionMode="single"
+              size="sm"
+              value={filter}
+              variant="chipsBadge"
+              onValueChange={(next) => {
+                if (typeof next === "string") {
+                  setFilter(next as FilterValue);
+                }
+              }}
+            />
+            <SegmentedControl
+              labelClassName="text-xs"
               options={ORDER_OPTIONS}
               selectionMode="single"
               size="sm"
