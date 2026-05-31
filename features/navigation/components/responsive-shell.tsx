@@ -27,6 +27,7 @@ import { useFoldersQuery } from "@/features/folders/queries";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
 import { LinkCreateForm } from "@/features/links/components/link-create-form";
 import { useLinksQuery } from "@/features/links/queries";
+import { useCreateFolderSheet } from "@/stores/create-folder-sheet";
 import { useDisplaySettings } from "@/stores/display-settings";
 
 import { useAddLinkSheet } from "../hooks/use-add-link-sheet";
@@ -81,6 +82,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   } = useAddLinkSheet();
   const accent = useDisplaySettings((state) => state.display.accent);
   const theme = useDisplaySettings((state) => state.display.theme);
+  const isCreateFolderSheetOpen = useCreateFolderSheet((state) => state.isOpen);
   const setAccent = useDisplaySettings((state) => state.setAccent);
   const setTheme = useDisplaySettings((state) => state.setTheme);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = React.useState(false);
@@ -543,7 +545,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
       <View className="flex-1">
         <RouteErrorBoundary resetKeys={[routeState.pathname]}>{children}</RouteErrorBoundary>
       </View>
-      {showMobileFab && !isAddLinkSheetOpen ? (
+      {showMobileFab && !isAddLinkSheetOpen && !isCreateFolderSheetOpen ? (
         <Fab
           bottomOffset={96}
           icon={Plus}

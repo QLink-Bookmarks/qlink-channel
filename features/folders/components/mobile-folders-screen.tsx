@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import { useLinksQuery } from "@/features/links/queries";
+import { useCreateFolderSheet } from "@/stores/create-folder-sheet";
 
 import { useFoldersQuery } from "../queries";
 import type { Folder, FolderOrder } from "../types";
@@ -35,7 +36,9 @@ function MobileFoldersScreen() {
   const foldersQuery = useFoldersQuery({ size: 15, order });
   const uncategorizedLinksQuery = useLinksQuery({ folderId: UNCATEGORIZED_FOLDER_ID, size: 100 });
   const [filter, setFilter] = React.useState<FilterValue>("all");
-  const [isCreateOpen, setIsCreateOpen] = React.useState(false);
+  const isCreateOpen = useCreateFolderSheet((state) => state.isOpen);
+  const openCreateSheet = useCreateFolderSheet((state) => state.open);
+  const setCreateOpen = useCreateFolderSheet((state) => state.setOpen);
 
   const folders = foldersQuery.data?.contents ?? [];
   const myFolders = folders.filter((folder) => !folder.isShared);
@@ -114,7 +117,7 @@ function MobileFoldersScreen() {
                   addLabel="새 폴더"
                   uncategorizedCount={uncategorizedCount}
                   showUncategorized
-                  onAddPress={() => setIsCreateOpen(true)}
+                  onAddPress={openCreateSheet}
                   onFolderPress={handleFolderPress}
                   onUncategorizedPress={handleUncategorizedPress}
                 />
@@ -144,7 +147,7 @@ function MobileFoldersScreen() {
       <CreateFolderDialog
         mode="mobile"
         open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+        onOpenChange={setCreateOpen}
       />
     </>
   );

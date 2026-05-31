@@ -11,6 +11,24 @@
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+
+  .scrollbar-accent {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary)) transparent;
+  }
+
+  .scrollbar-accent::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-accent::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-accent::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary));
+    border-radius: 9999px;
+  }
 }
 
 @layer base {

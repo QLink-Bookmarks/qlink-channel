@@ -50,6 +50,7 @@
     "chromatic": "^16.10.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "emojibase-data": "^17.0.0",
     "expo": "^55.0.24",
     "expo-clipboard": "^56.0.3",
     "expo-constants": "~55.0.16",
