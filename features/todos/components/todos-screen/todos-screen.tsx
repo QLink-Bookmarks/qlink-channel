@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
@@ -30,6 +30,7 @@ import { useToggleTodoCompletedMutation } from "../../mutations";
 import { useTodosQuery } from "../../queries";
 import type { TodoListItem } from "../../types";
 
+import { type Href, useRouter } from "expo-router";
 import { AlarmClock } from "lucide-react-native/icons";
 
 type TodosScreenMode = "mobile" | "wide";
@@ -109,8 +110,6 @@ function useToggleHandler() {
             ),
           };
         });
-
-        await queryClient.invalidateQueries({ queryKey: ["todos", "list"] });
       } catch (error: unknown) {
         reportError(error, {
           area: "todos-screen:toggle",
@@ -129,11 +128,13 @@ function TodoRow({
   layout,
   nowMs,
   onToggle,
+  onPress,
 }: {
   todo: TodoListItem;
   layout: "card" | "row";
   nowMs: number;
   onToggle: (todo: TodoListItem, nextChecked: boolean) => void;
+  onPress?: (todo: TodoListItem) => void;
 }) {
   const done = Boolean(todo.completedAt);
   const overdue = isOverdue(todo, nowMs);
@@ -148,41 +149,49 @@ function TodoRow({
           overdue && "border-destructive/40 bg-destructive/5",
         )}
       >
-        <Favicon
-          url={getFaviconUrl(todo.linkUrl)}
-          fallback={domain.slice(0, 1).toUpperCase()}
-        />
-        <View className="min-w-0 flex-1 gap-1">
-          <Text
-            className={cn(
-              "text-base font-semibold text-foreground",
-              done && "text-muted-foreground line-through",
-            )}
-            numberOfLines={1}
-          >
-            {todo.title}
-          </Text>
-          <Text
-            className="text-xs text-muted-foreground"
-            numberOfLines={1}
-          >
-            {`${domain} · ${todo.linkTitle}`}
-          </Text>
-          {reminderLabel ? (
-            <View className="flex-row items-center gap-1">
-              <Icon
-                as={AlarmClock}
-                size={14}
-                className={cn("text-primary", overdue && "text-destructive")}
-              />
-              <Text
-                className={cn("text-xs font-semibold text-primary", overdue && "text-destructive")}
-              >
-                {reminderLabel}
-              </Text>
-            </View>
-          ) : null}
-        </View>
+        <Pressable
+          className="min-w-0 flex-1 flex-row items-center gap-3"
+          onPress={onPress ? () => onPress(todo) : undefined}
+        >
+          <Favicon
+            url={getFaviconUrl(todo.linkUrl)}
+            fallback={domain.slice(0, 1).toUpperCase()}
+          />
+          <View className="min-w-0 flex-1 gap-1">
+            <Text
+              className={cn(
+                "text-base font-semibold text-foreground",
+                done && "text-muted-foreground line-through",
+              )}
+              numberOfLines={1}
+            >
+              {todo.title}
+            </Text>
+            <Text
+              className="text-xs text-muted-foreground"
+              numberOfLines={1}
+            >
+              {`${domain} · ${todo.linkTitle}`}
+            </Text>
+            {reminderLabel ? (
+              <View className="flex-row items-center gap-1">
+                <Icon
+                  as={AlarmClock}
+                  size={14}
+                  className={cn("text-primary", overdue && "text-destructive")}
+                />
+                <Text
+                  className={cn(
+                    "text-xs font-semibold text-primary",
+                    overdue && "text-destructive",
+                  )}
+                >
+                  {reminderLabel}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </Pressable>
         <Checkbox
           checked={done}
           shape="round"
@@ -199,7 +208,10 @@ function TodoRow({
         shape="round"
         onCheckedChange={(value) => onToggle(todo, value === true)}
       />
-      <View className="min-w-0 flex-1 gap-1.5">
+      <Pressable
+        className="min-w-0 flex-1 gap-1.5"
+        onPress={onPress ? () => onPress(todo) : undefined}
+      >
         <Text
           className={cn(
             "text-sm font-medium text-foreground",
@@ -228,7 +240,7 @@ function TodoRow({
             </Text>
           </View>
         ) : null}
-      </View>
+      </Pressable>
     </View>
   );
 }
@@ -237,16 +249,21 @@ function LinkTodoCard({
   group,
   nowMs,
   onToggle,
+  onPress,
 }: {
   group: ReturnType<typeof groupTodosByLink>[number];
   nowMs: number;
   onToggle: (todo: TodoListItem, nextChecked: boolean) => void;
+  onPress?: (todo: TodoListItem) => void;
 }) {
   const domain = getDomainFromUrl(group.linkUrl);
 
   return (
     <View className="gap-3 rounded-3xl border border-border bg-card p-4">
-      <View className="flex-row items-center gap-2">
+      <Pressable
+        className="flex-row items-center gap-2"
+        onPress={onPress ? () => onPress(group.todos[0]) : undefined}
+      >
         <Favicon
           url={getFaviconUrl(group.linkUrl)}
           fallback={domain.slice(0, 1).toUpperCase()}
@@ -257,13 +274,14 @@ function LinkTodoCard({
         >
           {`${domain} · ${group.linkTitle}`}
         </Text>
-      </View>
+      </Pressable>
       <View className="gap-3">
         {group.todos.map((todo) => (
           <TodoRow
             key={todo.id}
             layout="card"
             nowMs={nowMs}
+            onPress={onPress}
             onToggle={onToggle}
             todo={todo}
           />
@@ -285,9 +303,16 @@ function SectionHeader({ emoji, label, count }: { emoji: string; label: string; 
 }
 
 function WideTodosScreen() {
+  const router = useRouter();
   const { filter, filterChips, filteredTodos, isLoading, nowMs, setFilter, totalCount } =
     useTodosScreenState();
   const handleToggle = useToggleHandler();
+  const handleTodoPress = React.useCallback(
+    (todo: TodoListItem) => {
+      router.replace(`/todos?linkId=${todo.linkId}` as Href);
+    },
+    [router],
+  );
 
   const overdueTodos = filteredTodos.filter((todo) => getTodoBucket(todo, nowMs) === "overdue");
   const upcomingTodos = filteredTodos.filter((todo) => getTodoBucket(todo, nowMs) === "upcoming");
@@ -342,6 +367,7 @@ function WideTodosScreen() {
                       key={todo.id}
                       layout="row"
                       nowMs={nowMs}
+                      onPress={handleTodoPress}
                       onToggle={handleToggle}
                       todo={todo}
                     />
@@ -362,6 +388,7 @@ function WideTodosScreen() {
                       key={todo.id}
                       layout="row"
                       nowMs={nowMs}
+                      onPress={handleTodoPress}
                       onToggle={handleToggle}
                       todo={todo}
                     />
@@ -382,6 +409,7 @@ function WideTodosScreen() {
                       key={todo.id}
                       layout="row"
                       nowMs={nowMs}
+                      onPress={handleTodoPress}
                       onToggle={handleToggle}
                       todo={todo}
                     />
@@ -397,8 +425,15 @@ function WideTodosScreen() {
 }
 
 function MobileTodosScreen() {
+  const router = useRouter();
   const { filter, filterChips, filteredTodos, isLoading, nowMs, setFilter } = useTodosScreenState();
   const handleToggle = useToggleHandler();
+  const handleTodoPress = React.useCallback(
+    (todo: TodoListItem) => {
+      router.push(`/links/${todo.linkId}` as Href);
+    },
+    [router],
+  );
   const groups = React.useMemo(() => groupTodosByLink(filteredTodos), [filteredTodos]);
 
   return (
@@ -408,7 +443,6 @@ function MobileTodosScreen() {
       showsVerticalScrollIndicator={false}
     >
       <View className="gap-5 px-4 pb-24 pt-4">
-        <Text className="text-2xl font-bold text-foreground">✅ 할일</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -443,6 +477,7 @@ function MobileTodosScreen() {
                 key={group.linkId}
                 group={group}
                 nowMs={nowMs}
+                onPress={handleTodoPress}
                 onToggle={handleToggle}
               />
             ))}

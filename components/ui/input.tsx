@@ -30,12 +30,15 @@ const inputVariants = cva(
   },
 );
 
+type CompositionHandler = (event: { target: { value: string } }) => void;
+
 function Input({
   className,
   variant,
   size,
   onBlur,
   onFocus,
+  onChangeText,
   style,
   ...props
 }: React.ComponentProps<typeof TextInput> &
@@ -45,6 +48,33 @@ function Input({
   const theme = useDisplaySettings((state) => state.display.theme);
   const tokens = React.useMemo(() => getThemeTokens(theme, accent), [accent, theme]);
   const [isFocused, setIsFocused] = React.useState(false);
+  // While the IME is composing (e.g. Hangul syllable assembly), the underlying <input> holds
+  // intermediate state that React's controlled value would clobber on each re-render. We defer
+  // propagating text until composition ends so the caller's state doesn't fight the IME.
+  const isComposingRef = React.useRef(false);
+
+  const handleChangeText = React.useCallback(
+    (text: string) => {
+      if (isComposingRef.current) {
+        return;
+      }
+      onChangeText?.(text);
+    },
+    [onChangeText],
+  );
+
+  const compositionProps =
+    Platform.OS === "web"
+      ? ({
+          onCompositionStart: () => {
+            isComposingRef.current = true;
+          },
+          onCompositionEnd: ((event) => {
+            isComposingRef.current = false;
+            onChangeText?.(event.target.value);
+          }) as CompositionHandler,
+        } as Record<string, unknown>)
+      : undefined;
 
   return (
     <TextInput
@@ -75,6 +105,7 @@ function Input({
         setIsFocused(true);
         onFocus?.(event);
       }}
+      onChangeText={handleChangeText}
       style={[
         Platform.OS !== "web" && isFocused
           ? {
@@ -85,6 +116,7 @@ function Input({
           : undefined,
         style,
       ]}
+      {...compositionProps}
       {...props}
     />
   );

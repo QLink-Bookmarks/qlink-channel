@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Pressable, View } from "react-native";
 
 import { IconButton } from "@/components/ui/icon-button";
@@ -67,7 +68,9 @@ function formatRecurringPattern(selectedWeekdays: WeekdayValue[], timeLabel: str
   return `${weekdayLabel} ${timeLabel}`;
 }
 
-function TodoEditor({
+const TodoEditor = React.memo(TodoEditorBase);
+
+function TodoEditorBase({
   className,
   value,
   index = 1,

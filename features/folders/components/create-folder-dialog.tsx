@@ -183,7 +183,9 @@ function CreateFolderDialog({ mode, open, onOpenChange, onCreated }: CreateFolde
   );
 }
 
-function EmojiGrid({
+const EmojiGrid = React.memo(EmojiGridBase);
+
+function EmojiGridBase({
   value,
   onChange,
 }: {
@@ -192,6 +194,8 @@ function EmojiGrid({
 }) {
   const [entries, setEntries] = React.useState<EmojiSearchEntry[] | null>(cachedEmojiIndex);
   const [query, setQuery] = React.useState("");
+  // Keep filtering off the typing path so the input never waits on a several-thousand-entry scan.
+  const deferredQuery = React.useDeferredValue(query);
 
   React.useEffect(() => {
     if (entries) {
@@ -214,12 +218,12 @@ function EmojiGrid({
     if (!entries) {
       return [];
     }
-    const trimmed = query.trim().toLowerCase();
+    const trimmed = deferredQuery.trim().toLowerCase();
     if (!trimmed) {
       return entries;
     }
     return entries.filter((entry) => entry.searchText.includes(trimmed));
-  }, [entries, query]);
+  }, [entries, deferredQuery]);
 
   return (
     <View className="gap-2">

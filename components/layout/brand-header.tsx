@@ -26,7 +26,7 @@ function BrandHeader({
         accent={accent}
         mode={mode}
         colors={colors}
-        className="text-2xl font-bold"
+        className="text-3xl font-black tracking-tight"
       >
         {title}
       </GradientText>
