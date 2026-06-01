@@ -6,9 +6,15 @@ import type {
   CreateTodoRequest,
   CreateTodoResponse,
   DeleteTodoResponse,
+  GetTodosParams,
+  GetTodosResponse,
   UpdateTodoRequest,
   UpdateTodoResponse,
 } from "./types";
+
+async function getTodos(params: GetTodosParams = {}) {
+  return api.get<GetTodosResponse>("/api/todos", { params });
+}
 
 async function createTodo(payload: CreateTodoRequest) {
   return api.post<CreateTodoResponse, CreateTodoRequest>("/api/todos", payload);
@@ -29,4 +35,4 @@ async function toggleTodoCompleted(todoId: number | string, payload: CompleteTod
   );
 }
 
-export { createTodo, deleteTodo, toggleTodoCompleted, updateTodo };
+export { createTodo, deleteTodo, getTodos, toggleTodoCompleted, updateTodo };

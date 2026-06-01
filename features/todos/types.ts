@@ -4,6 +4,40 @@ type TodoRequest = {
   reminderAt?: string | null;
 };
 
+type TodoListItem = {
+  id: number;
+  title: string;
+  reminderAt?: string | null;
+  completedAt?: string | null;
+  linkId: number;
+  linkUrl: string;
+  linkTitle: string;
+};
+
+type GetTodosParams = {
+  order?: string;
+  cursor?: string;
+  size?: number;
+  isCompleted?: boolean;
+  reminderAt?: "overdue" | "upcoming";
+};
+
+type GetTodosResponse = {
+  success: boolean;
+  data: {
+    isEmpty: boolean;
+    contents: TodoListItem[];
+    nextCursor: string | null;
+    hasNext: boolean;
+  };
+  error: {
+    code: string;
+    message: string;
+    cause?: string | null;
+    causeMessage?: string | null;
+  } | null;
+};
+
 type CreateTodoRequest = TodoRequest;
 
 type UpdateTodoRequest = TodoRequest;
@@ -70,6 +104,9 @@ export type {
   CreateTodoRequest,
   CreateTodoResponse,
   DeleteTodoResponse,
+  GetTodosParams,
+  GetTodosResponse,
+  TodoListItem,
   TodoRequest,
   UpdateTodoRequest,
   UpdateTodoResponse,

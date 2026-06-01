@@ -8,6 +8,7 @@ import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkListView } from "@/features/home/components/link-list-view";
 import { MobileHomeScreen } from "@/features/home/components/mobile-home-screen";
 import { LinkDetailScreen } from "@/features/links/components/link-detail-screen";
+import { TodosScreen } from "@/features/todos/components/todos-screen/todos-screen";
 
 import { useShellRouteState } from "../hooks/use-shell-route-state";
 import { readParamValue } from "../routes";
@@ -139,26 +140,7 @@ function FolderDetailRouteScreen() {
 
 function TodosRouteScreen() {
   const { isWideView } = useShellRouteState();
-
-  if (isWideView) {
-    return (
-      <WidePlaceholderScreen
-        title="할 일"
-        emoji="✅"
-        meta="할 일 보드는 준비 중이다."
-        description="할 일 목록 위젯이 곧 추가될 예정이다."
-      />
-    );
-  }
-
-  return (
-    <DummyRouteScreen
-      title="투두"
-      routePath="/todos"
-      viewMode="mobile"
-      description="투두 목록 더미 화면이다."
-    />
-  );
+  return <TodosScreen mode={isWideView ? "wide" : "mobile"} />;
 }
 
 function LinksRouteScreen() {

@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
+import { formatWorkStatus } from "@/features/home/lib/link-card-mapper";
 import { useDeleteLinkMutation, useUpdateLinkMutation } from "@/features/links/mutations";
 import { getLinkDetailQueryKey } from "@/features/links/queries";
 import type {
@@ -274,6 +275,11 @@ function LinkDetailView({
     buildTodoDrafts(todos),
   );
   const [todoEditorError, setTodoEditorError] = React.useState<string | null>(null);
+
+  const workStatusMeta = React.useMemo(
+    () => formatWorkStatus(detail.workStatus, detail.workModel),
+    [detail.workModel, detail.workStatus],
+  );
 
   const isTodoMutationPending =
     createTodoMutation.isPending || updateTodoMutation.isPending || deleteTodoMutation.isPending;
@@ -752,6 +758,18 @@ function LinkDetailView({
                   {detail.url}
                 </Text>
                 <Text className="text-2xl font-bold text-foreground">{detail.title}</Text>
+                {workStatusMeta.label ? (
+                  <Text
+                    className={cn(
+                      "text-xs font-semibold",
+                      workStatusMeta.variant === "progress" && "text-primary",
+                      workStatusMeta.variant === "error" && "text-destructive",
+                      workStatusMeta.variant === "success" && "text-muted-foreground",
+                    )}
+                  >
+                    {workStatusMeta.label}
+                  </Text>
+                ) : null}
               </View>
               <Pressable
                 className="size-10 items-center justify-center rounded-2xl border border-border bg-card"
@@ -773,6 +791,18 @@ function LinkDetailView({
                 {detail.url}
               </Text>
               <Text className="text-2xl font-bold text-foreground">{detail.title}</Text>
+              {workStatusMeta.label ? (
+                <Text
+                  className={cn(
+                    "text-xs font-semibold",
+                    workStatusMeta.variant === "progress" && "text-primary",
+                    workStatusMeta.variant === "error" && "text-destructive",
+                    workStatusMeta.variant === "success" && "text-muted-foreground",
+                  )}
+                >
+                  {workStatusMeta.label}
+                </Text>
+              ) : null}
             </View>
           )}
 

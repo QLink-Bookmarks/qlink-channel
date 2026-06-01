@@ -1,5 +1,8 @@
-import type { LinkCardTodo } from "@/features/links/components/link-card/link-card";
-import type { LinkListItem, LinkListTodo } from "@/features/links/types";
+import type {
+  LinkCardStatusVariant,
+  LinkCardTodo,
+} from "@/features/links/components/link-card/link-card";
+import type { LinkListItem, LinkListTodo, WorkStatus } from "@/features/links/types";
 
 function getDomainFromUrl(url: string): string {
   try {
@@ -55,10 +58,32 @@ type MappedLink = {
   tags: string[];
   todos: LinkCardTodo[];
   remainingTodoCount: number;
+  statusLabel: string | null;
+  statusVariant: LinkCardStatusVariant;
 };
+
+function formatWorkStatus(
+  workStatus: WorkStatus | null | undefined,
+  workModel: string | null | undefined,
+): { label: string | null; variant: LinkCardStatusVariant } {
+  switch (workStatus) {
+    case "G":
+      return { label: "AI 생성 중...", variant: "progress" };
+    case "A":
+      return { label: workModel ? `${workModel} 생성` : "AI 생성 완료", variant: "success" };
+    case "F":
+      return {
+        label: workModel ? `${workModel} 생성 실패` : "AI 생성 실패",
+        variant: "error",
+      };
+    default:
+      return { label: null, variant: null };
+  }
+}
 
 function mapLinkListItem(item: LinkListItem): MappedLink {
   const domain = getDomainFromUrl(item.url);
+  const { label, variant } = formatWorkStatus(item.workStatus, item.workModel);
   return {
     id: item.id,
     domain,
@@ -67,8 +92,17 @@ function mapLinkListItem(item: LinkListItem): MappedLink {
     tags: item.tags,
     todos: item.todos.slice(0, 2).map(mapTodo),
     remainingTodoCount: item.countMoreTodos,
+    statusLabel: label,
+    statusVariant: variant,
   };
 }
 
-export { formatDueLabel, getDomainFromUrl, getFaviconUrl, mapLinkListItem, mapTodo };
+export {
+  formatDueLabel,
+  formatWorkStatus,
+  getDomainFromUrl,
+  getFaviconUrl,
+  mapLinkListItem,
+  mapTodo,
+};
 export type { MappedLink };

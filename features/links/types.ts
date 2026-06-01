@@ -1,5 +1,7 @@
 type SourceType = "INPUT" | "QR";
 
+type WorkStatus = "G" | "A" | "F" | "C";
+
 type CreateLinkTodoRequest = {
   title: string;
   reminderAt?: string | null;
@@ -57,6 +59,8 @@ type LinkDetail = {
   folderEmoji?: string | null;
   folderName?: string | null;
   todos: LinkTodo[];
+  workModel?: string | null;
+  workStatus?: WorkStatus | null;
 };
 
 type ApiEnvelope<TData> = {
@@ -91,6 +95,8 @@ type LinkListItem = {
   createdAt: string;
   todos: LinkListTodo[];
   countMoreTodos: number;
+  workModel?: string | null;
+  workStatus?: WorkStatus | null;
 };
 
 type LinkScrollResponse = {
@@ -129,4 +135,5 @@ export type {
   LinkTodo,
   SourceType,
   UpdateLinkRequest,
+  WorkStatus,
 };

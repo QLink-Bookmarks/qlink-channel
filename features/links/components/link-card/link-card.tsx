@@ -17,6 +17,14 @@ type LinkCardTodo = {
   overdue?: boolean;
 };
 
+type LinkCardStatusVariant = "progress" | "success" | "error" | null;
+
+const statusVariantClasses: Record<NonNullable<LinkCardStatusVariant>, string> = {
+  progress: "text-primary",
+  success: "text-muted-foreground",
+  error: "text-destructive",
+};
+
 function LinkCard({
   className,
   faviconUrl,
@@ -29,6 +37,8 @@ function LinkCard({
   todos = [],
   remainingTodoCount,
   todoLayout = "row",
+  statusLabel,
+  statusVariant,
   leadingHoverActions,
   trailingHoverActions,
   onPress,
@@ -46,6 +56,8 @@ function LinkCard({
   todos?: LinkCardTodo[];
   remainingTodoCount?: number;
   todoLayout?: "row" | "stack";
+  statusLabel?: string | null;
+  statusVariant?: LinkCardStatusVariant;
   leadingHoverActions?: React.ReactNode;
   trailingHoverActions?: React.ReactNode;
   onPress?: () => void;
@@ -141,6 +153,19 @@ function LinkCard({
           ))}
         </View>
       ) : null}
+      {statusLabel ? (
+        <View className="flex-row justify-end">
+          <Text
+            className={cn(
+              "text-xs font-semibold",
+              statusVariant ? statusVariantClasses[statusVariant] : "text-muted-foreground",
+            )}
+            numberOfLines={1}
+          >
+            {statusLabel}
+          </Text>
+        </View>
+      ) : null}
       {visibleTodos.length ? (
         <View className="gap-2 border-t border-dashed border-border-soft pt-4">
           {visibleTodos.map((todo) => {
@@ -227,4 +252,4 @@ function LinkCard({
 }
 
 export { LinkCard };
-export type { LinkCardTodo };
+export type { LinkCardStatusVariant, LinkCardTodo };

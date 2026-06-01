@@ -6,6 +6,7 @@ import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-c
 
 import { AppErrorBoundary } from "@/components/error/app-error-boundary";
 import { ToastViewport } from "@/components/ui/toast-viewport";
+import { useMySettingsQuery } from "@/features/account/queries";
 import { getNavTheme } from "@/lib/theme";
 import { QueryProvider } from "@/providers/query-provider";
 import { useDisplaySettings } from "@/stores/display-settings";
@@ -19,6 +20,20 @@ const StorybookEnabled = process.env.EXPO_PUBLIC_STORYBOOK_ENABLED === "true";
 export const unstable_settings = {
   initialRouteName: StorybookEnabled ? "(storybook)/index" : "(pages)",
 };
+
+function SettingsHydrator() {
+  const settingsQuery = useMySettingsQuery();
+  const hydrateFromServer = useDisplaySettings((state) => state.hydrateFromServer);
+  const settingsData = settingsQuery.data;
+
+  React.useEffect(() => {
+    if (settingsData) {
+      hydrateFromServer(settingsData);
+    }
+  }, [hydrateFromServer, settingsData]);
+
+  return null;
+}
 
 function DisplayThemeBridge() {
   const theme = useDisplaySettings((state) => state.display.theme);
@@ -44,6 +59,7 @@ export default function RootLayout() {
     <GestureHandlerRootView className={theme === "dark" ? "dark flex-1" : "flex-1"}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <QueryProvider>
+          <SettingsHydrator />
           <DisplayThemeBridge />
           <AppErrorBoundary>
             <ThemeProvider value={getNavTheme(theme, accent)}>

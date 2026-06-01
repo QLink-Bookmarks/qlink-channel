@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  usePopoverContext,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -13,6 +19,13 @@ import {
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AiModelPickerList,
+  type AiModelSelection,
+  getProviderLabel,
+} from "@/features/ai/components/ai-model-picker-list";
+import { useRequestAiSummaryMutation } from "@/features/ai/mutations";
+import { useAiProviderModelsQuery } from "@/features/ai/queries";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
 import { useFoldersQuery } from "@/features/folders/queries";
 import {
@@ -25,6 +38,7 @@ import {
 } from "@/features/todos/components/todo-editor/todo-editor";
 import { useClipboardFailureFeedback } from "@/lib/clipboard-feedback";
 import { reportError } from "@/lib/error-reporting";
+import { useDisplaySettings } from "@/stores/display-settings";
 import { useQrScanStore } from "@/stores/qr-scan";
 import { useToastStore } from "@/stores/toast-store";
 
@@ -33,18 +47,13 @@ import type { CreateLinkTodoRequest } from "../types";
 
 import * as Clipboard from "expo-clipboard";
 import { type Href, useRouter } from "expo-router";
-import { ChevronLeft, FolderOpen, QrCode, X } from "lucide-react-native/icons";
+import { ChevronDown, ChevronLeft, FolderOpen, QrCode, X } from "lucide-react-native/icons";
 
 type LinkCreateFormMode = "wide" | "mobile";
-type MobileSheetStep = "form" | "folder-picker" | "ai-provider-picker";
+type MobileSheetStep = "form" | "folder-picker" | "ai-model-picker";
 
 type FolderDraft = {
   id: string | null;
-  label: string;
-};
-
-type AiProviderDraft = {
-  id: string;
   label: string;
 };
 
@@ -62,12 +71,9 @@ const defaultFolder: FolderDraft = {
 
 const defaultFolderOptionValue = "__default-folder__";
 
-const aiProviderOptions: AiProviderDraft[] = [
-  { id: "gemini", label: "Gemini (웹 로그인)" },
-  { id: "openai", label: "OpenAI" },
-  { id: "none", label: "사용 안 함" },
-];
 const defaultWeekdays: WeekdayValue[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+const TITLE_MAX_LENGTH = 300;
 
 function createInitialTodos(): TodoDraftEditorItem[] {
   return [];
@@ -94,14 +100,42 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
   }, [folderContents]);
   const clipboardFeedback = useClipboardFailureFeedback();
   const showToast = useToastStore((state) => state.showToast);
+  const aiProvidersQuery = useAiProviderModelsQuery();
+  const aiProviders = aiProvidersQuery.data;
+  const defaultProvider = useDisplaySettings((state) => state.ai.defaultProvider);
+  const defaultModel = useDisplaySettings((state) => state.ai.defaultModel);
+  const requestAiSummaryMutation = useRequestAiSummaryMutation();
   const [url, setUrl] = React.useState("");
   const [title, setTitle] = React.useState("");
   const [memo, setMemo] = React.useState("");
   const [folder, setFolder] = React.useState<FolderDraft>(defaultFolder);
-  const [aiProvider, setAiProvider] = React.useState<AiProviderDraft>(aiProviderOptions[0]);
+  const [aiModel, setAiModel] = React.useState<AiModelSelection | null>(null);
   const [todos, setTodos] = React.useState<TodoDraftEditorItem[]>(createInitialTodos);
   const [errors, setErrors] = React.useState<{ url?: string; title?: string }>({});
   const [mobileSheetStep, setMobileSheetStep] = React.useState<MobileSheetStep>("form");
+
+  React.useEffect(() => {
+    if (aiModel || !aiProviders) {
+      return;
+    }
+    const matchedProvider =
+      aiProviders.find((provider) => provider.providerId === defaultProvider.id) ?? aiProviders[0];
+    if (!matchedProvider) {
+      return;
+    }
+    const matchedModel =
+      matchedProvider.models.find((model) => model.id === defaultModel.id) ??
+      matchedProvider.models[0];
+    if (!matchedModel) {
+      return;
+    }
+    setAiModel({
+      modelId: matchedModel.id,
+      modelLabel: matchedModel.model,
+      providerLabel: getProviderLabel(matchedProvider),
+      userProviderId: matchedModel.userProviderId,
+    });
+  }, [aiModel, aiProviders, defaultModel.id, defaultProvider.id]);
 
   const handleClipboardReadFailure = React.useCallback(
     (error: unknown) => {
@@ -130,7 +164,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     setTitle("");
     setMemo("");
     setFolder(defaultFolder);
-    setAiProvider(aiProviderOptions[0]);
+    setAiModel(null);
     setTodos(createInitialTodos());
     setErrors({});
     setMobileSheetStep("form");
@@ -221,16 +255,83 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     clearQrResult();
   }, [clearQrResult, open, pendingQrResult]);
 
-  const handleAiOrganize = React.useCallback(() => {
-    // TODO: Call AI organization flow after provider and folder APIs are ready.
-    console.log("link-create:ai-organize:todo", {
-      url,
-      title,
-      folder,
-      aiProvider,
-      todos,
-    });
-  }, [aiProvider, folder, title, todos, url]);
+  const handleAiOrganize = React.useCallback(async () => {
+    const trimmedUrl = url.trim();
+    const trimmedTitle = title.trim();
+    const nextErrors: { url?: string; title?: string } = {};
+
+    if (!trimmedUrl) {
+      nextErrors.url = "URL을 입력해주세요.";
+    }
+
+    if (trimmedTitle && trimmedTitle.length > TITLE_MAX_LENGTH) {
+      nextErrors.title = `제목은 ${TITLE_MAX_LENGTH}자 이내로 입력해주세요.`;
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    if (!aiModel) {
+      showToast({
+        description: "사용할 AI 모델을 먼저 선택해주세요.",
+        dismissible: true,
+        durationMs: 3000,
+        sourceKey: "link-create-ai-model",
+        title: "AI 모델이 필요해요",
+        variant: "warning",
+      });
+      return;
+    }
+
+    setErrors({});
+
+    try {
+      await requestAiSummaryMutation.mutateAsync({
+        folderId: folder.id ? Number(folder.id) : null,
+        modelId: aiModel.modelId,
+        title: trimmedTitle ? trimmedTitle : null,
+        url: trimmedUrl,
+        userProviderId: aiModel.userProviderId,
+      });
+
+      showToast({
+        description: "AI 정리 요청이 접수되었어요.",
+        dismissible: true,
+        durationMs: 3000,
+        sourceKey: "link-create-ai-organize",
+        title: "AI 정리 시작",
+        variant: "success",
+      });
+
+      resetForm();
+      onCancel();
+    } catch (error: unknown) {
+      reportError(error, {
+        area: "link-create-form:ai-organize",
+        extra: { mode },
+      });
+      showToast({
+        description: "AI 정리 요청에 실패했어요. 잠시 후 다시 시도해주세요.",
+        dismissible: true,
+        durationMs: 3000,
+        sourceKey: "link-create-ai-organize",
+        title: "AI 정리 실패",
+        variant: "warning",
+      });
+    }
+  }, [
+    aiModel,
+    folder.id,
+    mode,
+    onCancel,
+    requestAiSummaryMutation,
+    resetForm,
+    showToast,
+    title,
+    url,
+  ]);
 
   const validate = React.useCallback(() => {
     const nextErrors: { url?: string; title?: string } = {};
@@ -276,8 +377,19 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     }
   }, [createLinkMutation, folder.id, memo, onSaved, resetForm, title, todos, url, validate]);
 
+  const aiModelLabel = aiModel
+    ? `${aiModel.providerLabel} · ${aiModel.modelLabel}`
+    : defaultModel.model
+      ? defaultModel.model
+      : "기본 모델 사용";
+
   if (mode === "mobile") {
-    const stepTitle = mobileSheetStep === "folder-picker" ? "폴더 선택" : "링크 추가";
+    const stepTitle =
+      mobileSheetStep === "folder-picker"
+        ? "폴더 선택"
+        : mobileSheetStep === "ai-model-picker"
+          ? "AI 제공자 모델"
+          : "링크 추가";
 
     return (
       <View className="gap-5">
@@ -377,7 +489,12 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
               label={folder.id ? folder.label : "AI 자동 분류"}
               onPress={() => setMobileSheetStep("folder-picker")}
             />
-            {/* TODO: AI 요약 제공자 API와 실제 옵션이 정리되면 모바일 옵션 카드 복구 */}
+            <MobileOptionCard
+              eyebrow="AI 제공자 모델"
+              icon="🤖"
+              label={aiModelLabel}
+              onPress={() => setMobileSheetStep("ai-model-picker")}
+            />
 
             {createLinkMutation.error ? (
               <Text className="text-sm font-medium text-destructive">
@@ -393,7 +510,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
               <Text className="text-base font-semibold text-muted-foreground">취소</Text>
             </Button>
           </>
-        ) : (
+        ) : mobileSheetStep === "folder-picker" ? (
           <FolderPickerList
             selectedFolderId={folder.id ? Number(folder.id) : null}
             onSelect={(selection) => {
@@ -406,6 +523,14 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
                       ? `${selection.emoji} ${selection.label}`
                       : selection.label,
               });
+              setMobileSheetStep("form");
+            }}
+          />
+        ) : (
+          <AiModelPickerList
+            selectedModelId={aiModel?.modelId ?? defaultModel.id ?? null}
+            onSelect={(selection) => {
+              setAiModel(selection);
               setMobileSheetStep("form");
             }}
           />
@@ -528,7 +653,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         </Text>
       ) : null}
 
-      <View className="flex-row justify-end gap-3 border-t border-border pt-5">
+      <View className="flex-row items-center justify-end gap-3 border-t border-border pt-5">
         <Button
           className="h-10"
           variant="outline"
@@ -545,13 +670,59 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         </Button>
         <Button
           className="h-10"
+          disabled={requestAiSummaryMutation.isPending}
           variant="gradient"
           onPress={handleAiOrganize}
         >
           <Text>AI 정리</Text>
         </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              className="h-10 flex-row items-center gap-1 rounded-2xl px-3"
+              variant="outline"
+            >
+              <Text className="text-sm font-semibold">{aiModelLabel}</Text>
+              <Icon
+                as={ChevronDown}
+                size={14}
+                className="text-foreground"
+              />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            side="bottom"
+            className="max-h-[60vh] w-80 overflow-y-auto p-3"
+          >
+            <AiModelPickerListWithClose
+              selectedModelId={aiModel?.modelId ?? defaultModel.id ?? null}
+              onSelect={setAiModel}
+            />
+          </PopoverContent>
+        </Popover>
       </View>
     </View>
+  );
+}
+
+function AiModelPickerListWithClose({
+  selectedModelId,
+  onSelect,
+}: {
+  selectedModelId: number | null;
+  onSelect: (selection: AiModelSelection) => void;
+}) {
+  const popoverContext = usePopoverContext();
+
+  return (
+    <AiModelPickerList
+      selectedModelId={selectedModelId}
+      onSelect={(selection) => {
+        onSelect(selection);
+        popoverContext.onOpenChange(false);
+      }}
+    />
   );
 }
 

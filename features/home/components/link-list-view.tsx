@@ -72,10 +72,13 @@ function LinkListView({ folderId, title, emoji, meta, basePath, activeLinkId }: 
                   className="w-full md:w-[calc(50%-8px)] xl:w-[calc(33.333%-11px)] 2xl:w-[calc(25%-12px)]"
                 >
                   <LinkCard
+                    className="md:h-[21rem]"
                     active={activeLinkId === mapped.id}
                     domain={mapped.domain}
                     faviconUrl={mapped.faviconUrl}
                     remainingTodoCount={mapped.remainingTodoCount}
+                    statusLabel={mapped.statusLabel}
+                    statusVariant={mapped.statusVariant}
                     tags={mapped.tags}
                     title={mapped.title}
                     todos={mapped.todos}
