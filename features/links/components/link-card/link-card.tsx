@@ -1,4 +1,4 @@
-import { Pressable, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -81,24 +81,44 @@ function LinkCard({
     >
       {showHoverActions ? (
         <>
-          <View
-            className={cn(
-              "pointer-events-none absolute -left-3 top-4 z-10 opacity-0 transition-opacity web:group-hover:opacity-100",
-              active && "pointer-events-auto opacity-100",
-            )}
-          >
-            <View className="pointer-events-auto rounded-2xl border border-border-soft bg-card p-1.5 shadow-qlink-sm">
-              {leadingHoverActions}
+          {leadingHoverActions ? (
+            <View
+              className={cn(
+                "pointer-events-none absolute -left-3 top-4 z-10 opacity-0 transition-opacity web:group-hover:opacity-100",
+                active && "pointer-events-auto opacity-100",
+              )}
+              {...(Platform.OS === "web"
+                ? ({
+                    onClick: (event: { stopPropagation?: () => void }) => {
+                      event.stopPropagation?.();
+                    },
+                  } as Record<string, unknown>)
+                : null)}
+            >
+              <View className="pointer-events-auto rounded-2xl border border-border-soft bg-card p-1.5 shadow-qlink-sm">
+                {leadingHoverActions}
+              </View>
             </View>
-          </View>
-          <View
-            className={cn(
-              "pointer-events-none absolute right-4 top-4 z-10 flex-row gap-2 opacity-0 transition-opacity web:group-hover:opacity-100",
-              active && "pointer-events-auto opacity-100",
-            )}
-          >
-            {trailingHoverActions}
-          </View>
+          ) : null}
+          {trailingHoverActions ? (
+            <View
+              className={cn(
+                "pointer-events-none absolute right-4 top-4 z-10 flex-row gap-1 opacity-0 transition-opacity web:group-hover:opacity-100",
+                active && "pointer-events-auto opacity-100",
+              )}
+              {...(Platform.OS === "web"
+                ? ({
+                    onClick: (event: { stopPropagation?: () => void }) => {
+                      event.stopPropagation?.();
+                    },
+                  } as Record<string, unknown>)
+                : null)}
+            >
+              <View className="pointer-events-auto flex-row gap-1 rounded-2xl border border-border-soft bg-card p-1.5 shadow-qlink-sm">
+                {trailingHoverActions}
+              </View>
+            </View>
+          ) : null}
         </>
       ) : null}
       <View className={cn("flex-row items-start gap-3", showHoverActions ? "pr-32" : "pr-6")}>
