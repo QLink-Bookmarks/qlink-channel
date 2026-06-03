@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
-import { formatWorkStatus } from "@/features/home/lib/link-card-mapper";
+import { formatSummaryModelLabel, formatWorkStatus } from "@/features/home/lib/link-card-mapper";
 import { useDeleteLinkMutation, useUpdateLinkMutation } from "@/features/links/mutations";
 import { getLinkDetailQueryKey } from "@/features/links/queries";
 import type {
@@ -43,6 +42,8 @@ import {
   TodoDraftListEditor,
 } from "@/features/todos/components/todo-draft-list-editor";
 import { type WeekdayValue } from "@/features/todos/components/todo-editor/todo-editor";
+import { TodoItem } from "@/features/todos/components/todo-item/todo-item";
+import { formatReminderLabel } from "@/features/todos/lib/todo-list-helpers";
 import {
   useCreateTodoMutation,
   useDeleteTodoMutation,
@@ -55,7 +56,6 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import * as Linking from "expo-linking";
 import {
-  AlarmClock,
   Ellipsis,
   ExternalLink,
   FolderOpen,
@@ -67,25 +67,6 @@ import {
 } from "lucide-react-native/icons";
 
 const defaultWeekdays: WeekdayValue[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
-function formatDateLabel(value?: string | null) {
-  if (!value) {
-    return null;
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "numeric",
-    day: "numeric",
-  }).format(date);
-}
 
 function formatReminderParts(value?: string | null) {
   if (!value) {
@@ -278,6 +259,10 @@ function LinkDetailView({
 
   const workStatusMeta = React.useMemo(
     () => formatWorkStatus(detail.workStatus, detail.workModel),
+    [detail.workModel, detail.workStatus],
+  );
+  const summaryModelLabel = React.useMemo(
+    () => formatSummaryModelLabel(detail.workStatus, detail.workModel),
     [detail.workModel, detail.workStatus],
   );
 
@@ -806,6 +791,12 @@ function LinkDetailView({
             </View>
           )}
 
+          {summaryModelLabel ? (
+            <Text className="-mt-2 text-sm font-medium text-muted-foreground">
+              {summaryModelLabel}
+            </Text>
+          ) : null}
+
           <DetailSection title="한 줄 요약">
             {detail.summary ? (
               <Text className="text-base leading-5 text-foreground">{detail.summary}</Text>
@@ -885,44 +876,23 @@ function LinkDetailView({
               {todos.length ? (
                 todos.map((todo) => {
                   const done = getTodoDone(todo);
-                  const dueLabel = formatDateLabel(todo.reminderAt ?? todo.dueAt);
+                  const reminderAt = todo.reminderAt ?? todo.dueAt ?? null;
+                  const reminderMs = reminderAt ? new Date(reminderAt).getTime() : Number.NaN;
+                  const overdue = !done && !Number.isNaN(reminderMs) && reminderMs < Date.now();
+                  const reminderLabel = formatReminderLabel(reminderAt, {
+                    withOverdueSuffix: overdue,
+                  });
 
                   return (
-                    <View
+                    <TodoItem
                       key={todo.id}
-                      className="gap-3 rounded-2xl border border-border bg-card px-4 py-4"
-                    >
-                      <View className="flex-row items-start gap-3">
-                        <Checkbox
-                          checked={done}
-                          disabled={pendingTodoIds.includes(String(todo.id))}
-                          onCheckedChange={(checked) =>
-                            handleTodoCompletedChange(todo.id, checked === true)
-                          }
-                          shape="round"
-                        />
-                        <View className="min-w-0 flex-1 gap-2">
-                          <Text
-                            className={cn(
-                              "text-base font-medium",
-                              done && "text-muted-foreground line-through",
-                            )}
-                          >
-                            {getTodoTitle(todo)}
-                          </Text>
-                          {dueLabel ? (
-                            <View className="flex-row items-center gap-1">
-                              <Icon
-                                as={AlarmClock}
-                                size={14}
-                                className="text-warning"
-                              />
-                              <Text className="text-sm font-medium text-warning">{dueLabel}</Text>
-                            </View>
-                          ) : null}
-                        </View>
-                      </View>
-                    </View>
+                      variant="display"
+                      text={getTodoTitle(todo)}
+                      done={done}
+                      overdue={overdue}
+                      reminderLabel={reminderLabel}
+                      onToggle={(nextChecked) => handleTodoCompletedChange(todo.id, nextChecked)}
+                    />
                   );
                 })
               ) : (
@@ -1001,7 +971,7 @@ function LinkDetailView({
           open={isFolderMoveOpen}
           onOpenChange={setIsFolderMoveOpen}
         >
-          <DialogContent className="max-h-[80vh] max-w-md">
+          <DialogContent className="max-h-[80vh] min-h-[24rem] min-w-[24rem] max-w-md">
             <DialogHeader>
               <DialogTitle>폴더 이동</DialogTitle>
               <DialogDescription>이동할 폴더를 선택해주세요.</DialogDescription>

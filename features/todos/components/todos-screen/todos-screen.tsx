@@ -1,18 +1,14 @@
 import * as React from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
-import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Favicon } from "@/components/ui/favicon";
-import { Icon } from "@/components/ui/icon";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import { getLinkDetailQueryKey } from "@/features/links/queries";
 import type { LinkDetail } from "@/features/links/types";
 import { reportError } from "@/lib/error-reporting";
-import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -20,8 +16,6 @@ import {
   countTodosByFilter,
   filterTodos,
   formatReminderLabel,
-  getDomainFromUrl,
-  getFaviconUrl,
   getTodoBucket,
   groupTodosByLink,
   isOverdue,
@@ -29,9 +23,9 @@ import {
 import { useToggleTodoCompletedMutation } from "../../mutations";
 import { useTodosQuery } from "../../queries";
 import type { TodoListItem } from "../../types";
+import { TodoItem } from "../todo-item/todo-item";
 
 import { type Href, useRouter } from "expo-router";
-import { AlarmClock } from "lucide-react-native/icons";
 
 type TodosScreenMode = "mobile" | "wide";
 
@@ -40,6 +34,7 @@ const FILTER_OPTIONS: { value: TodoFilter; label: string }[] = [
   { value: "incomplete", label: "미완료" },
   { value: "upcoming", label: "⏰ 알림예정" },
   { value: "overdue", label: "🔥 기간지남" },
+  { value: "noReminder", label: "🕊 알림없음" },
   { value: "completed", label: "✓ 완료" },
 ];
 
@@ -123,171 +118,35 @@ function useToggleHandler() {
   return handleToggle;
 }
 
-function TodoRow({
+function TodoDisplayItem({
   todo,
-  layout,
   nowMs,
+  withLinkHeader = true,
   onToggle,
   onPress,
 }: {
   todo: TodoListItem;
-  layout: "card" | "row";
   nowMs: number;
+  withLinkHeader?: boolean;
   onToggle: (todo: TodoListItem, nextChecked: boolean) => void;
-  onPress?: (todo: TodoListItem) => void;
+  onPress: (todo: TodoListItem) => void;
 }) {
   const done = Boolean(todo.completedAt);
   const overdue = isOverdue(todo, nowMs);
   const reminderLabel = formatReminderLabel(todo.reminderAt, { withOverdueSuffix: overdue });
-  const domain = getDomainFromUrl(todo.linkUrl);
-
-  if (layout === "row") {
-    return (
-      <View
-        className={cn(
-          "flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3",
-          overdue && "border-destructive/40 bg-destructive/5",
-        )}
-      >
-        <Pressable
-          className="min-w-0 flex-1 flex-row items-center gap-3"
-          onPress={onPress ? () => onPress(todo) : undefined}
-        >
-          <Favicon
-            url={getFaviconUrl(todo.linkUrl)}
-            fallback={domain.slice(0, 1).toUpperCase()}
-          />
-          <View className="min-w-0 flex-1 gap-1">
-            <Text
-              className={cn(
-                "text-base font-semibold text-foreground",
-                done && "text-muted-foreground line-through",
-              )}
-              numberOfLines={1}
-            >
-              {todo.title}
-            </Text>
-            <Text
-              className="text-xs text-muted-foreground"
-              numberOfLines={1}
-            >
-              {`${domain} · ${todo.linkTitle}`}
-            </Text>
-            {reminderLabel ? (
-              <View className="flex-row items-center gap-1">
-                <Icon
-                  as={AlarmClock}
-                  size={14}
-                  className={cn("text-primary", overdue && "text-destructive")}
-                />
-                <Text
-                  className={cn(
-                    "text-xs font-semibold text-primary",
-                    overdue && "text-destructive",
-                  )}
-                >
-                  {reminderLabel}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </Pressable>
-        <Checkbox
-          checked={done}
-          shape="round"
-          onCheckedChange={(value) => onToggle(todo, value === true)}
-        />
-      </View>
-    );
-  }
 
   return (
-    <View className="flex-row items-start gap-3">
-      <Checkbox
-        checked={done}
-        shape="round"
-        onCheckedChange={(value) => onToggle(todo, value === true)}
-      />
-      <Pressable
-        className="min-w-0 flex-1 gap-1.5"
-        onPress={onPress ? () => onPress(todo) : undefined}
-      >
-        <Text
-          className={cn(
-            "text-sm font-medium text-foreground",
-            done && "text-muted-foreground line-through",
-            overdue && !done && "text-destructive",
-          )}
-        >
-          {todo.title}
-        </Text>
-        {reminderLabel ? (
-          <View
-            className={cn(
-              "flex-row items-center gap-1 self-start rounded-full px-3 py-1",
-              overdue ? "bg-destructive/10" : "bg-primary/10",
-            )}
-          >
-            <Icon
-              as={AlarmClock}
-              size={12}
-              className={cn(overdue ? "text-destructive" : "text-primary")}
-            />
-            <Text
-              className={cn("text-xs font-semibold", overdue ? "text-destructive" : "text-primary")}
-            >
-              {reminderLabel}
-            </Text>
-          </View>
-        ) : null}
-      </Pressable>
-    </View>
-  );
-}
-
-function LinkTodoCard({
-  group,
-  nowMs,
-  onToggle,
-  onPress,
-}: {
-  group: ReturnType<typeof groupTodosByLink>[number];
-  nowMs: number;
-  onToggle: (todo: TodoListItem, nextChecked: boolean) => void;
-  onPress?: (todo: TodoListItem) => void;
-}) {
-  const domain = getDomainFromUrl(group.linkUrl);
-
-  return (
-    <View className="gap-3 rounded-3xl border border-border bg-card p-4">
-      <Pressable
-        className="flex-row items-center gap-2"
-        onPress={onPress ? () => onPress(group.todos[0]) : undefined}
-      >
-        <Favicon
-          url={getFaviconUrl(group.linkUrl)}
-          fallback={domain.slice(0, 1).toUpperCase()}
-        />
-        <Text
-          className="min-w-0 flex-1 text-sm font-semibold text-muted-foreground"
-          numberOfLines={1}
-        >
-          {`${domain} · ${group.linkTitle}`}
-        </Text>
-      </Pressable>
-      <View className="gap-3">
-        {group.todos.map((todo) => (
-          <TodoRow
-            key={todo.id}
-            layout="card"
-            nowMs={nowMs}
-            onPress={onPress}
-            onToggle={onToggle}
-            todo={todo}
-          />
-        ))}
-      </View>
-    </View>
+    <TodoItem
+      variant="display"
+      text={todo.title}
+      done={done}
+      overdue={overdue}
+      reminderLabel={reminderLabel}
+      linkUrl={withLinkHeader ? todo.linkUrl : null}
+      linkTitle={withLinkHeader ? todo.linkTitle : null}
+      onToggle={(nextChecked) => onToggle(todo, nextChecked)}
+      onPress={() => onPress(todo)}
+    />
   );
 }
 
@@ -302,6 +161,8 @@ function SectionHeader({ emoji, label, count }: { emoji: string; label: string; 
   );
 }
 
+type WideSection = { key: string; emoji: string; label: string; todos: TodoListItem[] };
+
 function WideTodosScreen() {
   const router = useRouter();
   const { filter, filterChips, filteredTodos, isLoading, nowMs, setFilter, totalCount } =
@@ -314,9 +175,18 @@ function WideTodosScreen() {
     [router],
   );
 
-  const overdueTodos = filteredTodos.filter((todo) => getTodoBucket(todo, nowMs) === "overdue");
-  const upcomingTodos = filteredTodos.filter((todo) => getTodoBucket(todo, nowMs) === "upcoming");
-  const completedTodos = filteredTodos.filter((todo) => getTodoBucket(todo, nowMs) === "completed");
+  const sections = React.useMemo<WideSection[]>(() => {
+    const overdue = filteredTodos.filter((t) => getTodoBucket(t, nowMs) === "overdue");
+    const upcoming = filteredTodos.filter((t) => getTodoBucket(t, nowMs) === "upcoming");
+    const noReminder = filteredTodos.filter((t) => getTodoBucket(t, nowMs) === "noReminder");
+    const completed = filteredTodos.filter((t) => getTodoBucket(t, nowMs) === "completed");
+    return [
+      { key: "overdue", emoji: "🔥", label: "기간지남", todos: overdue },
+      { key: "upcoming", emoji: "⏰", label: "알림예정", todos: upcoming },
+      { key: "noReminder", emoji: "🕊", label: "알림없음", todos: noReminder },
+      { key: "completed", emoji: "✓", label: "완료", todos: completed },
+    ].filter((section) => section.todos.length > 0);
+  }, [filteredTodos, nowMs]);
 
   return (
     <ScrollView
@@ -354,18 +224,20 @@ function WideTodosScreen() {
           />
         ) : (
           <View className="gap-6">
-            {overdueTodos.length > 0 ? (
-              <View className="gap-3">
+            {sections.map((section) => (
+              <View
+                key={section.key}
+                className="gap-3"
+              >
                 <SectionHeader
-                  emoji="🔥"
-                  label="기간지남"
-                  count={overdueTodos.length}
+                  emoji={section.emoji}
+                  label={section.label}
+                  count={section.todos.length}
                 />
                 <View className="gap-3">
-                  {overdueTodos.map((todo) => (
-                    <TodoRow
+                  {section.todos.map((todo) => (
+                    <TodoDisplayItem
                       key={todo.id}
-                      layout="row"
                       nowMs={nowMs}
                       onPress={handleTodoPress}
                       onToggle={handleToggle}
@@ -374,49 +246,7 @@ function WideTodosScreen() {
                   ))}
                 </View>
               </View>
-            ) : null}
-            {upcomingTodos.length > 0 ? (
-              <View className="gap-3">
-                <SectionHeader
-                  emoji="⏰"
-                  label="알림예정"
-                  count={upcomingTodos.length}
-                />
-                <View className="gap-3">
-                  {upcomingTodos.map((todo) => (
-                    <TodoRow
-                      key={todo.id}
-                      layout="row"
-                      nowMs={nowMs}
-                      onPress={handleTodoPress}
-                      onToggle={handleToggle}
-                      todo={todo}
-                    />
-                  ))}
-                </View>
-              </View>
-            ) : null}
-            {completedTodos.length > 0 ? (
-              <View className="gap-3">
-                <SectionHeader
-                  emoji="✓"
-                  label="완료"
-                  count={completedTodos.length}
-                />
-                <View className="gap-3">
-                  {completedTodos.map((todo) => (
-                    <TodoRow
-                      key={todo.id}
-                      layout="row"
-                      nowMs={nowMs}
-                      onPress={handleTodoPress}
-                      onToggle={handleToggle}
-                      todo={todo}
-                    />
-                  ))}
-                </View>
-              </View>
-            ) : null}
+            ))}
           </View>
         )}
       </View>
@@ -473,13 +303,21 @@ function MobileTodosScreen() {
         ) : (
           <View className="gap-3">
             {groups.map((group) => (
-              <LinkTodoCard
+              <View
                 key={group.linkId}
-                group={group}
-                nowMs={nowMs}
-                onPress={handleTodoPress}
-                onToggle={handleToggle}
-              />
+                className="gap-2"
+              >
+                {group.todos.map((todo, index) => (
+                  <TodoDisplayItem
+                    key={todo.id}
+                    nowMs={nowMs}
+                    onPress={handleTodoPress}
+                    onToggle={handleToggle}
+                    todo={todo}
+                    withLinkHeader={index === 0}
+                  />
+                ))}
+              </View>
             ))}
           </View>
         )}

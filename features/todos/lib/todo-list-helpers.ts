@@ -1,8 +1,8 @@
 import type { TodoListItem } from "../types";
 
-type TodoFilter = "all" | "incomplete" | "upcoming" | "overdue" | "completed";
+type TodoFilter = "all" | "incomplete" | "upcoming" | "overdue" | "noReminder" | "completed";
 
-type TodoBucket = "overdue" | "upcoming" | "completed";
+type TodoBucket = "overdue" | "upcoming" | "noReminder" | "completed";
 
 function getDomainFromUrl(url: string): string {
   try {
@@ -24,11 +24,12 @@ function getTodoBucket(todo: TodoListItem, nowMs: number): TodoBucket {
   if (todo.completedAt) {
     return "completed";
   }
-  if (todo.reminderAt) {
-    const reminderMs = new Date(todo.reminderAt).getTime();
-    if (!Number.isNaN(reminderMs) && reminderMs < nowMs) {
-      return "overdue";
-    }
+  if (!todo.reminderAt) {
+    return "noReminder";
+  }
+  const reminderMs = new Date(todo.reminderAt).getTime();
+  if (!Number.isNaN(reminderMs) && reminderMs < nowMs) {
+    return "overdue";
   }
   return "upcoming";
 }
@@ -73,6 +74,8 @@ function filterTodos(todos: TodoListItem[], filter: TodoFilter, nowMs: number): 
         return bucket === "upcoming";
       case "overdue":
         return bucket === "overdue";
+      case "noReminder":
+        return bucket === "noReminder";
       case "completed":
         return bucket === "completed";
       default:
@@ -87,6 +90,7 @@ function countTodosByFilter(todos: TodoListItem[], nowMs: number): Record<TodoFi
     incomplete: 0,
     upcoming: 0,
     overdue: 0,
+    noReminder: 0,
     completed: 0,
   };
   for (const todo of todos) {

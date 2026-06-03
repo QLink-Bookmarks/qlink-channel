@@ -60,8 +60,13 @@ type MappedLink = {
   remainingTodoCount: number;
   statusLabel: string | null;
   statusVariant: LinkCardStatusVariant;
+  summaryModelLabel: string | null;
 };
 
+/**
+ * Returns the in-progress / failed work status meta. A (success) is intentionally not surfaced here
+ * — successful AI runs are shown via summaryModelLabel ("요약 모델 - {workModel}") next to the title.
+ */
 function formatWorkStatus(
   workStatus: WorkStatus | null | undefined,
   workModel: string | null | undefined,
@@ -69,8 +74,6 @@ function formatWorkStatus(
   switch (workStatus) {
     case "G":
       return { label: "AI 생성 중...", variant: "progress" };
-    case "A":
-      return { label: workModel ? `${workModel} 생성` : "AI 생성 완료", variant: "success" };
     case "F":
       return {
         label: workModel ? `${workModel} 생성 실패` : "AI 생성 실패",
@@ -79,6 +82,16 @@ function formatWorkStatus(
     default:
       return { label: null, variant: null };
   }
+}
+
+function formatSummaryModelLabel(
+  workStatus: WorkStatus | null | undefined,
+  workModel: string | null | undefined,
+): string | null {
+  if (workStatus !== "A" || !workModel) {
+    return null;
+  }
+  return `요약 모델 - ${workModel}`;
 }
 
 function mapLinkListItem(item: LinkListItem): MappedLink {
@@ -94,11 +107,13 @@ function mapLinkListItem(item: LinkListItem): MappedLink {
     remainingTodoCount: item.countMoreTodos,
     statusLabel: label,
     statusVariant: variant,
+    summaryModelLabel: formatSummaryModelLabel(item.workStatus, item.workModel),
   };
 }
 
 export {
   formatDueLabel,
+  formatSummaryModelLabel,
   formatWorkStatus,
   getDomainFromUrl,
   getFaviconUrl,

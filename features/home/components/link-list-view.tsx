@@ -68,13 +68,28 @@ function HoverActionButton({
 }) {
   return (
     <Pressable
-      className="size-8 items-center justify-center rounded-xl web:hover:bg-accent"
+      className="size-7 items-center justify-center rounded-lg web:hover:bg-accent"
       onPress={onPress}
     >
       <Icon
         as={icon}
-        size={16}
+        size={13}
         className={tone === "destructive" ? "text-destructive" : "text-foreground"}
+      />
+    </Pressable>
+  );
+}
+
+function BookmarkBadgeButton({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable
+      className="size-6 items-center justify-center rounded-full border border-border bg-card shadow-qlink-sm web:hover:bg-accent"
+      onPress={onPress}
+    >
+      <Icon
+        as={Star}
+        size={12}
+        className="text-warning"
       />
     </Pressable>
   );
@@ -158,11 +173,8 @@ function LinkListView({ folderId, title, emoji, meta, basePath, activeLinkId }: 
           <View className="flex-row flex-wrap gap-4">
             {links.map((item) => {
               const mapped = mapLinkListItem(item);
-              const leadingHoverActions = isWebWide ? (
-                <HoverActionButton
-                  icon={Star}
-                  onPress={() => handleBookmark(item)}
-                />
+              const bookmarkHoverAction = isWebWide ? (
+                <BookmarkBadgeButton onPress={() => handleBookmark(item)} />
               ) : undefined;
               const trailingHoverActions = isWebWide ? (
                 <>
@@ -188,12 +200,13 @@ function LinkListView({ folderId, title, emoji, meta, basePath, activeLinkId }: 
                 >
                   <LinkCard
                     active={activeLinkId === mapped.id}
+                    bookmarkHoverAction={bookmarkHoverAction}
                     domain={mapped.domain}
                     faviconUrl={mapped.faviconUrl}
-                    leadingHoverActions={leadingHoverActions}
                     remainingTodoCount={mapped.remainingTodoCount}
                     statusLabel={mapped.statusLabel}
                     statusVariant={mapped.statusVariant}
+                    summaryModelLabel={mapped.summaryModelLabel}
                     tags={mapped.tags}
                     title={mapped.title}
                     todos={mapped.todos}
@@ -216,7 +229,7 @@ function LinkListView({ folderId, title, emoji, meta, basePath, activeLinkId }: 
             if (!open) setFolderMoveLink(null);
           }}
         >
-          <DialogContent className="max-h-[80vh] max-w-md">
+          <DialogContent className="max-h-[80vh] min-h-[24rem] min-w-[24rem] max-w-md">
             <DialogHeader>
               <DialogTitle>폴더 이동</DialogTitle>
               <DialogDescription>이동할 폴더를 선택해주세요.</DialogDescription>

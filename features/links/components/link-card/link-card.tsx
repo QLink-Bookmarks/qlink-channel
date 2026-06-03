@@ -39,6 +39,8 @@ function LinkCard({
   todoLayout = "row",
   statusLabel,
   statusVariant,
+  summaryModelLabel,
+  bookmarkHoverAction,
   leadingHoverActions,
   trailingHoverActions,
   onPress,
@@ -58,6 +60,9 @@ function LinkCard({
   todoLayout?: "row" | "stack";
   statusLabel?: string | null;
   statusVariant?: LinkCardStatusVariant;
+  summaryModelLabel?: string | null;
+  /** Web-only corner badge anchored to the favicon's top-left (e.g. bookmark / shortcut toggle). */
+  bookmarkHoverAction?: React.ReactNode;
   leadingHoverActions?: React.ReactNode;
   trailingHoverActions?: React.ReactNode;
   onPress?: () => void;
@@ -121,11 +126,30 @@ function LinkCard({
           ) : null}
         </>
       ) : null}
-      <View className={cn("flex-row items-start gap-3", showHoverActions ? "pr-32" : "pr-6")}>
-        <Favicon
-          url={faviconUrl}
-          fallback={domain.slice(0, 1).toUpperCase()}
-        />
+      <View className={cn("flex-row items-start gap-3", showHoverActions ? "pr-28" : "pr-6")}>
+        <View className="relative">
+          <Favicon
+            url={faviconUrl}
+            fallback={domain.slice(0, 1).toUpperCase()}
+          />
+          {bookmarkHoverAction ? (
+            <View
+              className={cn(
+                "pointer-events-none absolute -left-1.5 -top-1.5 z-10 opacity-0 transition-opacity web:group-hover:opacity-100",
+                active && "pointer-events-auto opacity-100",
+              )}
+              {...(Platform.OS === "web"
+                ? ({
+                    onClick: (event: { stopPropagation?: () => void }) => {
+                      event.stopPropagation?.();
+                    },
+                  } as Record<string, unknown>)
+                : null)}
+            >
+              <View className="pointer-events-auto">{bookmarkHoverAction}</View>
+            </View>
+          ) : null}
+        </View>
         <View className="flex-1 gap-1">
           <Text className="text-xs text-muted-foreground">{domain}</Text>
           <Text
@@ -134,6 +158,14 @@ function LinkCard({
           >
             {title}
           </Text>
+          {summaryModelLabel ? (
+            <Text
+              className="text-xs font-medium text-muted-foreground"
+              numberOfLines={1}
+            >
+              {summaryModelLabel}
+            </Text>
+          ) : null}
         </View>
         {pinned ? (
           <Icon

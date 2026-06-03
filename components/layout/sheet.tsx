@@ -1,8 +1,9 @@
 import * as React from "react";
-import { type StyleProp, View, type ViewStyle } from "react-native";
+import { Pressable, type StyleProp, View, type ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { type AccentName, DEFAULT_ACCENT, type ThemeMode, getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,8 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
+
+import { X } from "lucide-react-native/icons";
 
 // View scope: 모바일 전용. md >= 768px에서는 사용하지 않는다.
 
@@ -165,11 +168,26 @@ function Sheet({
 
   const renderHandle = React.useCallback(
     () => (
-      <View className="items-center bg-transparent py-3">
-        <View className="h-1.5 w-10 rounded-full bg-border" />
+      <View className="bg-transparent pt-3">
+        <View className="items-center">
+          <View className="h-1.5 w-10 rounded-full bg-border" />
+        </View>
+        {dismissible ? (
+          <Pressable
+            className="absolute right-3 top-2 size-9 items-center justify-center rounded-full active:bg-accent web:hover:bg-accent"
+            hitSlop={8}
+            onPress={handleBackdropPress}
+          >
+            <Icon
+              as={X}
+              size={18}
+              className="text-muted-foreground"
+            />
+          </Pressable>
+        ) : null}
       </View>
     ),
-    [],
+    [dismissible, handleBackdropPress],
   );
 
   const safeBottomInset = Math.max(insets.bottom, 16);
