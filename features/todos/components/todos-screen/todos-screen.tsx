@@ -234,15 +234,19 @@ function WideTodosScreen() {
                   label={section.label}
                   count={section.todos.length}
                 />
-                <View className="gap-3">
+                <View className="flex-row flex-wrap gap-3">
                   {section.todos.map((todo) => (
-                    <TodoDisplayItem
+                    <View
                       key={todo.id}
-                      nowMs={nowMs}
-                      onPress={handleTodoPress}
-                      onToggle={handleToggle}
-                      todo={todo}
-                    />
+                      className="w-full md:w-[20rem]"
+                    >
+                      <TodoDisplayItem
+                        nowMs={nowMs}
+                        onPress={handleTodoPress}
+                        onToggle={handleToggle}
+                        todo={todo}
+                      />
+                    </View>
                   ))}
                 </View>
               </View>
