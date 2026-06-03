@@ -1,9 +1,11 @@
 import * as React from "react";
 import { Platform, TextInput } from "react-native";
 
+import { useIsInsideSheet } from "@/components/layout/sheet";
 import { getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { useDisplaySettings } from "@/stores/display-settings";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 
 import { type VariantProps, cva } from "class-variance-authority";
 
@@ -48,6 +50,15 @@ function Input({
   const theme = useDisplaySettings((state) => state.display.theme);
   const tokens = React.useMemo(() => getThemeTokens(theme, accent), [accent, theme]);
   const [isFocused, setIsFocused] = React.useState(false);
+  // BottomSheetModal's gesture handler swallows touch events on Android, breaking Korean IME
+  // composition inside a regular TextInput. BottomSheetTextInput pipes focus state back to the
+  // sheet so the gesture handler stands down. We switch on it transparently.
+  const isInsideSheet = useIsInsideSheet();
+  // Cast through unknown — RNGH's TextInput type tree differs from RN's by a $$typeof brand,
+  // but the runtime component accepts the same prop surface.
+  const TextInputComponent = (isInsideSheet
+    ? BottomSheetTextInput
+    : TextInput) as unknown as typeof TextInput;
   // While the IME is composing (e.g. Hangul syllable assembly), the underlying <input> holds
   // intermediate state that React's controlled value would clobber on each re-render. We defer
   // propagating text until composition ends so the caller's state doesn't fight the IME.
@@ -77,7 +88,7 @@ function Input({
       : undefined;
 
   return (
-    <TextInput
+    <TextInputComponent
       className={cn(
         inputVariants({ variant, size }),
         props.editable === false &&

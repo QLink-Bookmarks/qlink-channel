@@ -17,6 +17,18 @@ import {
 
 import { X } from "lucide-react-native/icons";
 
+/**
+ * Signals to descendants that they're rendered inside a BottomSheetModal so they can
+ * swap to BottomSheet-aware primitives (e.g. BottomSheetTextInput) — without this swap,
+ * the sheet's gesture handler swallows touch events on Android and the Korean IME
+ * breaks composition mid-syllable.
+ */
+const SheetContext = React.createContext<boolean>(false);
+
+function useIsInsideSheet() {
+  return React.useContext(SheetContext);
+}
+
 // View scope: 모바일 전용. md >= 768px에서는 사용하지 않는다.
 
 type SheetBackgroundProps = BottomSheetBackgroundProps & {
@@ -217,15 +229,17 @@ function Sheet({
       onChange={handleChange}
       onDismiss={handleDismiss}
     >
-      <BottomSheetScrollView
-        className="scrollbar-none"
-        showsVerticalScrollIndicator={false}
-      >
-        {content}
-      </BottomSheetScrollView>
+      <SheetContext.Provider value={true}>
+        <BottomSheetScrollView
+          className="scrollbar-none"
+          showsVerticalScrollIndicator={false}
+        >
+          {content}
+        </BottomSheetScrollView>
+      </SheetContext.Provider>
     </BottomSheetModal>
   );
 }
 
-export { Sheet };
+export { Sheet, useIsInsideSheet };
 export type { SheetProps };
