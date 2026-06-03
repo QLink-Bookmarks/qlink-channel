@@ -48,7 +48,7 @@ import type { CreateLinkTodoRequest } from "../types";
 
 import * as Clipboard from "expo-clipboard";
 import { type Href, useRouter } from "expo-router";
-import { ChevronDown, ChevronLeft, FolderOpen, QrCode, X } from "lucide-react-native/icons";
+import { ChevronDown, ChevronLeft, FolderOpen, QrCode } from "lucide-react-native/icons";
 
 type LinkCreateFormMode = "wide" | "mobile";
 type MobileSheetStep = "form" | "folder-picker" | "ai-model-picker";
@@ -442,20 +442,8 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
             ) : null}
           </View>
           <Text className="flex-1 text-center text-xl font-bold text-primary">{stepTitle}</Text>
-          {mobileSheetStep === "form" ? (
-            <Pressable
-              className="size-10 items-center justify-center rounded-full active:bg-accent"
-              onPress={handleCancel}
-            >
-              <Icon
-                as={X}
-                size={18}
-                className="text-muted-foreground"
-              />
-            </Pressable>
-          ) : (
-            <View className="size-10" />
-          )}
+          {/* The Sheet's own X handles dismiss on the form step — don't render a second X. */}
+          <View className="size-10" />
         </View>
 
         {mobileSheetStep === "form" ? (
