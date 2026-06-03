@@ -17,7 +17,6 @@ import {
   filterTodos,
   formatReminderLabel,
   getTodoBucket,
-  groupTodosByLink,
   isOverdue,
 } from "../../lib/todo-list-helpers";
 import { useToggleTodoCompletedMutation } from "../../mutations";
@@ -121,13 +120,11 @@ function useToggleHandler() {
 function TodoDisplayItem({
   todo,
   nowMs,
-  withLinkHeader = true,
   onToggle,
   onPress,
 }: {
   todo: TodoListItem;
   nowMs: number;
-  withLinkHeader?: boolean;
   onToggle: (todo: TodoListItem, nextChecked: boolean) => void;
   onPress: (todo: TodoListItem) => void;
 }) {
@@ -142,8 +139,8 @@ function TodoDisplayItem({
       done={done}
       overdue={overdue}
       reminderLabel={reminderLabel}
-      linkUrl={withLinkHeader ? todo.linkUrl : null}
-      linkTitle={withLinkHeader ? todo.linkTitle : null}
+      linkUrl={todo.linkUrl}
+      linkTitle={todo.linkTitle}
       onToggle={(nextChecked) => onToggle(todo, nextChecked)}
       onPress={() => onPress(todo)}
     />
@@ -268,7 +265,19 @@ function MobileTodosScreen() {
     },
     [router],
   );
-  const groups = React.useMemo(() => groupTodosByLink(filteredTodos), [filteredTodos]);
+
+  const sections = React.useMemo<WideSection[]>(() => {
+    const overdue = filteredTodos.filter((t) => getTodoBucket(t, nowMs) === "overdue");
+    const upcoming = filteredTodos.filter((t) => getTodoBucket(t, nowMs) === "upcoming");
+    const noReminder = filteredTodos.filter((t) => getTodoBucket(t, nowMs) === "noReminder");
+    const completed = filteredTodos.filter((t) => getTodoBucket(t, nowMs) === "completed");
+    return [
+      { key: "overdue", emoji: "🔥", label: "기간지남", todos: overdue },
+      { key: "upcoming", emoji: "⏰", label: "알림예정", todos: upcoming },
+      { key: "noReminder", emoji: "🕊", label: "알림없음", todos: noReminder },
+      { key: "completed", emoji: "✓", label: "완료", todos: completed },
+    ].filter((section) => section.todos.length > 0);
+  }, [filteredTodos, nowMs]);
 
   return (
     <ScrollView
@@ -298,29 +307,35 @@ function MobileTodosScreen() {
             size="large"
             className="py-16"
           />
-        ) : groups.length === 0 ? (
+        ) : sections.length === 0 ? (
           <EmptyState
             emoji="✅"
             title="해당하는 할 일이 없어요"
             description="다른 필터를 선택해보세요."
           />
         ) : (
-          <View className="gap-3">
-            {groups.map((group) => (
+          <View className="gap-6">
+            {sections.map((section) => (
               <View
-                key={group.linkId}
-                className="gap-2"
+                key={section.key}
+                className="gap-3"
               >
-                {group.todos.map((todo, index) => (
-                  <TodoDisplayItem
-                    key={todo.id}
-                    nowMs={nowMs}
-                    onPress={handleTodoPress}
-                    onToggle={handleToggle}
-                    todo={todo}
-                    withLinkHeader={index === 0}
-                  />
-                ))}
+                <SectionHeader
+                  emoji={section.emoji}
+                  label={section.label}
+                  count={section.todos.length}
+                />
+                <View className="gap-3">
+                  {section.todos.map((todo) => (
+                    <TodoDisplayItem
+                      key={todo.id}
+                      nowMs={nowMs}
+                      onPress={handleTodoPress}
+                      onToggle={handleToggle}
+                      todo={todo}
+                    />
+                  ))}
+                </View>
               </View>
             ))}
           </View>
