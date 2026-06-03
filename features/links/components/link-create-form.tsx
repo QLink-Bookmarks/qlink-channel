@@ -41,6 +41,7 @@ import { reportError } from "@/lib/error-reporting";
 import { useDisplaySettings } from "@/stores/display-settings";
 import { useQrScanStore } from "@/stores/qr-scan";
 import { useToastStore } from "@/stores/toast-store";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useCreateLinkMutation } from "../mutations";
 import type { CreateLinkTodoRequest } from "../types";
@@ -85,10 +86,15 @@ function getFolderOptionValue(folderId: string | null) {
 
 function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const pendingQrResult = useQrScanStore((state) => state.pendingResult);
   const clearQrResult = useQrScanStore((state) => state.clear);
   const createLinkMutation = useCreateLinkMutation();
   const resetMutation = createLinkMutation.reset;
+  const invalidateLinkQueries = React.useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ["links", "list"] });
+    void queryClient.invalidateQueries({ queryKey: ["folders"] });
+  }, [queryClient]);
   const foldersQuery = useFoldersQuery({ size: 15 });
   const folderContents = foldersQuery.data?.contents;
   const folderOptions: FolderDraft[] = React.useMemo(() => {
@@ -288,7 +294,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     setErrors({});
 
     try {
-      await requestAiSummaryMutation.mutateAsync({
+      const response = await requestAiSummaryMutation.mutateAsync({
         folderId: folder.id ? Number(folder.id) : null,
         modelId: aiModel.modelId,
         title: trimmedTitle ? trimmedTitle : null,
@@ -305,8 +311,20 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         variant: "success",
       });
 
+      invalidateLinkQueries();
       resetForm();
       onCancel();
+      // Surface the newly-queued link so the user can watch it move through G → A.
+      const newLinkId = response.data?.id;
+      if (newLinkId != null) {
+        if (onSaved) {
+          onSaved(newLinkId);
+        } else if (mode === "wide") {
+          router.replace(`/links?linkId=${newLinkId}` as Href);
+        } else {
+          router.push(`/links/${newLinkId}` as Href);
+        }
+      }
     } catch (error: unknown) {
       reportError(error, {
         area: "link-create-form:ai-organize",
@@ -324,10 +342,13 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
   }, [
     aiModel,
     folder.id,
+    invalidateLinkQueries,
     mode,
     onCancel,
+    onSaved,
     requestAiSummaryMutation,
     resetForm,
+    router,
     showToast,
     title,
     url,
@@ -370,12 +391,24 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         todos: todoPayload,
       });
 
+      invalidateLinkQueries();
       resetForm();
       onSaved?.(response.data.id);
     } catch (error: unknown) {
       console.log("link-create:save-failed", error);
     }
-  }, [createLinkMutation, folder.id, memo, onSaved, resetForm, title, todos, url, validate]);
+  }, [
+    createLinkMutation,
+    folder.id,
+    invalidateLinkQueries,
+    memo,
+    onSaved,
+    resetForm,
+    title,
+    todos,
+    url,
+    validate,
+  ]);
 
   const aiModelLabel = aiModel
     ? `${aiModel.providerLabel} · ${aiModel.modelLabel}`

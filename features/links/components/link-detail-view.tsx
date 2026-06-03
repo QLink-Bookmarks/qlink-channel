@@ -457,6 +457,10 @@ function LinkDetailView({
     try {
       await deleteLinkMutation.mutateAsync();
       setIsDeleteDialogOpen(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["links", "list"] }),
+        queryClient.invalidateQueries({ queryKey: ["folders"] }),
+      ]);
       onDeleted?.();
     } catch (error: unknown) {
       reportError(error, {
@@ -464,7 +468,7 @@ function LinkDetailView({
         extra: { linkId: detail.id },
       });
     }
-  }, [deleteLinkMutation, detail.id, onDeleted]);
+  }, [deleteLinkMutation, detail.id, onDeleted, queryClient]);
 
   const handleMemoEditStart = React.useCallback(() => {
     setMemoDraft(detail.memo ?? "");

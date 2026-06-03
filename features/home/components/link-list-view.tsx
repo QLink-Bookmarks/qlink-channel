@@ -126,7 +126,10 @@ function LinkListView({ folderId, title, emoji, meta, basePath, activeLinkId }: 
     try {
       await deleteMutation.mutateAsync(deleteTargetLink.id);
       setDeleteTargetLink(null);
-      await queryClient.invalidateQueries({ queryKey: ["links", "list"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["links", "list"] }),
+        queryClient.invalidateQueries({ queryKey: ["folders"] }),
+      ]);
     } catch (error: unknown) {
       reportError(error, {
         area: "link-list-view:delete",
