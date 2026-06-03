@@ -1,4 +1,4 @@
-import { Pressable, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,6 +9,19 @@ import { getDomainFromUrl, getFaviconUrl } from "@/features/home/lib/link-card-m
 import { cn } from "@/lib/utils";
 
 import { AlarmClock } from "lucide-react-native/icons";
+
+/**
+ * On web we need to stop click bubbling so the checkbox tap doesn't also fire the outer
+ * card press. Native already stops at the inner Pressable thanks to the responder system.
+ */
+const stopPropagationProps =
+  Platform.OS === "web"
+    ? ({
+        onClick: (event: { stopPropagation?: () => void }) => {
+          event.stopPropagation?.();
+        },
+      } as Record<string, unknown>)
+    : null;
 
 type TodoItemVariant = "inline" | "row" | "display";
 
@@ -73,12 +86,13 @@ function TodoItem({
     const hasLinkHeader = Boolean(linkUrl || linkTitle);
 
     return (
-      <View
+      <Pressable
         className={cn(
           "gap-3 rounded-2xl border border-border bg-card px-4 py-3.5",
           overdue && !done && "border-destructive/40 bg-destructive/5",
           className,
         )}
+        onPress={onPress}
       >
         {hasLinkHeader ? (
           <View className="flex-row items-center gap-2">
@@ -97,15 +111,14 @@ function TodoItem({
           </View>
         ) : null}
         <View className="flex-row items-start gap-3">
-          <Checkbox
-            checked={done ?? false}
-            shape="round"
-            onCheckedChange={(value) => onToggle?.(value === true)}
-          />
-          <Pressable
-            className="min-w-0 flex-1 gap-2"
-            onPress={onPress}
-          >
+          <View {...(stopPropagationProps ?? null)}>
+            <Checkbox
+              checked={done ?? false}
+              shape="round"
+              onCheckedChange={(value) => onToggle?.(value === true)}
+            />
+          </View>
+          <View className="min-w-0 flex-1 gap-2">
             <Text
               className={cn(
                 "text-base font-semibold text-foreground",
@@ -129,9 +142,9 @@ function TodoItem({
                 <Text className="text-xs font-semibold">👥 공유 할 일</Text>
               </Badge>
             ) : null}
-          </Pressable>
+          </View>
         </View>
-      </View>
+      </Pressable>
     );
   }
 
