@@ -1,6 +1,6 @@
 type SourceType = "INPUT" | "QR";
 
-type WorkStatus = "G" | "A" | "F" | "C";
+type LinkStatus = "G" | "A" | "F" | "C";
 
 type CreateLinkTodoRequest = {
   title: string;
@@ -60,7 +60,7 @@ type LinkDetail = {
   folderName?: string | null;
   todos: LinkTodo[];
   workModel?: string | null;
-  workStatus?: WorkStatus | null;
+  status?: LinkStatus | null;
 };
 
 type ApiEnvelope<TData> = {
@@ -96,7 +96,7 @@ type LinkListItem = {
   todos: LinkListTodo[];
   countMoreTodos: number;
   workModel?: string | null;
-  workStatus?: WorkStatus | null;
+  status?: LinkStatus | null;
 };
 
 type LinkScrollResponse = {
@@ -132,8 +132,8 @@ export type {
   LinkListTodo,
   LinkOrder,
   LinkScrollResponse,
+  LinkStatus,
   LinkTodo,
   SourceType,
   UpdateLinkRequest,
-  WorkStatus,
 };

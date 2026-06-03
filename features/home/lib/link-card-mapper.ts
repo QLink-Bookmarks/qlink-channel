@@ -2,7 +2,7 @@ import type {
   LinkCardStatusVariant,
   LinkCardTodo,
 } from "@/features/links/components/link-card/link-card";
-import type { LinkListItem, LinkListTodo, WorkStatus } from "@/features/links/types";
+import type { LinkListItem, LinkListTodo, LinkStatus } from "@/features/links/types";
 
 function getDomainFromUrl(url: string): string {
   try {
@@ -64,14 +64,14 @@ type MappedLink = {
 };
 
 /**
- * Returns the in-progress / failed work status meta. A (success) is intentionally not surfaced here
- * — successful AI runs are shown via summaryModelLabel ("요약 모델 - {workModel}") next to the title.
+ * Returns the in-progress / failed status meta. A (success) is intentionally not surfaced here —
+ * successful AI runs are shown via summaryModelLabel ("요약 모델 - {workModel}") next to the title.
  */
-function formatWorkStatus(
-  workStatus: WorkStatus | null | undefined,
+function formatLinkStatus(
+  status: LinkStatus | null | undefined,
   workModel: string | null | undefined,
 ): { label: string | null; variant: LinkCardStatusVariant } {
-  switch (workStatus) {
+  switch (status) {
     case "G":
       return { label: "AI 생성 중...", variant: "progress" };
     case "F":
@@ -85,10 +85,10 @@ function formatWorkStatus(
 }
 
 function formatSummaryModelLabel(
-  workStatus: WorkStatus | null | undefined,
+  status: LinkStatus | null | undefined,
   workModel: string | null | undefined,
 ): string | null {
-  if (workStatus !== "A" || !workModel) {
+  if (status !== "A" || !workModel) {
     return null;
   }
   return `요약 모델 - ${workModel}`;
@@ -96,7 +96,7 @@ function formatSummaryModelLabel(
 
 function mapLinkListItem(item: LinkListItem): MappedLink {
   const domain = getDomainFromUrl(item.url);
-  const { label, variant } = formatWorkStatus(item.workStatus, item.workModel);
+  const { label, variant } = formatLinkStatus(item.status, item.workModel);
   return {
     id: item.id,
     domain,
@@ -107,14 +107,14 @@ function mapLinkListItem(item: LinkListItem): MappedLink {
     remainingTodoCount: item.countMoreTodos,
     statusLabel: label,
     statusVariant: variant,
-    summaryModelLabel: formatSummaryModelLabel(item.workStatus, item.workModel),
+    summaryModelLabel: formatSummaryModelLabel(item.status, item.workModel),
   };
 }
 
 export {
   formatDueLabel,
+  formatLinkStatus,
   formatSummaryModelLabel,
-  formatWorkStatus,
   getDomainFromUrl,
   getFaviconUrl,
   mapLinkListItem,

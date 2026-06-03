@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
-import { formatSummaryModelLabel, formatWorkStatus } from "@/features/home/lib/link-card-mapper";
+import { formatLinkStatus, formatSummaryModelLabel } from "@/features/home/lib/link-card-mapper";
 import { useDeleteLinkMutation, useUpdateLinkMutation } from "@/features/links/mutations";
 import { getLinkDetailQueryKey } from "@/features/links/queries";
 import type {
@@ -257,13 +257,13 @@ function LinkDetailView({
   );
   const [todoEditorError, setTodoEditorError] = React.useState<string | null>(null);
 
-  const workStatusMeta = React.useMemo(
-    () => formatWorkStatus(detail.workStatus, detail.workModel),
-    [detail.workModel, detail.workStatus],
+  const linkStatusMeta = React.useMemo(
+    () => formatLinkStatus(detail.status, detail.workModel),
+    [detail.status, detail.workModel],
   );
   const summaryModelLabel = React.useMemo(
-    () => formatSummaryModelLabel(detail.workStatus, detail.workModel),
-    [detail.workModel, detail.workStatus],
+    () => formatSummaryModelLabel(detail.status, detail.workModel),
+    [detail.status, detail.workModel],
   );
 
   const isTodoMutationPending =
@@ -743,16 +743,16 @@ function LinkDetailView({
                   {detail.url}
                 </Text>
                 <Text className="text-2xl font-bold text-foreground">{detail.title}</Text>
-                {workStatusMeta.label ? (
+                {linkStatusMeta.label ? (
                   <Text
                     className={cn(
                       "text-xs font-semibold",
-                      workStatusMeta.variant === "progress" && "text-primary",
-                      workStatusMeta.variant === "error" && "text-destructive",
-                      workStatusMeta.variant === "success" && "text-muted-foreground",
+                      linkStatusMeta.variant === "progress" && "text-primary",
+                      linkStatusMeta.variant === "error" && "text-destructive",
+                      linkStatusMeta.variant === "success" && "text-muted-foreground",
                     )}
                   >
-                    {workStatusMeta.label}
+                    {linkStatusMeta.label}
                   </Text>
                 ) : null}
               </View>
@@ -776,16 +776,16 @@ function LinkDetailView({
                 {detail.url}
               </Text>
               <Text className="text-2xl font-bold text-foreground">{detail.title}</Text>
-              {workStatusMeta.label ? (
+              {linkStatusMeta.label ? (
                 <Text
                   className={cn(
                     "text-xs font-semibold",
-                    workStatusMeta.variant === "progress" && "text-primary",
-                    workStatusMeta.variant === "error" && "text-destructive",
-                    workStatusMeta.variant === "success" && "text-muted-foreground",
+                    linkStatusMeta.variant === "progress" && "text-primary",
+                    linkStatusMeta.variant === "error" && "text-destructive",
+                    linkStatusMeta.variant === "success" && "text-muted-foreground",
                   )}
                 >
-                  {workStatusMeta.label}
+                  {linkStatusMeta.label}
                 </Text>
               ) : null}
             </View>
