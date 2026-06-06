@@ -8,14 +8,6 @@ import { useDisplaySettings } from "@/stores/display-settings";
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 
 import { type VariantProps, cva } from "class-variance-authority";
-import { cssInterop } from "nativewind";
-
-// BottomSheetTextInput is rendered via react-native-gesture-handler's TextInput, which NativeWind
-// doesn't tag as a styled component by default — so without this interop the `className` prop
-// silently drops on web and the input loses its border, padding, height, etc.
-cssInterop(BottomSheetTextInput, {
-  className: "style",
-});
 
 const inputVariants = cva(
   "flex w-full min-w-0 flex-row items-center border border-input text-foreground shadow-sm shadow-black/5 dark:bg-input/30",
@@ -58,13 +50,16 @@ function Input({
   const theme = useDisplaySettings((state) => state.display.theme);
   const tokens = React.useMemo(() => getThemeTokens(theme, accent), [accent, theme]);
   const [isFocused, setIsFocused] = React.useState(false);
-  // BottomSheetModal's gesture handler swallows touch events on Android, breaking Korean IME
-  // composition inside a regular TextInput. BottomSheetTextInput pipes focus state back to the
-  // sheet so the gesture handler stands down. We switch on it transparently.
+  // BottomSheetModal's gesture handler only intercepts touches on native (Android in particular),
+  // where it breaks Korean IME composition inside a regular TextInput. We swap to
+  // BottomSheetTextInput just there. On web the gesture handler doesn't apply, our own
+  // compositionstart/end handling below covers IME, and keeping the plain TextInput means
+  // NativeWind tags it as a styled component so the `className` prop continues to apply.
   const isInsideSheet = useIsInsideSheet();
+  const shouldUseBottomSheetInput = isInsideSheet && Platform.OS !== "web";
   // Cast through unknown — RNGH's TextInput type tree differs from RN's by a $$typeof brand,
   // but the runtime component accepts the same prop surface.
-  const TextInputComponent = (isInsideSheet
+  const TextInputComponent = (shouldUseBottomSheetInput
     ? BottomSheetTextInput
     : TextInput) as unknown as typeof TextInput;
   // While the IME is composing (e.g. Hangul syllable assembly), the underlying <input> holds
