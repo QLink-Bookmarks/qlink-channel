@@ -60,6 +60,7 @@ import {
   ExternalLink,
   FolderOpen,
   Pencil,
+  RefreshCw,
   Share2,
   Star,
   Trash2,
@@ -760,38 +761,54 @@ function LinkDetailView({
                   </Text>
                 ) : null}
               </View>
-              <Pressable
-                className="size-10 items-center justify-center rounded-2xl border border-border bg-card"
-                onPress={onClose}
-              >
-                <Icon
-                  as={X}
-                  size={18}
-                  className="text-muted-foreground"
+              <View className="flex-row items-center gap-2">
+                <IconButton
+                  icon={RefreshCw}
+                  size="sm"
+                  variant="ghost"
+                  onPress={refreshDetail}
                 />
-              </Pressable>
+                <Pressable
+                  className="size-10 items-center justify-center rounded-2xl border border-border bg-card"
+                  onPress={onClose}
+                >
+                  <Icon
+                    as={X}
+                    size={18}
+                    className="text-muted-foreground"
+                  />
+                </Pressable>
+              </View>
             </View>
           ) : (
-            <View className="gap-1">
-              <Text
-                className="text-xs text-muted-foreground"
-                numberOfLines={2}
-              >
-                {detail.url}
-              </Text>
-              <Text className="text-2xl font-bold text-foreground">{detail.title}</Text>
-              {linkStatusMeta.label ? (
+            <View className="flex-row items-start justify-between gap-3">
+              <View className="min-w-0 flex-1 gap-1">
                 <Text
-                  className={cn(
-                    "text-xs font-semibold",
-                    linkStatusMeta.variant === "progress" && "text-primary",
-                    linkStatusMeta.variant === "error" && "text-destructive",
-                    linkStatusMeta.variant === "success" && "text-muted-foreground",
-                  )}
+                  className="text-xs text-muted-foreground"
+                  numberOfLines={2}
                 >
-                  {linkStatusMeta.label}
+                  {detail.url}
                 </Text>
-              ) : null}
+                <Text className="text-2xl font-bold text-foreground">{detail.title}</Text>
+                {linkStatusMeta.label ? (
+                  <Text
+                    className={cn(
+                      "text-xs font-semibold",
+                      linkStatusMeta.variant === "progress" && "text-primary",
+                      linkStatusMeta.variant === "error" && "text-destructive",
+                      linkStatusMeta.variant === "success" && "text-muted-foreground",
+                    )}
+                  >
+                    {linkStatusMeta.label}
+                  </Text>
+                ) : null}
+              </View>
+              <IconButton
+                icon={RefreshCw}
+                size="sm"
+                variant="ghost"
+                onPress={refreshDetail}
+              />
             </View>
           )}
 
