@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Platform, Pressable, ScrollView, View } from "react-native";
+import { Platform, Pressable, RefreshControl, ScrollView, View } from "react-native";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Sheet } from "@/components/layout/sheet";
@@ -150,6 +150,14 @@ function LinkListView({ folderId, title, emoji, meta, basePath, activeLinkId }: 
       className="flex-1"
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={linksQuery.isFetching && !linksQuery.isLoading}
+          onRefresh={() => {
+            void linksQuery.refetch();
+          }}
+        />
+      }
     >
       <PageHeader
         title={title}

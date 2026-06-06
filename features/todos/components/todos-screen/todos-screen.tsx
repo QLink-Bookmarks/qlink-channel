@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ScrollView, View } from "react-native";
+import { RefreshControl, ScrollView, View } from "react-native";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
@@ -60,7 +60,9 @@ function useTodosScreenState() {
     filterChips,
     filteredTodos,
     isLoading: todosQuery.isLoading,
+    isRefreshing: todosQuery.isFetching && !todosQuery.isLoading,
     nowMs,
+    refetch: todosQuery.refetch,
     setFilter,
     totalCount: counts.all,
   };
@@ -257,7 +259,8 @@ function WideTodosScreen() {
 
 function MobileTodosScreen() {
   const router = useRouter();
-  const { filter, filterChips, filteredTodos, isLoading, nowMs, setFilter } = useTodosScreenState();
+  const { filter, filterChips, filteredTodos, isLoading, isRefreshing, nowMs, refetch, setFilter } =
+    useTodosScreenState();
   const handleToggle = useToggleHandler();
   const handleTodoPress = React.useCallback(
     (todo: TodoListItem) => {
@@ -284,6 +287,14 @@ function MobileTodosScreen() {
       className="flex-1"
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={() => {
+            void refetch();
+          }}
+        />
+      }
     >
       <View className="gap-5 px-4 pb-24 pt-4">
         <ScrollView
