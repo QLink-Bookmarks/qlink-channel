@@ -24,6 +24,7 @@ type PersistedSettings = {
   display: { theme: ThemeMode; accent: AccentName };
   behavior: { allowsReminderNotification: boolean };
   ai: { defaultProvider: UserDefaultProvider; defaultModel: UserDefaultModel };
+  profile: { avatarEmoji: string | null };
 };
 
 type SettingsState = PersistedSettings & {
@@ -34,6 +35,7 @@ type SettingsState = PersistedSettings & {
   setAllowsReminderNotification: (next: boolean) => void;
   setDefaultProvider: (provider: UserDefaultProvider) => void;
   setDefaultModel: (model: UserDefaultModel) => void;
+  setAvatarEmoji: (emoji: string | null) => void;
   hydrateFromServer: (payload: GetMySettingsResponseData) => void;
 };
 
@@ -46,6 +48,7 @@ const DEFAULT_SETTINGS: PersistedSettings = {
     defaultProvider: { id: null, type: null },
     defaultModel: { id: null, model: null },
   },
+  profile: { avatarEmoji: null },
 };
 
 const useDisplaySettings = create<SettingsState>()((set) => ({
@@ -79,6 +82,10 @@ const useDisplaySettings = create<SettingsState>()((set) => ({
     set((state) => ({
       ai: { ...state.ai, defaultModel: model },
     })),
+  setAvatarEmoji: (emoji) =>
+    set((state) => ({
+      profile: { ...state.profile, avatarEmoji: emoji },
+    })),
   hydrateFromServer: (payload) =>
     set({
       display: {
@@ -107,6 +114,7 @@ function extractPersisted(state: SettingsState): PersistedSettings {
     ai: state.ai,
     behavior: state.behavior,
     display: state.display,
+    profile: state.profile,
   };
 }
 
@@ -136,6 +144,9 @@ async function hydratePersistedSettings() {
           id: parsed.ai?.defaultModel?.id ?? null,
           model: parsed.ai?.defaultModel?.model ?? null,
         },
+      },
+      profile: {
+        avatarEmoji: parsed.profile?.avatarEmoji ?? null,
       },
     });
   } catch {

@@ -16,6 +16,17 @@ type AiProviderWithModels = {
 
 type GetAiProviderModelsResponse = ApiEnvelope<AiProviderWithModels[]>;
 
+type PutAiUserProviderRequest = {
+  providerId: number;
+  apiKey: string;
+};
+
+type PutAiUserProviderResponseData = {
+  id: number;
+};
+
+type PutAiUserProviderResponse = ApiEnvelope<PutAiUserProviderResponseData>;
+
 type AiSummaryRequest = {
   id?: number | null;
   folderId?: number | null;
@@ -38,4 +49,7 @@ export type {
   AiSummaryResponse,
   AiSummaryResponseData,
   GetAiProviderModelsResponse,
+  PutAiUserProviderRequest,
+  PutAiUserProviderResponse,
+  PutAiUserProviderResponseData,
 };

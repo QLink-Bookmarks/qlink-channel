@@ -8,6 +8,7 @@ import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkListView } from "@/features/home/components/link-list-view";
 import { MobileHomeScreen } from "@/features/home/components/mobile-home-screen";
 import { LinkDetailScreen } from "@/features/links/components/link-detail-screen";
+import { SettingsScreen } from "@/features/settings/components/settings-screen";
 import { TodosScreen } from "@/features/todos/components/todos-screen/todos-screen";
 
 import { useShellRouteState } from "../hooks/use-shell-route-state";
@@ -190,15 +191,7 @@ function LinkDetailRouteScreen() {
 
 function SettingsRouteScreen() {
   const { isWideView } = useShellRouteState();
-
-  return (
-    <DummyRouteScreen
-      title="설정"
-      routePath="/settings"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="설정 메인 더미 화면이다. 와이드에서는 topbar의 settings 진입점, 모바일에서는 bottom tab의 settings에 해당한다."
-    />
-  );
+  return <SettingsScreen mode={isWideView ? "wide" : "mobile"} />;
 }
 
 function SettingsProfileRouteScreen() {

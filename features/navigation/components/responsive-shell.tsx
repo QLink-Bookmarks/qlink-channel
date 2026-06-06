@@ -22,6 +22,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Kbd } from "@/components/ui/kbd";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { useMyProfileQuery } from "@/features/account/queries";
 import { CreateFolderDialog } from "@/features/folders/components/create-folder-dialog";
 import { useFoldersQuery } from "@/features/folders/queries";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
@@ -92,6 +93,11 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const [hasOpenedAddLinkSheet, setHasOpenedAddLinkSheet] = React.useState(false);
   const [pendingMobileLinkId, setPendingMobileLinkId] = React.useState<number | null>(null);
   const foldersQuery = useFoldersQuery({ size: 15 });
+  const myProfileQuery = useMyProfileQuery();
+  const avatarEmojiOverride = useDisplaySettings((state) => state.profile.avatarEmoji);
+  const profileAvatarEmoji = avatarEmojiOverride ?? myProfileQuery.data?.avatarEmoji ?? "🌸";
+  const profileNickname = myProfileQuery.data?.nickname ?? "사용자";
+  const profileUsername = myProfileQuery.data?.username ?? "";
   const uncategorizedLinksQuery = useLinksQuery({ folderId: UNCATEGORIZED_FOLDER_ID, size: 100 });
   const { detail, error, handleOpenChange, isLoading, isOpen } = useLinkOverlayState({
     isWideView: routeState.isWideView,
@@ -147,8 +153,8 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleProfilePress = React.useCallback(() => {
-    console.log("shell:profile");
-  }, []);
+    router.push("/settings" as Href);
+  }, [router]);
 
   const handleFabPress = React.useCallback(() => {
     setHasOpenedAddLinkSheet(true);
@@ -371,17 +377,20 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                   onPress={handleProfilePress}
                 >
                   <View className="size-6 items-center justify-center rounded-2xl">
-                    <Text className="text-xl leading-none">🌸</Text>
+                    <Text className="text-xl leading-none">{profileAvatarEmoji}</Text>
                   </View>
                   <View className="min-w-0 flex-1 items-start">
-                    <Text className="text-left text-base font-semibold text-sidebar-hover">
-                      지훈
+                    <Text
+                      numberOfLines={1}
+                      className="text-left text-base font-semibold text-sidebar-hover"
+                    >
+                      {profileNickname}
                     </Text>
                     <Text
                       numberOfLines={1}
                       className="text-left text-sm text-sidebar-muted"
                     >
-                      jihoon
+                      {profileUsername}
                     </Text>
                   </View>
                 </Button>
