@@ -8,6 +8,14 @@ import { useDisplaySettings } from "@/stores/display-settings";
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 
 import { type VariantProps, cva } from "class-variance-authority";
+import { cssInterop } from "nativewind";
+
+// BottomSheetTextInput is rendered via react-native-gesture-handler's TextInput, which NativeWind
+// doesn't tag as a styled component by default — so without this interop the `className` prop
+// silently drops on web and the input loses its border, padding, height, etc.
+cssInterop(BottomSheetTextInput, {
+  className: "style",
+});
 
 const inputVariants = cva(
   "flex w-full min-w-0 flex-row items-center border border-input text-foreground shadow-sm shadow-black/5 dark:bg-input/30",
