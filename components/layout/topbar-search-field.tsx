@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, type TextInput, View } from "react-native";
 
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ function TopbarSearchField({
   rightSlot,
   action,
   readOnly,
+  inputRef,
   onPress,
   onChange,
   onSubmit,
@@ -34,6 +35,8 @@ function TopbarSearchField({
   rightSlot?: React.ReactNode;
   action?: TopbarSearchAction;
   readOnly?: boolean;
+  /** Forwarded ref onto the underlying Input so callers can imperatively focus the field. */
+  inputRef?: React.Ref<TextInput>;
   onPress?: () => void;
   onChange?: (value: string) => void;
   onSubmit?: () => void;
@@ -54,6 +57,7 @@ function TopbarSearchField({
     >
       {leftSlot ? <View className="shrink-0">{leftSlot}</View> : null}
       <Input
+        ref={inputRef}
         editable={!readOnly}
         variant="inline"
         className={cn(

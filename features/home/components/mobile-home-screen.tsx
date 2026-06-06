@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ScrollView, View } from "react-native";
+import { RefreshControl, ScrollView, type TextInput, View } from "react-native";
 
 import { TopbarSearchField } from "@/components/layout/topbar-search-field";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
@@ -10,6 +10,7 @@ import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkCard } from "@/features/links/components/link-card/link-card";
 import { useLinksQuery } from "@/features/links/queries";
 import type { LinkOrder } from "@/features/links/types";
+import { useHomeSearchFocus } from "@/stores/home-search-focus";
 
 import { mapLinkListItem } from "../lib/link-card-mapper";
 import { OrderFilter } from "./order-filter";
@@ -27,6 +28,15 @@ function MobileHomeScreen() {
   const [order, setOrder] = React.useState<LinkOrder>("latest");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState("");
+  const searchInputRef = React.useRef<TextInput>(null);
+  // Bridge from AppHeader's search icon — bump the nonce in the shell, we focus our field here.
+  const focusNonce = useHomeSearchFocus((state) => state.nonce);
+  React.useEffect(() => {
+    if (focusNonce === 0) {
+      return;
+    }
+    searchInputRef.current?.focus();
+  }, [focusNonce]);
 
   React.useEffect(() => {
     const timeout = setTimeout(() => {
@@ -67,16 +77,29 @@ function MobileHomeScreen() {
   const links = linksQuery.data?.contents ?? [];
   const isLoading = linksQuery.isLoading;
   const isEmpty = !isLoading && links.length === 0;
+  const isRefreshing =
+    (linksQuery.isFetching && !linksQuery.isLoading) ||
+    (foldersQuery.isFetching && !foldersQuery.isLoading);
+  const handleRefresh = React.useCallback(() => {
+    void Promise.all([linksQuery.refetch(), foldersQuery.refetch()]);
+  }, [foldersQuery, linksQuery]);
 
   return (
     <ScrollView
       className="flex-1"
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+        />
+      }
     >
       <View className="gap-4 px-4 pb-24 pt-2">
         <TopbarSearchField
           className="min-h-12"
+          inputRef={searchInputRef}
           leftSlot={
             <Icon
               as={Search}
@@ -135,6 +158,9 @@ function MobileHomeScreen() {
                   domain={mapped.domain}
                   faviconUrl={mapped.faviconUrl}
                   remainingTodoCount={mapped.remainingTodoCount}
+                  statusLabel={mapped.statusLabel}
+                  statusVariant={mapped.statusVariant}
+                  summaryModelLabel={mapped.summaryModelLabel}
                   tags={mapped.tags}
                   title={mapped.title}
                   todos={mapped.todos}

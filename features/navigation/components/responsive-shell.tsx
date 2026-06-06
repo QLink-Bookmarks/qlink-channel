@@ -29,6 +29,7 @@ import { LinkCreateForm } from "@/features/links/components/link-create-form";
 import { useLinksQuery } from "@/features/links/queries";
 import { useCreateFolderSheet } from "@/stores/create-folder-sheet";
 import { useDisplaySettings } from "@/stores/display-settings";
+import { useHomeSearchFocus } from "@/stores/home-search-focus";
 
 import { useAddLinkSheet } from "../hooks/use-add-link-sheet";
 import { useLinkOverlayState } from "../hooks/use-link-overlay-state";
@@ -132,9 +133,14 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
     setIsAddLinkDialogOpen(open);
   }, []);
 
+  const requestHomeSearchFocus = useHomeSearchFocus((state) => state.requestFocus);
   const handleMobileSearchPress = React.useCallback(() => {
-    console.log("mobile:search");
-  }, []);
+    // Make sure we're on /home before asking MobileHomeScreen to grab focus.
+    if (routeState.pathname !== "/home") {
+      router.replace("/home" as Href);
+    }
+    requestHomeSearchFocus();
+  }, [requestHomeSearchFocus, routeState.pathname, router]);
 
   const handleNotificationsPress = React.useCallback(() => {
     console.log("shell:notifications");
