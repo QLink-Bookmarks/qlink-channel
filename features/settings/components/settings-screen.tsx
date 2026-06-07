@@ -125,7 +125,17 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
     );
   }
 
-  return body;
+  // Mobile: own ScrollView so the shell's AppHeader/BottomTabs are not displaced
+  // and the content scrolls correctly behind the tab bar.
+  return (
+    <ScrollView
+      className="flex-1"
+      contentInsetAdjustmentBehavior="automatic"
+      showsVerticalScrollIndicator={false}
+    >
+      {body}
+    </ScrollView>
+  );
 }
 
 function SettingsSectionCard({
@@ -422,7 +432,7 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
           </View>
           <Text
             numberOfLines={1}
-            className="min-w-0 flex-1 text-lg font-semibold text-foreground"
+            className="text-lg font-semibold text-foreground"
           >
             {modelNameLabel ?? "기본 모델 사용"}
           </Text>

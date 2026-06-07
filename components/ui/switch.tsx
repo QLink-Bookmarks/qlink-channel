@@ -32,6 +32,10 @@ function Switch({
         <LinearGradient
           style={{
             bottom: 0,
+            // On native, overflow:hidden on the parent doesn't reliably clip
+            // absolute-positioned children — set borderRadius here so the
+            // gradient itself rounds to match the pill shape.
+            borderRadius: 9999,
             left: 0,
             position: "absolute",
             right: 0,
