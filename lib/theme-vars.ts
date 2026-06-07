@@ -8,6 +8,20 @@ function stripHslWrapper(value: string): string {
   return match ? match[1].trim() : trimmed;
 }
 
+// Native CSS-var resolution can't deal with `rem` units inside `calc()` (e.g.
+// `rounded-2xl` is `calc(var(--radius) - 2px)` — on web the browser resolves
+// `0.875rem` to a pixel value, on RN the calc silently collapses to 0 and every
+// rounded-* token loses its radius). Convert any `rem` token to a px string so
+// downstream calc() expressions work natively. 1rem = 16px to match the web
+// default rather than RN's font-scale-dependent rem.
+function remToPx(value: string): string {
+  return value.replace(/(-?\d*\.?\d+)rem\b/g, (_, num) => `${parseFloat(num) * 16}px`);
+}
+
+function normalizeNativeValue(value: string): string {
+  return remToPx(stripHslWrapper(value));
+}
+
 function camelToKebab(key: string): string {
   return key
     .replace(/([a-z])([A-Z])/g, "$1-$2")
@@ -42,7 +56,6 @@ const NATIVE_VAR_KEYS = new Set<string>([
   "borderSoft",
   "input",
   "ring",
-  "radius",
   "chart1",
   "chart2",
   "chart3",
@@ -81,7 +94,7 @@ function getNativeThemeVars(mode: ThemeMode, accent: AccentName): Record<string,
       continue;
     }
     const varName = `--${camelToKebab(key)}`;
-    entries.push([varName, stripHslWrapper(rawValue)]);
+    entries.push([varName, normalizeNativeValue(rawValue)]);
   }
   return Object.fromEntries(entries);
 }

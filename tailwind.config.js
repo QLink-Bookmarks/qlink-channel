@@ -95,13 +95,17 @@ module.exports = {
         "border-soft-inverse": "hsl(var(--border-soft-inverse))",
         overlay: "hsl(var(--overlay))",
       },
+      // Hardcoded in px so NativeWind on iOS/Android doesn't have to resolve
+      // `calc(var(--radius) - 8px)` — calc with a rem-valued CSS var collapses to
+      // 0 on native and every rounded-* token loses its radius. --radius was
+      // constant across all themes anyway, so the values match the web build.
       borderRadius: {
         xs: "4px",
-        sm: "calc(var(--radius) - 8px)",
-        md: "calc(var(--radius) - 6px)",
-        lg: "calc(var(--radius) - 4px)",
-        xl: "calc(var(--radius) - 2px)",
-        "2xl": "var(--radius)",
+        sm: "6px",
+        md: "8px",
+        lg: "10px",
+        xl: "12px",
+        "2xl": "14px",
         "3xl": "20px",
         "4xl": "28px",
       },
