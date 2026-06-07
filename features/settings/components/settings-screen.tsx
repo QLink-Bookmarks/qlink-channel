@@ -4,6 +4,16 @@ import { Pressable, ScrollView, View } from "react-native";
 import { PageHeader } from "@/components/layout/page-header";
 import { Sheet } from "@/components/layout/sheet";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -69,7 +79,7 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
   const isLoading = profileQuery.isLoading || settingsQuery.isLoading;
 
   const body = (
-    <View className="gap-6 px-4 pb-12 md:px-6">
+    <View className="gap-6 px-4 pb-12 pt-4 md:px-6 md:pt-0">
       {mode === "wide" ? (
         <PageHeader
           className="px-0"
@@ -156,6 +166,7 @@ function ProfileSection({
   const setAvatarEmoji = useDisplaySettings((state) => state.setAvatarEmoji);
   const avatar = avatarOverride ?? avatarFromApi ?? "🌸";
   const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [logoutOpen, setLogoutOpen] = React.useState(false);
 
   return (
     <SettingsSectionCard
@@ -187,13 +198,15 @@ function ProfileSection({
             {username}
           </Text>
         </View>
-        <Button
-          variant="outline"
-          size="sm"
-          onPress={() => setPickerOpen(true)}
-        >
-          <Text>아이콘 변경</Text>
-        </Button>
+        <View className="self-end pb-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() => setLogoutOpen(true)}
+          >
+            <Text>로그아웃</Text>
+          </Button>
+        </View>
       </View>
 
       <AvatarEmojiPickerOverlay
@@ -206,6 +219,28 @@ function ProfileSection({
           setPickerOpen(false);
         }}
       />
+
+      <AlertDialog
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
+            <AlertDialogDescription>
+              로그아웃하면 다시 로그인해야 해요. (더미 다이얼로그)
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Text>취소</Text>
+            </AlertDialogCancel>
+            <AlertDialogAction>
+              <Text>로그아웃</Text>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SettingsSectionCard>
   );
 }
@@ -344,11 +379,9 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
   const selectedProvider = providers.find((provider) => provider.providerId === defaultProvider.id);
   const selectedModel = selectedProvider?.models.find((model) => model.id === selectedModelId);
 
-  const summaryLabel = selectedProvider
-    ? `${getProviderLabel(selectedProvider)} · ${selectedModel?.model ?? defaultModel.model ?? "모델 미선택"}`
-    : defaultModel.model
-      ? defaultModel.model
-      : "기본 모델 사용";
+  const providerNameLabel = selectedProvider ? getProviderLabel(selectedProvider) : null;
+  const modelNameLabel =
+    selectedModel?.model ?? defaultModel.model ?? (selectedProvider ? "모델 미선택" : null);
 
   const handleSelect = React.useCallback(
     (selection: AiModelSelection) => {
@@ -374,7 +407,6 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
         onPress={() => setPickerOpen(true)}
       >
         <View className="min-w-0 flex-1 gap-1">
-          <Text className="text-xs font-semibold uppercase text-muted-foreground">기본 모델</Text>
           <View className="flex-row items-center gap-2">
             <Icon
               as={Sparkles}
@@ -383,11 +415,17 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
             />
             <Text
               numberOfLines={1}
-              className="min-w-0 flex-1 text-sm font-semibold text-foreground"
+              className="text-xs font-semibold uppercase text-muted-foreground"
             >
-              {summaryLabel}
+              {providerNameLabel ?? "제공자 미선택"}
             </Text>
           </View>
+          <Text
+            numberOfLines={1}
+            className="min-w-0 flex-1 text-lg font-semibold text-foreground"
+          >
+            {modelNameLabel ?? "기본 모델 사용"}
+          </Text>
         </View>
         <Icon
           as={ChevronRight}
