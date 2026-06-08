@@ -8,6 +8,7 @@ import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-c
 import { AppErrorBoundary } from "@/components/error/app-error-boundary";
 import { ToastViewport } from "@/components/ui/toast-viewport";
 import { useMySettingsQuery } from "@/features/account/queries";
+import { usePushNotifications } from "@/features/notifications/hooks/use-push-notifications";
 import { getNavTheme } from "@/lib/theme";
 import { getNativeThemeVars } from "@/lib/theme-vars";
 import { QueryProvider } from "@/providers/query-provider";
@@ -23,6 +24,11 @@ const StorybookEnabled = process.env.EXPO_PUBLIC_STORYBOOK_ENABLED === "true";
 export const unstable_settings = {
   initialRouteName: StorybookEnabled ? "(storybook)/index" : "(pages)",
 };
+
+function PushNotificationsBridge() {
+  usePushNotifications();
+  return null;
+}
 
 function SettingsHydrator() {
   const settingsQuery = useMySettingsQuery();
@@ -84,6 +90,7 @@ export default function RootLayout() {
           <QueryProvider>
             <SettingsHydrator />
             <DisplayThemeBridge />
+            <PushNotificationsBridge />
             <AppErrorBoundary>
               <ThemeProvider value={getNavTheme(theme, accent)}>
                 <Stack screenOptions={{ headerShown: false }}>
