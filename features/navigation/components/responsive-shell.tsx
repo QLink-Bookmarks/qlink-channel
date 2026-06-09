@@ -536,6 +536,9 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
     Number.isFinite(mobileFolderId) && mobileFolderId !== UNCATEGORIZED_FOLDER_ID
       ? allMobileFolders.find((folder) => folder.id === mobileFolderId)
       : undefined;
+  const mobileHeaderTitle = mobileFolder
+    ? `${mobileFolder.emoji ? `${mobileFolder.emoji} ` : ""}${mobileFolder.name}`
+    : routeState.routeTitle;
   const showMobileFab =
     routeState.pathname === "/home" ||
     routeState.pathname === "/folders" ||
@@ -569,7 +572,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
             />
           ) : undefined
         }
-        title={isMobileHome ? undefined : routeState.routeTitle}
+        title={isMobileHome ? undefined : mobileHeaderTitle}
       />
       <View className="flex-1">
         <RouteErrorBoundary resetKeys={[routeState.pathname]}>{children}</RouteErrorBoundary>
