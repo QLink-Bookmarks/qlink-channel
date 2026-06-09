@@ -1,7 +1,13 @@
+type RepeatDay = "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
+
 type TodoRequest = {
   linkId: number;
   title: string;
   reminderAt?: string | null;
+  repeatUntil?: string | null;
+  repeatDays?: RepeatDay[] | null;
+  repeatTime?: string | null;
+  repeatTimezone?: string | null;
 };
 
 type TodoListItem = {

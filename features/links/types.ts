@@ -2,9 +2,15 @@ type SourceType = "INPUT" | "QR";
 
 type LinkStatus = "G" | "A" | "F" | "C";
 
+type RepeatDay = "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
+
 type CreateLinkTodoRequest = {
   title: string;
   reminderAt?: string | null;
+  repeatUntil?: string | null;
+  repeatDays?: RepeatDay[] | null;
+  repeatTime?: string | null;
+  repeatTimezone?: string | null;
 };
 
 type CreateLinkRequest = {
@@ -44,6 +50,9 @@ type LinkTodo = {
   completedAt?: string | null;
   reminderAt?: string | null;
   dueAt?: string | null;
+  repeatUntil?: string | null;
+  repeatDays?: RepeatDay[] | null;
+  repeatTime?: string | null;
 };
 
 type LinkDetail = {
@@ -124,6 +133,7 @@ export type {
   CreateLinkResponse,
   CreateLinkTodoRequest,
   DeleteLinkResponse,
+  RepeatDay,
   GetLinksParams,
   GetLinksResponse,
   LinkDetail,

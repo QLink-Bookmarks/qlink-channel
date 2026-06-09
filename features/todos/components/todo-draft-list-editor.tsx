@@ -1,7 +1,9 @@
 import { Pressable, View } from "react-native";
 
+import { type DateValue } from "@/components/ui/date-picker";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
+import { type TimeValue } from "@/components/ui/time-picker";
 import {
   TodoEditor,
   type TodoEditorMode,
@@ -15,9 +17,12 @@ type TodoDraftEditorItem = {
   title: string;
   mode: TodoEditorMode;
   selectedWeekdays: WeekdayValue[];
-  timeLabel: string;
-  dateLabel: string;
-  reminderAt?: string | null;
+  date: DateValue | null;
+  time: TimeValue | null;
+  /** Inline error rendered by the editor when the user attempts save with missing values. */
+  validationError?: string | null;
+  /** True when the chosen schedule is already in the past (warning only, not blocking). */
+  isPast?: boolean;
 };
 
 function TodoDraftListEditor({
@@ -50,8 +55,10 @@ function TodoDraftListEditor({
           value={todo.title}
           mode={todo.mode}
           selectedWeekdays={todo.selectedWeekdays}
-          timeLabel={todo.timeLabel}
-          dateLabel={todo.dateLabel}
+          date={todo.date}
+          time={todo.time}
+          validationError={todo.validationError ?? null}
+          showPastWarning={todo.isPast ?? false}
           onChangeText={(nextTitle) => onChangeTodoTitle(todo.id, nextTitle)}
           onModeChange={(nextMode) => onChangeTodoMode(todo.id, nextMode)}
           onSelectedWeekdaysChange={(nextWeekdays) => onChangeTodoWeekdays(todo.id, nextWeekdays)}

@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { type DateValue } from "@/components/ui/date-picker";
+import { DatePickerOverlay, TimePickerOverlay } from "@/components/ui/date-time-picker-overlay";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +29,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
+import { type TimeValue } from "@/components/ui/time-picker";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
 import { formatLinkStatus, formatSummaryModelLabel } from "@/features/home/lib/link-card-mapper";
 import { useDeleteLinkMutation, useUpdateLinkMutation } from "@/features/links/mutations";
@@ -44,6 +47,14 @@ import {
 import { type WeekdayValue } from "@/features/todos/components/todo-editor/todo-editor";
 import { TodoItem } from "@/features/todos/components/todo-item/todo-item";
 import { formatReminderLabel } from "@/features/todos/lib/todo-list-helpers";
+import {
+  buildScheduleApiFields,
+  defaultTimeValue,
+  isScheduleInPast,
+  readScheduleFromTodo,
+  todayDateValue,
+  validateDraft,
+} from "@/features/todos/lib/todo-schedule";
 import {
   useCreateTodoMutation,
   useDeleteTodoMutation,
@@ -69,35 +80,6 @@ import {
 
 const defaultWeekdays: WeekdayValue[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
-function formatReminderParts(value?: string | null) {
-  if (!value) {
-    return {
-      dateLabel: "년-월-일",
-      timeLabel: "오전 09:00",
-    };
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return {
-      dateLabel: "년-월-일",
-      timeLabel: "오전 09:00",
-    };
-  }
-
-  return {
-    dateLabel: new Intl.DateTimeFormat("ko-KR", {
-      day: "numeric",
-      month: "numeric",
-    }).format(date),
-    timeLabel: new Intl.DateTimeFormat("ko-KR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date),
-  };
-}
-
 function getTodoTitle(todo: LinkTodo) {
   return todo.title ?? todo.content ?? "할 일";
 }
@@ -108,15 +90,21 @@ function getTodoDone(todo: LinkTodo) {
 
 function buildTodoDrafts(todos: LinkTodo[]): TodoDraftEditorItem[] {
   return todos.map((todo) => {
-    const reminderParts = formatReminderParts(todo.reminderAt ?? todo.dueAt);
-
+    const schedule = readScheduleFromTodo({
+      reminderAt: todo.reminderAt,
+      dueAt: todo.dueAt,
+      repeatUntil: todo.repeatUntil,
+      repeatDays: todo.repeatDays ?? null,
+      repeatTime: todo.repeatTime,
+    });
     return {
-      dateLabel: reminderParts.dateLabel,
       id: todo.id,
-      mode: (todo.reminderAt ?? todo.dueAt) ? "time" : "none",
-      reminderAt: todo.reminderAt ?? todo.dueAt ?? null,
-      selectedWeekdays: defaultWeekdays,
-      timeLabel: reminderParts.timeLabel,
+      mode: schedule.mode,
+      date: schedule.date,
+      time: schedule.time,
+      selectedWeekdays: schedule.selectedWeekdays.length
+        ? schedule.selectedWeekdays
+        : defaultWeekdays,
       title: getTodoTitle(todo),
     };
   });
@@ -124,12 +112,11 @@ function buildTodoDrafts(todos: LinkTodo[]): TodoDraftEditorItem[] {
 
 function createEmptyTodoDraft(index: number): TodoDraftEditorItem {
   return {
-    dateLabel: "년-월-일",
     id: `draft-${Date.now()}-${index}`,
     mode: "none",
-    reminderAt: null,
+    date: null,
+    time: null,
     selectedWeekdays: defaultWeekdays,
-    timeLabel: "오전 09:00",
     title: "",
   };
 }
@@ -556,14 +543,74 @@ function LinkDetailView({
     setTodoDrafts((currentDrafts) => currentDrafts.filter((todo) => todo.id !== todoId));
   }, []);
 
-  const handleTodoPickerPress = React.useCallback(() => {
-    // TODO: Persist reminderAt and recurring schedule after real date/time picker support is added.
-    console.log("link-detail:todo-picker:todo");
+  const [pickerState, setPickerState] = React.useState<{
+    todoId: string | number;
+    kind: "date" | "time";
+  } | null>(null);
+
+  const activePickerDraft = React.useMemo(
+    () => (pickerState ? todoDrafts.find((todo) => todo.id === pickerState.todoId) : null),
+    [pickerState, todoDrafts],
+  );
+
+  const handleTodoTimePress = React.useCallback((todoId: number | string) => {
+    setPickerState({ todoId, kind: "time" });
   }, []);
+
+  const handleTodoDatePress = React.useCallback((todoId: number | string) => {
+    setPickerState({ todoId, kind: "date" });
+  }, []);
+
+  const handleTodoPickerClose = React.useCallback(() => {
+    setPickerState(null);
+  }, []);
+
+  const handleTodoConfirmDate = React.useCallback(
+    (nextDate: DateValue) => {
+      if (!pickerState) return;
+      const targetId = pickerState.todoId;
+      setTodoDrafts((currentDrafts) =>
+        currentDrafts.map((todo) =>
+          todo.id === targetId ? { ...todo, date: nextDate, validationError: null } : todo,
+        ),
+      );
+      setPickerState(null);
+    },
+    [pickerState],
+  );
+
+  const handleTodoConfirmTime = React.useCallback(
+    (nextTime: TimeValue) => {
+      if (!pickerState) return;
+      const targetId = pickerState.todoId;
+      setTodoDrafts((currentDrafts) =>
+        currentDrafts.map((todo) =>
+          todo.id === targetId ? { ...todo, time: nextTime, validationError: null } : todo,
+        ),
+      );
+      setPickerState(null);
+    },
+    [pickerState],
+  );
 
   const handleTodoSave = React.useCallback(async () => {
     if (hasInvalidTodoDraft) {
       setTodoEditorError("할 일 제목을 모두 입력해주세요.");
+      return;
+    }
+
+    // Schedule validation: any todo with title that's in time/recurring mode must
+    // have date + time (and recurring needs at least one weekday).
+    let hasScheduleError = false;
+    const nextDrafts = todoDrafts.map((draft) => {
+      if (draft.title.trim().length === 0) return draft;
+      const error = validateDraft(draft);
+      if (error) hasScheduleError = true;
+      return { ...draft, validationError: error };
+    });
+    if (hasScheduleError) {
+      setTodoDrafts(nextDrafts);
+      setTodoEditorError("필수 항목을 입력해주세요.");
       return;
     }
 
@@ -582,15 +629,15 @@ function LinkDetailView({
       for (const draft of todoDrafts) {
         const trimmedTitle = draft.title.trim();
         const originalTodo = originalTodosById.get(String(draft.id));
+        const schedule = buildScheduleApiFields(draft);
 
         if (originalTodo) {
           await updateTodoMutation.mutateAsync({
             payload: {
               linkId: detail.id,
-              reminderAt: originalTodo.reminderAt ?? originalTodo.dueAt ?? null,
               title: trimmedTitle,
+              ...schedule,
             },
-            // TODO: Persist recurring weekday and custom reminder changes when the backend supports them.
             todoId: draft.id,
           });
           continue;
@@ -598,8 +645,8 @@ function LinkDetailView({
 
         await createTodoMutation.mutateAsync({
           linkId: detail.id,
-          reminderAt: null,
           title: trimmedTitle,
+          ...schedule,
         });
       }
 
@@ -688,18 +735,46 @@ function LinkDetailView({
     </Button>
   );
 
+  const decoratedTodoDrafts = React.useMemo(
+    () => todoDrafts.map((todo) => ({ ...todo, isPast: isScheduleInPast(todo) })),
+    [todoDrafts],
+  );
+
+  const overlayMode = mode === "panel" ? "wide" : "mobile";
+
+  const todoPickerOverlays =
+    activePickerDraft && pickerState ? (
+      <>
+        <DatePickerOverlay
+          mode={overlayMode}
+          open={pickerState.kind === "date"}
+          value={activePickerDraft.date ?? todayDateValue()}
+          onCancel={handleTodoPickerClose}
+          onConfirm={handleTodoConfirmDate}
+        />
+        <TimePickerOverlay
+          mode={overlayMode}
+          open={pickerState.kind === "time"}
+          value={activePickerDraft.time ?? defaultTimeValue()}
+          onCancel={handleTodoPickerClose}
+          onConfirm={handleTodoConfirmTime}
+        />
+      </>
+    ) : null;
+
   const todoEditorContent = (
     <View className="gap-4">
+      {todoPickerOverlays}
       <TodoDraftListEditor
         addLabel="할 일 추가"
-        todos={todoDrafts}
+        todos={decoratedTodoDrafts}
         onAddTodo={handleAddTodoDraft}
         onChangeTodoTitle={handleTodoDraftTitleChange}
         onChangeTodoMode={handleTodoDraftModeChange}
         onChangeTodoWeekdays={handleTodoDraftWeekdaysChange}
         onRemoveTodo={handleTodoDraftRemove}
-        onDatePress={handleTodoPickerPress}
-        onTimePress={handleTodoPickerPress}
+        onDatePress={handleTodoDatePress}
+        onTimePress={handleTodoTimePress}
       />
       {todoEditorError ? (
         <Text className="text-sm font-medium text-destructive">{todoEditorError}</Text>

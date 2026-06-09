@@ -2,6 +2,8 @@ import * as React from "react";
 import { Pressable, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { type DateValue } from "@/components/ui/date-picker";
+import { DatePickerOverlay, TimePickerOverlay } from "@/components/ui/date-time-picker-overlay";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
+import { type TimeValue } from "@/components/ui/time-picker";
 import {
   AiModelPickerList,
   type AiModelSelection,
@@ -36,6 +39,13 @@ import {
   type TodoEditorMode,
   type WeekdayValue,
 } from "@/features/todos/components/todo-editor/todo-editor";
+import {
+  buildScheduleApiFields,
+  defaultTimeValue,
+  isScheduleInPast,
+  todayDateValue,
+  validateDraft,
+} from "@/features/todos/lib/todo-schedule";
 import { useClipboardFailureFeedback } from "@/lib/clipboard-feedback";
 import { reportError } from "@/lib/error-reporting";
 import { useDisplaySettings } from "@/stores/display-settings";
@@ -208,11 +218,21 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         title: "",
         mode: "recurring",
         selectedWeekdays: defaultWeekdays,
-        timeLabel: "오전 09:00",
-        dateLabel: "년-월-일",
+        date: null,
+        time: null,
       },
     ]);
   }, []);
+
+  const [pickerState, setPickerState] = React.useState<{
+    todoId: string | number;
+    kind: "date" | "time";
+  } | null>(null);
+
+  const activeTodo = React.useMemo(
+    () => (pickerState ? todos.find((todo) => todo.id === pickerState.todoId) : null),
+    [pickerState, todos],
+  );
 
   const handleTodoTitleChange = React.useCallback((todoId: string | number, nextTitle: string) => {
     setTodos((currentTodos) =>
@@ -244,10 +264,45 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     setTodos((currentTodos) => currentTodos.filter((todo) => todo.id !== todoId));
   }, []);
 
-  const handlePickerPress = React.useCallback((picker: "time" | "day") => {
-    // TODO: Open custom reminder picker.
-    console.log(`link-create:${picker}-picker:todo`);
+  const handleTimePress = React.useCallback((todoId: number | string) => {
+    setPickerState({ todoId, kind: "time" });
   }, []);
+
+  const handleDatePress = React.useCallback((todoId: number | string) => {
+    setPickerState({ todoId, kind: "date" });
+  }, []);
+
+  const handleClosePicker = React.useCallback(() => {
+    setPickerState(null);
+  }, []);
+
+  const handleConfirmDate = React.useCallback(
+    (nextDate: DateValue) => {
+      if (!pickerState) return;
+      const targetId = pickerState.todoId;
+      setTodos((currentTodos) =>
+        currentTodos.map((todo) =>
+          todo.id === targetId ? { ...todo, date: nextDate, validationError: null } : todo,
+        ),
+      );
+      setPickerState(null);
+    },
+    [pickerState],
+  );
+
+  const handleConfirmTime = React.useCallback(
+    (nextTime: TimeValue) => {
+      if (!pickerState) return;
+      const targetId = pickerState.todoId;
+      setTodos((currentTodos) =>
+        currentTodos.map((todo) =>
+          todo.id === targetId ? { ...todo, time: nextTime, validationError: null } : todo,
+        ),
+      );
+      setPickerState(null);
+    },
+    [pickerState],
+  );
 
   const handleScanQr = React.useCallback(() => {
     router.push("/qr-scan" as Href);
@@ -375,11 +430,27 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
       return;
     }
 
+    // Validate todo schedules. Non-empty todos whose mode is "time" or
+    // "recurring" must have both date and time. Show inline errors and abort.
+    const todosWithTitles = todos.filter((todo) => todo.title.trim().length > 0);
+    let hasScheduleError = false;
+    const nextTodos = todos.map((todo) => {
+      const hasTitle = todo.title.trim().length > 0;
+      const scheduleError = hasTitle ? validateDraft(todo) : null;
+      if (scheduleError) hasScheduleError = true;
+      return { ...todo, validationError: scheduleError };
+    });
+    if (hasScheduleError) {
+      setTodos(nextTodos);
+      return;
+    }
+
     try {
-      const todoPayload: CreateLinkTodoRequest[] = todos
-        .map((todo) => todo.title.trim())
-        .filter((trimmedTitle) => trimmedTitle.length > 0)
-        .map((trimmedTitle) => ({ title: trimmedTitle, reminderAt: null }));
+      const todoPayload: CreateLinkTodoRequest[] = todosWithTitles.map((todo) => {
+        const trimmedTitle = todo.title.trim();
+        const schedule = buildScheduleApiFields(todo);
+        return { title: trimmedTitle, ...schedule };
+      });
 
       const response = await createLinkMutation.mutateAsync({
         url: url.trim(),
@@ -415,6 +486,31 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     : defaultModel.model
       ? defaultModel.model
       : "기본 모델 사용";
+
+  const decoratedTodos = React.useMemo(
+    () => todos.map((todo) => ({ ...todo, isPast: isScheduleInPast(todo) })),
+    [todos],
+  );
+
+  const pickerOverlays =
+    activeTodo && pickerState ? (
+      <>
+        <DatePickerOverlay
+          mode={mode}
+          open={pickerState.kind === "date"}
+          value={activeTodo.date ?? todayDateValue()}
+          onCancel={handleClosePicker}
+          onConfirm={handleConfirmDate}
+        />
+        <TimePickerOverlay
+          mode={mode}
+          open={pickerState.kind === "time"}
+          value={activeTodo.time ?? defaultTimeValue()}
+          onCancel={handleClosePicker}
+          onConfirm={handleConfirmTime}
+        />
+      </>
+    ) : null;
 
   if (mode === "mobile") {
     const stepTitle =
@@ -562,6 +658,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
 
   return (
     <View className="gap-5">
+      {pickerOverlays}
       <View className="gap-2">
         <View className="flex-row items-center gap-2">
           <Text className="text-sm font-semibold text-muted-foreground">URL</Text>
@@ -657,14 +754,14 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         </Text>
         <TodoDraftListEditor
           addLabel="할 일 추가"
-          todos={todos}
+          todos={decoratedTodos}
           onAddTodo={handleAddTodo}
           onChangeTodoTitle={handleTodoTitleChange}
           onChangeTodoMode={handleTodoModeChange}
           onChangeTodoWeekdays={handleTodoWeekdaysChange}
           onRemoveTodo={handleRemoveTodo}
-          onDatePress={() => handlePickerPress("day")}
-          onTimePress={() => handlePickerPress("time")}
+          onDatePress={handleDatePress}
+          onTimePress={handleTimePress}
         />
       </View>
 

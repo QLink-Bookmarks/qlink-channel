@@ -1,10 +1,12 @@
 import * as React from "react";
 import { Pressable, View } from "react-native";
 
+import { type DateValue, formatDateLabel } from "@/components/ui/date-picker";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
+import { type TimeValue, formatTimeLabel } from "@/components/ui/time-picker";
 import { cn } from "@/lib/utils";
 
 import { CalendarDays, Clock3, X } from "lucide-react-native/icons";
@@ -36,6 +38,9 @@ const weekdaySortOrder: Record<WeekdayValue, number> = {
   sat: 5,
   sun: 6,
 };
+
+const DATE_PLACEHOLDER = "년-월-일";
+const TIME_PLACEHOLDER = "오전 09:00";
 
 function formatRecurringPattern(selectedWeekdays: WeekdayValue[], timeLabel: string) {
   const normalizedWeekdays = Array.from(new Set(selectedWeekdays)).sort(
@@ -76,8 +81,10 @@ function TodoEditorBase({
   index = 1,
   mode,
   selectedWeekdays = allWeekdayValues,
-  timeLabel = "오전 09:00",
-  dateLabel = "년-월-일",
+  date = null,
+  time = null,
+  validationError,
+  showPastWarning,
   onChangeText,
   onModeChange,
   onSelectedWeekdaysChange,
@@ -90,8 +97,12 @@ function TodoEditorBase({
   value: string;
   mode: TodoEditorMode;
   selectedWeekdays?: WeekdayValue[];
-  timeLabel?: string;
-  dateLabel?: string;
+  date?: DateValue | null;
+  time?: TimeValue | null;
+  /** Inline error rendered under the date/time row when the user attempts save. */
+  validationError?: string | null;
+  /** Non-blocking hint when the chosen date+time is already in the past. */
+  showPastWarning?: boolean;
   visibility?: TodoEditorVisibility;
   onChangeText?: (value: string) => void;
   onModeChange?: (value: TodoEditorMode) => void;
@@ -101,6 +112,8 @@ function TodoEditorBase({
   onTimePress?: () => void;
   onDatePress?: () => void;
 }) {
+  const dateLabel = date ? formatDateLabel(date) : DATE_PLACEHOLDER;
+  const timeLabel = time ? formatTimeLabel(time) : TIME_PLACEHOLDER;
   const recurringPattern = formatRecurringPattern(selectedWeekdays, timeLabel);
 
   return (
@@ -166,21 +179,35 @@ function TodoEditorBase({
       ) : null}
 
       {mode !== "none" ? (
-        <View className="flex-row gap-3">
-          <Pressable
-            className="h-10 flex-1 flex-row items-center justify-between rounded-md border border-input bg-background px-4 shadow-sm shadow-black/5"
-            onPress={onTimePress}
-          >
-            <Text className="text-sm text-foreground">{timeLabel}</Text>
-            <Clock3 size={20} />
-          </Pressable>
-          <Pressable
-            className="h-10 flex-1 flex-row items-center justify-between rounded-md border border-input bg-background px-4 shadow-sm shadow-black/5"
-            onPress={onDatePress}
-          >
-            <Text className="text-sm text-foreground">{dateLabel}</Text>
-            <CalendarDays size={18} />
-          </Pressable>
+        <View className="gap-2">
+          <View className="flex-row gap-3">
+            <Pressable
+              className="h-10 flex-1 flex-row items-center justify-between rounded-md border border-input bg-background px-4 shadow-sm shadow-black/5"
+              onPress={onTimePress}
+            >
+              <Text className={cn("text-sm", time ? "text-foreground" : "text-muted-foreground")}>
+                {timeLabel}
+              </Text>
+              <Clock3 size={20} />
+            </Pressable>
+            <Pressable
+              className="h-10 flex-1 flex-row items-center justify-between rounded-md border border-input bg-background px-4 shadow-sm shadow-black/5"
+              onPress={onDatePress}
+            >
+              <Text className={cn("text-sm", date ? "text-foreground" : "text-muted-foreground")}>
+                {dateLabel}
+              </Text>
+              <CalendarDays size={18} />
+            </Pressable>
+          </View>
+          {validationError ? (
+            <Text className="text-xs font-medium text-destructive">{validationError}</Text>
+          ) : null}
+          {showPastWarning ? (
+            <Text className="text-xs font-medium text-muted-foreground">
+              과거 일자는 알림 발송은 되지 않아요
+            </Text>
+          ) : null}
         </View>
       ) : null}
 
@@ -193,5 +220,5 @@ function TodoEditorBase({
   );
 }
 
-export { TodoEditor };
+export { DATE_PLACEHOLDER, TIME_PLACEHOLDER, TodoEditor };
 export type { TodoEditorMode, TodoEditorVisibility, WeekdayValue };
