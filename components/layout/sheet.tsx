@@ -80,6 +80,12 @@ type SheetProps = {
   backgroundStyle?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
   onOpenChange?: (open: boolean) => void;
+  /**
+   * BottomSheet stack behaviour. Default 'switch' dismisses any other open sheet
+   * when this one presents — pass 'push' to stack on top instead (e.g. a picker
+   * inside an already-open editor sheet).
+   */
+  stackBehavior?: "switch" | "push" | "replace";
 };
 
 function Sheet({
@@ -96,6 +102,7 @@ function Sheet({
   backgroundStyle,
   children,
   onOpenChange,
+  stackBehavior = "switch",
 }: SheetProps) {
   const sheetRef = React.useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
@@ -222,6 +229,7 @@ function Sheet({
       maxDynamicContentSize={fitContent ? maxDynamicContentSize : undefined}
       enableContentPanningGesture={false}
       enablePanDownToClose={dismissible}
+      stackBehavior={stackBehavior}
       backdropComponent={renderBackdrop}
       backgroundComponent={renderBackground}
       handleComponent={renderHandle}

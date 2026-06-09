@@ -764,7 +764,6 @@ function LinkDetailView({
 
   const todoEditorContent = (
     <View className="gap-4">
-      {todoPickerOverlays}
       <TodoDraftListEditor
         addLabel="할 일 추가"
         todos={decoratedTodoDrafts}
@@ -801,6 +800,7 @@ function LinkDetailView({
 
   return (
     <>
+      {todoPickerOverlays}
       <ScrollView
         className={cn("flex-1 bg-background", mode === "screen" && "flex-1")}
         contentInsetAdjustmentBehavior="automatic"
@@ -1128,7 +1128,7 @@ function LinkDetailView({
             <DialogHeader>
               <DialogTitle>할 일 추가 / 수정</DialogTitle>
               <DialogDescription>
-                반복 요일과 시간 설정 UI는 유지하지만, 현재 서버에서는 제목만 저장합니다.
+                각 할 일에 시간 또는 반복 알림을 설정할 수 있어요.
               </DialogDescription>
             </DialogHeader>
             <ScrollView
@@ -1155,7 +1155,7 @@ function LinkDetailView({
           <View className="gap-2">
             <Text className="text-lg font-semibold text-foreground">할 일 추가 / 수정</Text>
             <Text className="text-sm leading-6 text-muted-foreground">
-              반복 요일과 시간 설정 UI는 유지하지만, 현재 서버에서는 제목만 저장합니다.
+              각 할 일에 시간 또는 반복 알림을 설정할 수 있어요.
             </Text>
           </View>
           {todoEditorContent}

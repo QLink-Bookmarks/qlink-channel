@@ -89,6 +89,7 @@ function PickerOverlay({
       fitContent
       accent={accent}
       mode={theme}
+      stackBehavior="push"
       onOpenChange={(next) => {
         if (!next) onCancel();
       }}
