@@ -11,17 +11,18 @@ function PushNotificationsBridge() {
   const { primerOpen, accept, dismiss } = usePushNotifications();
 
   return (
-    <DialogPrimitive.Root open={primerOpen}>
+    <DialogPrimitive.Root
+      open={primerOpen}
+      onOpenChange={(open) => {
+        if (!open) dismiss();
+      }}
+    >
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay
-          // No backdrop; pointer-events-none so the rest of the page stays interactive.
-          className="pointer-events-none fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-transparent p-2"
-        >
+        <DialogPrimitive.Overlay className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black/50 p-2">
           <DialogPrimitive.Content
-            className="pointer-events-auto z-50 mx-auto flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-lg shadow-black/5 sm:max-w-md"
+            className="z-50 mx-auto flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-lg shadow-black/5 sm:max-w-md"
             onInteractOutside={(event) => event.preventDefault()}
             onPointerDownOutside={(event) => event.preventDefault()}
-            onEscapeKeyDown={(event) => event.preventDefault()}
           >
             <View className="flex flex-col gap-2">
               <DialogPrimitive.Title className="text-lg font-semibold text-foreground">
