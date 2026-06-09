@@ -1,12 +1,15 @@
 import * as React from "react";
 
-import { FIREBASE_VAPID_KEY, getFirebaseApp } from "@/lib/firebase";
+import { FIREBASE_CONFIG, FIREBASE_VAPID_KEY, getFirebaseApp } from "@/lib/firebase";
 
 import { useRegisterDeviceMutation } from "../mutations";
 
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
-const SW_PATH = "/firebase-messaging-sw.js";
+function buildServiceWorkerUrl() {
+  const config = encodeURIComponent(JSON.stringify(FIREBASE_CONFIG));
+  return `/firebase-messaging-sw.js?firebaseConfig=${config}`;
+}
 
 function usePushNotifications() {
   const { mutate: registerDevice } = useRegisterDeviceMutation();
@@ -37,7 +40,7 @@ function usePushNotifications() {
           return;
         }
 
-        const registration = await navigator.serviceWorker.register(SW_PATH);
+        const registration = await navigator.serviceWorker.register(buildServiceWorkerUrl());
         const messaging = getMessaging(getFirebaseApp());
 
         const token = await getToken(messaging, {

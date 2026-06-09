@@ -3,6 +3,7 @@ function getFirebaseApp(): never {
   throw new Error("Firebase is only available on web.");
 }
 
+const FIREBASE_CONFIG = {} as Record<string, string>;
 const FIREBASE_VAPID_KEY = "";
 
-export { FIREBASE_VAPID_KEY, getFirebaseApp };
+export { FIREBASE_CONFIG, FIREBASE_VAPID_KEY, getFirebaseApp };
