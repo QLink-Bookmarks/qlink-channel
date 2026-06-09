@@ -3,7 +3,6 @@ import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  Platform,
   Pressable,
   ScrollView,
   View,
@@ -15,6 +14,10 @@ import { cn } from "@/lib/utils";
 
 const DEFAULT_ITEM_HEIGHT = 44;
 const DEFAULT_VISIBLE_COUNT = 5;
+// How long after the last scroll event we treat the gesture as finished and
+// commit the value. Long enough to outlast browser momentum, short enough to
+// feel responsive on native.
+const SCROLL_SETTLE_MS = 140;
 
 type WheelPickerOption<T extends string | number> = {
   value: T;
@@ -43,6 +46,10 @@ function distanceClassName(distance: number) {
   return "text-base text-transparent";
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
 function WheelPickerInner<T extends string | number>({
   options,
   value,
@@ -61,59 +68,96 @@ function WheelPickerInner<T extends string | number>({
   const containerHeight = itemHeight * visibleCount;
   const selectedIndex = getOptionIndex(options, value);
 
-  // Drives item styling during drag. We update on every scroll frame so the
-  // active row tracks the user's finger rather than snapping at the end.
+  // Tracks the row currently centered under the scroll viewport. Updated on
+  // every scroll frame so the styling tracks the user's finger.
   const [activeIndex, setActiveIndex] = React.useState(selectedIndex);
 
-  // Keep the wheel anchored on the canonical `value` whenever it changes from
-  // outside (parent confirms a new value, or another wheel updates the bounds).
+  // Refs hold the latest values so the scroll handler closure stays stable and
+  // doesn't tear down React Native's scroll listener on every render.
+  const optionsRef = React.useRef(options);
+  optionsRef.current = options;
+  const itemHeightRef = React.useRef(itemHeight);
+  itemHeightRef.current = itemHeight;
+  const onChangeRef = React.useRef(onChange);
+  onChangeRef.current = onChange;
+
+  const isUserScrollingRef = React.useRef(false);
+  const lastCommittedIndexRef = React.useRef(selectedIndex);
+  const settleTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasLaidOutRef = React.useRef(false);
+
+  const clearSettleTimer = React.useCallback(() => {
+    if (settleTimerRef.current) {
+      clearTimeout(settleTimerRef.current);
+      settleTimerRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Snap the wheel to `index` and notify the parent if it changed. Safe to
+   * call repeatedly with the same index — it just re-aligns visually.
+   */
+  const commitIndex = React.useCallback((index: number, animated: boolean = true) => {
+    const clamped = clamp(index, 0, optionsRef.current.length - 1);
+    isUserScrollingRef.current = false;
+
+    const targetY = clamped * itemHeightRef.current;
+    scrollRef.current?.scrollTo({ y: targetY, animated });
+    setActiveIndex(clamped);
+
+    if (lastCommittedIndexRef.current !== clamped) {
+      lastCommittedIndexRef.current = clamped;
+      const next = optionsRef.current[clamped];
+      if (next) onChangeRef.current(next.value);
+    }
+  }, []);
+
+  // Re-anchor to the canonical `value` whenever it changes from outside, but
+  // never fight an in-progress user gesture.
   React.useEffect(() => {
+    if (isUserScrollingRef.current) return;
+    if (lastCommittedIndexRef.current === selectedIndex) return;
+    lastCommittedIndexRef.current = selectedIndex;
     setActiveIndex(selectedIndex);
-    scrollRef.current?.scrollTo({ y: selectedIndex * itemHeight, animated: false });
+    scrollRef.current?.scrollTo({
+      y: selectedIndex * itemHeight,
+      animated: hasLaidOutRef.current,
+    });
   }, [itemHeight, selectedIndex]);
+
+  React.useEffect(() => () => clearSettleTimer(), [clearSettleTimer]);
 
   const handleScroll = React.useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetY = event.nativeEvent.contentOffset.y;
-      const nextIndex = Math.max(0, Math.min(options.length - 1, Math.round(offsetY / itemHeight)));
-      if (nextIndex !== activeIndex) {
-        setActiveIndex(nextIndex);
-      }
+      const h = itemHeightRef.current;
+      const nextIndex = clamp(Math.round(offsetY / h), 0, optionsRef.current.length - 1);
+
+      isUserScrollingRef.current = true;
+      setActiveIndex((prev) => (prev === nextIndex ? prev : nextIndex));
+
+      // Restart the settle timer on every scroll frame. When it finally fires
+      // we know the user has stopped — snap to the nearest row and emit. This
+      // is the only commit path that works reliably on web, since RN-Web's
+      // `onMomentumScrollEnd` is unreliable and `snapToInterval` is native-only.
+      clearSettleTimer();
+      settleTimerRef.current = setTimeout(() => {
+        commitIndex(nextIndex, true);
+      }, SCROLL_SETTLE_MS);
     },
-    [activeIndex, itemHeight, options.length],
+    [clearSettleTimer, commitIndex],
   );
 
-  const commitIndex = React.useCallback(
-    (index: number) => {
-      const clamped = Math.max(0, Math.min(options.length - 1, index));
-      const next = options[clamped];
-      if (next && next.value !== value) {
-        onChange(next.value);
-      }
-      // Always snap visually, even if value didn't change.
-      scrollRef.current?.scrollTo({ y: clamped * itemHeight, animated: true });
-    },
-    [itemHeight, onChange, options, value],
-  );
-
-  const handleMomentumEnd = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const offsetY = event.nativeEvent.contentOffset.y;
-      commitIndex(Math.round(offsetY / itemHeight));
-    },
-    [commitIndex, itemHeight],
-  );
-
-  // Android doesn't always fire momentum events for short flicks; settle on drag end.
-  const handleDragEnd = React.useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (Platform.OS === "android") {
-        const offsetY = event.nativeEvent.contentOffset.y;
-        commitIndex(Math.round(offsetY / itemHeight));
-      }
-    },
-    [commitIndex, itemHeight],
-  );
+  const handleLayout = React.useCallback((_event: LayoutChangeEvent) => {
+    // Initial anchor: layout may not be ready when the effect first runs, so
+    // re-anchor here. Skip animation on first layout to avoid a visible jump.
+    const wasLaidOut = hasLaidOutRef.current;
+    hasLaidOutRef.current = true;
+    scrollRef.current?.scrollTo({
+      y: lastCommittedIndexRef.current * itemHeightRef.current,
+      animated: wasLaidOut,
+    });
+  }, []);
 
   const padding = itemHeight * halfVisible;
   const contentContainerStyle = React.useMemo<ViewStyle>(
@@ -123,14 +167,6 @@ function WheelPickerInner<T extends string | number>({
 
   const justify =
     align === "left" ? "justify-start" : align === "right" ? "justify-end" : "justify-center";
-
-  const handleLayout = React.useCallback(
-    (_event: LayoutChangeEvent) => {
-      // Re-anchor after layout in case the initial scroll lost its position.
-      scrollRef.current?.scrollTo({ y: selectedIndex * itemHeight, animated: false });
-    },
-    [itemHeight, selectedIndex],
-  );
 
   return (
     <View
@@ -145,8 +181,6 @@ function WheelPickerInner<T extends string | number>({
         decelerationRate="fast"
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        onMomentumScrollEnd={handleMomentumEnd}
-        onScrollEndDrag={handleDragEnd}
         contentContainerStyle={contentContainerStyle}
       >
         {options.map((option, index) => {
@@ -156,7 +190,7 @@ function WheelPickerInner<T extends string | number>({
               key={String(option.value)}
               className={cn("w-full flex-row items-center", justify)}
               style={{ height: itemHeight }}
-              onPress={() => commitIndex(index)}
+              onPress={() => commitIndex(index, true)}
             >
               <Text
                 className={cn(distanceClassName(distance))}
@@ -173,7 +207,6 @@ function WheelPickerInner<T extends string | number>({
   );
 }
 
-// Cast the generic React.memo back to the original generic signature.
 const WheelPicker = React.memo(WheelPickerInner) as typeof WheelPickerInner;
 
 export type { WheelPickerOption, WheelPickerProps };
