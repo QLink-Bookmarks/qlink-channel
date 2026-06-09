@@ -31,8 +31,6 @@ function usePushNotifications() {
     let cancelled = false;
 
     async function setup() {
-      if (Platform.OS !== "ios" && Platform.OS !== "android") return;
-
       if (!Device.isDevice) {
         console.warn("[push] Push notifications require a physical device.");
         return;
