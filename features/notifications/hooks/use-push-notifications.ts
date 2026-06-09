@@ -39,17 +39,10 @@ function usePushNotifications() {
       }
 
       try {
-        const existing = await Notifications.getPermissionsAsync();
-        const status =
-          existing.status === "granted"
-            ? existing.status
-            : (await Notifications.requestPermissionsAsync()).status;
-
-        if (status !== "granted") {
-          console.warn("[push] Notification permission not granted:", status);
-          return;
-        }
-
+        // We do NOT request notification permission here on purpose.
+        // The token + data-only push receive path works without it; the user
+        // is asked for permission later in onboarding (when we start showing
+        // visible notifications).
         if (Platform.OS === "android") {
           await Notifications.setNotificationChannelAsync("default", {
             name: "default",
