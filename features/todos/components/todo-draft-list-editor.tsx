@@ -27,24 +27,27 @@ type TodoDraftEditorItem = {
 
 function TodoDraftListEditor({
   addLabel = "할 일 추가",
+  pickerMode = "wide",
   todos,
   onAddTodo,
   onChangeTodoMode,
   onChangeTodoTitle,
   onChangeTodoWeekdays,
-  onDatePress,
+  onChangeTodoDate,
+  onChangeTodoTime,
   onRemoveTodo,
-  onTimePress,
 }: {
   addLabel?: string;
+  /** Layout mode for date/time pickers — wide=Popover, mobile=Sheet. */
+  pickerMode?: "wide" | "mobile";
   todos: TodoDraftEditorItem[];
   onAddTodo: () => void;
   onChangeTodoMode: (todoId: number | string, nextMode: TodoEditorMode) => void;
   onChangeTodoTitle: (todoId: number | string, nextTitle: string) => void;
   onChangeTodoWeekdays: (todoId: number | string, nextWeekdays: WeekdayValue[]) => void;
-  onDatePress: (todoId: number | string) => void;
+  onChangeTodoDate: (todoId: number | string, next: DateValue) => void;
+  onChangeTodoTime: (todoId: number | string, next: TimeValue) => void;
   onRemoveTodo: (todoId: number | string) => void;
-  onTimePress: (todoId: number | string) => void;
 }) {
   return (
     <View className="gap-3">
@@ -59,12 +62,13 @@ function TodoDraftListEditor({
           time={todo.time}
           validationError={todo.validationError ?? null}
           showPastWarning={todo.isPast ?? false}
+          pickerMode={pickerMode}
           onChangeText={(nextTitle) => onChangeTodoTitle(todo.id, nextTitle)}
           onModeChange={(nextMode) => onChangeTodoMode(todo.id, nextMode)}
           onSelectedWeekdaysChange={(nextWeekdays) => onChangeTodoWeekdays(todo.id, nextWeekdays)}
+          onDateChange={(next) => onChangeTodoDate(todo.id, next)}
+          onTimeChange={(next) => onChangeTodoTime(todo.id, next)}
           onRemove={() => onRemoveTodo(todo.id)}
-          onDatePress={() => onDatePress(todo.id)}
-          onTimePress={() => onTimePress(todo.id)}
         />
       ))}
       <Pressable

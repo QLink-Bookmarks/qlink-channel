@@ -26,8 +26,8 @@ function TodoEditorStory({
       mode={mode}
       onChangeText={onChangeText}
       onModeChange={onModeChange}
-      onDatePress={() => console.log("storybook:todo-date")}
-      onTimePress={() => console.log("storybook:todo-time")}
+      onDateChange={() => console.log("storybook:todo-date")}
+      onTimeChange={() => console.log("storybook:todo-time")}
       onRemove={() => console.log("storybook:todo-remove")}
     />
   );

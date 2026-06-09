@@ -3,7 +3,6 @@ import { Pressable, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { type DateValue } from "@/components/ui/date-picker";
-import { DatePickerOverlay, TimePickerOverlay } from "@/components/ui/date-time-picker-overlay";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,9 +40,7 @@ import {
 } from "@/features/todos/components/todo-editor/todo-editor";
 import {
   buildScheduleApiFields,
-  defaultTimeValue,
   isScheduleInPast,
-  todayDateValue,
   validateDraft,
 } from "@/features/todos/lib/todo-schedule";
 import { useClipboardFailureFeedback } from "@/lib/clipboard-feedback";
@@ -224,16 +221,6 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     ]);
   }, []);
 
-  const [pickerState, setPickerState] = React.useState<{
-    todoId: string | number;
-    kind: "date" | "time";
-  } | null>(null);
-
-  const activeTodo = React.useMemo(
-    () => (pickerState ? todos.find((todo) => todo.id === pickerState.todoId) : null),
-    [pickerState, todos],
-  );
-
   const handleTodoTitleChange = React.useCallback((todoId: string | number, nextTitle: string) => {
     setTodos((currentTodos) =>
       currentTodos.map((todo) => (todo.id === todoId ? { ...todo, title: nextTitle } : todo)),
@@ -264,45 +251,21 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     setTodos((currentTodos) => currentTodos.filter((todo) => todo.id !== todoId));
   }, []);
 
-  const handleTimePress = React.useCallback((todoId: number | string) => {
-    setPickerState({ todoId, kind: "time" });
+  const handleTodoDateChange = React.useCallback((todoId: number | string, nextDate: DateValue) => {
+    setTodos((currentTodos) =>
+      currentTodos.map((todo) =>
+        todo.id === todoId ? { ...todo, date: nextDate, validationError: null } : todo,
+      ),
+    );
   }, []);
 
-  const handleDatePress = React.useCallback((todoId: number | string) => {
-    setPickerState({ todoId, kind: "date" });
+  const handleTodoTimeChange = React.useCallback((todoId: number | string, nextTime: TimeValue) => {
+    setTodos((currentTodos) =>
+      currentTodos.map((todo) =>
+        todo.id === todoId ? { ...todo, time: nextTime, validationError: null } : todo,
+      ),
+    );
   }, []);
-
-  const handleClosePicker = React.useCallback(() => {
-    setPickerState(null);
-  }, []);
-
-  const handleConfirmDate = React.useCallback(
-    (nextDate: DateValue) => {
-      if (!pickerState) return;
-      const targetId = pickerState.todoId;
-      setTodos((currentTodos) =>
-        currentTodos.map((todo) =>
-          todo.id === targetId ? { ...todo, date: nextDate, validationError: null } : todo,
-        ),
-      );
-      setPickerState(null);
-    },
-    [pickerState],
-  );
-
-  const handleConfirmTime = React.useCallback(
-    (nextTime: TimeValue) => {
-      if (!pickerState) return;
-      const targetId = pickerState.todoId;
-      setTodos((currentTodos) =>
-        currentTodos.map((todo) =>
-          todo.id === targetId ? { ...todo, time: nextTime, validationError: null } : todo,
-        ),
-      );
-      setPickerState(null);
-    },
-    [pickerState],
-  );
 
   const handleScanQr = React.useCallback(() => {
     router.push("/qr-scan" as Href);
@@ -492,26 +455,6 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
     [todos],
   );
 
-  const pickerOverlays =
-    activeTodo && pickerState ? (
-      <>
-        <DatePickerOverlay
-          mode={mode}
-          open={pickerState.kind === "date"}
-          value={activeTodo.date ?? todayDateValue()}
-          onCancel={handleClosePicker}
-          onConfirm={handleConfirmDate}
-        />
-        <TimePickerOverlay
-          mode={mode}
-          open={pickerState.kind === "time"}
-          value={activeTodo.time ?? defaultTimeValue()}
-          onCancel={handleClosePicker}
-          onConfirm={handleConfirmTime}
-        />
-      </>
-    ) : null;
-
   if (mode === "mobile") {
     const stepTitle =
       mobileSheetStep === "folder-picker"
@@ -658,7 +601,6 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
 
   return (
     <View className="gap-5">
-      {pickerOverlays}
       <View className="gap-2">
         <View className="flex-row items-center gap-2">
           <Text className="text-sm font-semibold text-muted-foreground">URL</Text>
@@ -754,14 +696,15 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
         </Text>
         <TodoDraftListEditor
           addLabel="할 일 추가"
+          pickerMode={mode}
           todos={decoratedTodos}
           onAddTodo={handleAddTodo}
           onChangeTodoTitle={handleTodoTitleChange}
           onChangeTodoMode={handleTodoModeChange}
           onChangeTodoWeekdays={handleTodoWeekdaysChange}
+          onChangeTodoDate={handleTodoDateChange}
+          onChangeTodoTime={handleTodoTimeChange}
           onRemoveTodo={handleRemoveTodo}
-          onDatePress={handleDatePress}
-          onTimePress={handleTimePress}
         />
       </View>
 

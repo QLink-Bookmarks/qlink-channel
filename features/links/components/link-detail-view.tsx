@@ -15,7 +15,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { type DateValue } from "@/components/ui/date-picker";
-import { DatePickerOverlay, TimePickerOverlay } from "@/components/ui/date-time-picker-overlay";
 import {
   Dialog,
   DialogContent,
@@ -49,10 +48,8 @@ import { TodoItem } from "@/features/todos/components/todo-item/todo-item";
 import { formatReminderLabel } from "@/features/todos/lib/todo-list-helpers";
 import {
   buildScheduleApiFields,
-  defaultTimeValue,
   isScheduleInPast,
   readScheduleFromTodo,
-  todayDateValue,
   validateDraft,
 } from "@/features/todos/lib/todo-schedule";
 import {
@@ -543,54 +540,26 @@ function LinkDetailView({
     setTodoDrafts((currentDrafts) => currentDrafts.filter((todo) => todo.id !== todoId));
   }, []);
 
-  const [pickerState, setPickerState] = React.useState<{
-    todoId: string | number;
-    kind: "date" | "time";
-  } | null>(null);
-
-  const activePickerDraft = React.useMemo(
-    () => (pickerState ? todoDrafts.find((todo) => todo.id === pickerState.todoId) : null),
-    [pickerState, todoDrafts],
-  );
-
-  const handleTodoTimePress = React.useCallback((todoId: number | string) => {
-    setPickerState({ todoId, kind: "time" });
-  }, []);
-
-  const handleTodoDatePress = React.useCallback((todoId: number | string) => {
-    setPickerState({ todoId, kind: "date" });
-  }, []);
-
-  const handleTodoPickerClose = React.useCallback(() => {
-    setPickerState(null);
-  }, []);
-
-  const handleTodoConfirmDate = React.useCallback(
-    (nextDate: DateValue) => {
-      if (!pickerState) return;
-      const targetId = pickerState.todoId;
+  const handleTodoDraftDateChange = React.useCallback(
+    (todoId: number | string, nextDate: DateValue) => {
       setTodoDrafts((currentDrafts) =>
         currentDrafts.map((todo) =>
-          todo.id === targetId ? { ...todo, date: nextDate, validationError: null } : todo,
+          todo.id === todoId ? { ...todo, date: nextDate, validationError: null } : todo,
         ),
       );
-      setPickerState(null);
     },
-    [pickerState],
+    [],
   );
 
-  const handleTodoConfirmTime = React.useCallback(
-    (nextTime: TimeValue) => {
-      if (!pickerState) return;
-      const targetId = pickerState.todoId;
+  const handleTodoDraftTimeChange = React.useCallback(
+    (todoId: number | string, nextTime: TimeValue) => {
       setTodoDrafts((currentDrafts) =>
         currentDrafts.map((todo) =>
-          todo.id === targetId ? { ...todo, time: nextTime, validationError: null } : todo,
+          todo.id === todoId ? { ...todo, time: nextTime, validationError: null } : todo,
         ),
       );
-      setPickerState(null);
     },
-    [pickerState],
+    [],
   );
 
   const handleTodoSave = React.useCallback(async () => {
@@ -742,38 +711,19 @@ function LinkDetailView({
 
   const overlayMode = mode === "panel" ? "wide" : "mobile";
 
-  const todoPickerOverlays =
-    activePickerDraft && pickerState ? (
-      <>
-        <DatePickerOverlay
-          mode={overlayMode}
-          open={pickerState.kind === "date"}
-          value={activePickerDraft.date ?? todayDateValue()}
-          onCancel={handleTodoPickerClose}
-          onConfirm={handleTodoConfirmDate}
-        />
-        <TimePickerOverlay
-          mode={overlayMode}
-          open={pickerState.kind === "time"}
-          value={activePickerDraft.time ?? defaultTimeValue()}
-          onCancel={handleTodoPickerClose}
-          onConfirm={handleTodoConfirmTime}
-        />
-      </>
-    ) : null;
-
   const todoEditorContent = (
     <View className="gap-4">
       <TodoDraftListEditor
         addLabel="할 일 추가"
+        pickerMode={overlayMode}
         todos={decoratedTodoDrafts}
         onAddTodo={handleAddTodoDraft}
         onChangeTodoTitle={handleTodoDraftTitleChange}
         onChangeTodoMode={handleTodoDraftModeChange}
         onChangeTodoWeekdays={handleTodoDraftWeekdaysChange}
+        onChangeTodoDate={handleTodoDraftDateChange}
+        onChangeTodoTime={handleTodoDraftTimeChange}
         onRemoveTodo={handleTodoDraftRemove}
-        onDatePress={handleTodoDatePress}
-        onTimePress={handleTodoTimePress}
       />
       {todoEditorError ? (
         <Text className="text-sm font-medium text-destructive">{todoEditorError}</Text>
@@ -800,7 +750,6 @@ function LinkDetailView({
 
   return (
     <>
-      {todoPickerOverlays}
       <ScrollView
         className={cn("flex-1 bg-background", mode === "screen" && "flex-1")}
         contentInsetAdjustmentBehavior="automatic"

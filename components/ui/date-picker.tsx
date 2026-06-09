@@ -128,6 +128,10 @@ function dateValueFromDate(source: Date): DateValue {
   };
 }
 
+function todayDateValue(): DateValue {
+  return dateValueFromDate(new Date());
+}
+
 function dateValueToDate(value: DateValue): Date {
   return new Date(value.year, value.month - 1, value.day);
 }
@@ -144,6 +148,7 @@ export {
   dateValueFromDate,
   dateValueToDate,
   formatDateLabel,
+  todayDateValue,
 };
 // Internal helper used by adjacent pickers/utilities that need to read aloud
 // the count of days in a (year, month) pair without re-implementing the rule.

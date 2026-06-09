@@ -1,7 +1,8 @@
 import * as React from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
-import { type DateValue, formatDateLabel } from "@/components/ui/date-picker";
+import { type DateValue } from "@/components/ui/date-picker";
+import { DateTimePickerButton } from "@/components/ui/date-time-picker-button";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -9,7 +10,7 @@ import { Text } from "@/components/ui/text";
 import { type TimeValue, formatTimeLabel } from "@/components/ui/time-picker";
 import { cn } from "@/lib/utils";
 
-import { CalendarDays, Clock3, X } from "lucide-react-native/icons";
+import { X } from "lucide-react-native/icons";
 
 type TodoEditorMode = "none" | "time" | "recurring";
 type TodoEditorVisibility = "public" | "private";
@@ -89,8 +90,9 @@ function TodoEditorBase({
   onModeChange,
   onSelectedWeekdaysChange,
   onRemove,
-  onTimePress,
-  onDatePress,
+  pickerMode = "wide",
+  onDateChange,
+  onTimeChange,
 }: {
   className?: string;
   index?: number;
@@ -109,10 +111,11 @@ function TodoEditorBase({
   onSelectedWeekdaysChange?: (value: WeekdayValue[]) => void;
   onVisibilityChange?: (value: TodoEditorVisibility) => void;
   onRemove?: () => void;
-  onTimePress?: () => void;
-  onDatePress?: () => void;
+  /** Layout mode for the picker — wide opens a Popover, mobile opens a Sheet. */
+  pickerMode?: "wide" | "mobile";
+  onDateChange?: (next: DateValue) => void;
+  onTimeChange?: (next: TimeValue) => void;
 }) {
-  const dateLabel = date ? formatDateLabel(date) : DATE_PLACEHOLDER;
   const timeLabel = time ? formatTimeLabel(time) : TIME_PLACEHOLDER;
   const recurringPattern = formatRecurringPattern(selectedWeekdays, timeLabel);
 
@@ -181,24 +184,18 @@ function TodoEditorBase({
       {mode !== "none" ? (
         <View className="gap-2">
           <View className="flex-row gap-3">
-            <Pressable
-              className="h-10 flex-1 flex-row items-center justify-between rounded-md border border-input bg-background px-4 shadow-sm shadow-black/5"
-              onPress={onTimePress}
-            >
-              <Text className={cn("text-sm", time ? "text-foreground" : "text-muted-foreground")}>
-                {timeLabel}
-              </Text>
-              <Clock3 size={20} />
-            </Pressable>
-            <Pressable
-              className="h-10 flex-1 flex-row items-center justify-between rounded-md border border-input bg-background px-4 shadow-sm shadow-black/5"
-              onPress={onDatePress}
-            >
-              <Text className={cn("text-sm", date ? "text-foreground" : "text-muted-foreground")}>
-                {dateLabel}
-              </Text>
-              <CalendarDays size={18} />
-            </Pressable>
+            <DateTimePickerButton
+              mode={pickerMode}
+              kind="time"
+              value={time}
+              onChange={(next) => onTimeChange?.(next)}
+            />
+            <DateTimePickerButton
+              mode={pickerMode}
+              kind="date"
+              value={date}
+              onChange={(next) => onDateChange?.(next)}
+            />
           </View>
           {validationError ? (
             <Text className="text-xs font-medium text-destructive">{validationError}</Text>
