@@ -5,6 +5,8 @@ import type {
   CreateFolderResponse,
   GetFoldersParams,
   GetFoldersResponse,
+  UpdateFolderRequest,
+  UpdateFolderResponse,
 } from "./types";
 
 async function getFolders(params: GetFoldersParams = {}) {
@@ -15,4 +17,8 @@ async function createFolder(payload: CreateFolderRequest) {
   return api.post<CreateFolderResponse, CreateFolderRequest>("/api/folders", payload);
 }
 
-export { createFolder, getFolders };
+async function updateFolder(id: number, payload: UpdateFolderRequest) {
+  return api.put<UpdateFolderResponse, UpdateFolderRequest>(`/api/folders/${id}`, payload);
+}
+
+export { createFolder, getFolders, updateFolder };

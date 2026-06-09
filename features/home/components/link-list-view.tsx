@@ -47,6 +47,7 @@ type LinkListViewProps = {
   meta?: string;
   basePath: string;
   activeLinkId?: number | null;
+  headerActions?: React.ReactNode;
 };
 
 function openInNewTab(url: string) {
@@ -95,7 +96,15 @@ function BookmarkBadgeButton({ onPress }: { onPress: () => void }) {
   );
 }
 
-function LinkListView({ folderId, title, emoji, meta, basePath, activeLinkId }: LinkListViewProps) {
+function LinkListView({
+  folderId,
+  title,
+  emoji,
+  meta,
+  basePath,
+  activeLinkId,
+  headerActions,
+}: LinkListViewProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [order, setOrder] = React.useState<LinkOrder>("latest");
@@ -163,6 +172,7 @@ function LinkListView({ folderId, title, emoji, meta, basePath, activeLinkId }: 
         title={title}
         emoji={emoji}
         meta={totalLabel}
+        actions={headerActions}
       />
       <View className="gap-5 px-6 pb-6 pt-4 md:pt-0">
         <OrderFilter

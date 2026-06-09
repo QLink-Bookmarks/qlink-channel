@@ -3,6 +3,7 @@ import { ScrollView, View } from "react-native";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FolderHeaderActions } from "@/features/folders/components/folder-header-actions";
 import { MobileFoldersScreen } from "@/features/folders/components/mobile-folders-screen";
 import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkListView } from "@/features/home/components/link-list-view";
@@ -114,6 +115,7 @@ function FolderDetailRouteScreen() {
   }
 
   const folders = foldersQuery.data?.contents ?? [];
+  // TODO: Replace this list lookup with useFolderQuery(folderId) when the server exposes GET /api/folders/{id}.
   const folder = folders.find((entry) => entry.id === folderIdNumber);
 
   if (!folder) {
@@ -134,6 +136,12 @@ function FolderDetailRouteScreen() {
       emoji={folder.emoji ?? undefined}
       meta={`${folder.linkCounts}개 링크`}
       basePath={`/folders/${folder.id}`}
+      headerActions={
+        <FolderHeaderActions
+          folder={folder}
+          mode="wide"
+        />
+      }
       activeLinkId={linkIdParam ? Number(linkIdParam) : undefined}
     />
   );

@@ -24,6 +24,7 @@ import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { useMyProfileQuery } from "@/features/account/queries";
 import { CreateFolderDialog } from "@/features/folders/components/create-folder-dialog";
+import { FolderHeaderActions } from "@/features/folders/components/folder-header-actions";
 import { useFoldersQuery } from "@/features/folders/queries";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
 import { LinkCreateForm } from "@/features/links/components/link-create-form";
@@ -527,6 +528,14 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   }
 
   const isMobileHome = routeState.pathname === "/home";
+  const mobileFolderIdMatch = /^\/folders\/(\d+)$/.exec(routeState.pathname);
+  const mobileFolderId = mobileFolderIdMatch ? Number(mobileFolderIdMatch[1]) : Number.NaN;
+  const allMobileFolders = foldersQuery.data?.contents ?? [];
+  // TODO: Replace this list lookup with useFolderQuery(folderId) when the server exposes GET /api/folders/{id}.
+  const mobileFolder =
+    Number.isFinite(mobileFolderId) && mobileFolderId !== UNCATEGORIZED_FOLDER_ID
+      ? allMobileFolders.find((folder) => folder.id === mobileFolderId)
+      : undefined;
   const showMobileFab =
     routeState.pathname === "/home" ||
     routeState.pathname === "/folders" ||
@@ -553,6 +562,11 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                 onPress={handleNotificationsPress}
               />
             </View>
+          ) : mobileFolder ? (
+            <FolderHeaderActions
+              folder={mobileFolder}
+              mode="mobile"
+            />
           ) : undefined
         }
         title={isMobileHome ? undefined : routeState.routeTitle}
