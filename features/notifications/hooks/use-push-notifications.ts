@@ -7,6 +7,14 @@ import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 
+type PushNotificationsState = {
+  primerOpen: boolean;
+  accept: () => void;
+  dismiss: () => void;
+};
+
+const noop = () => {};
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -23,7 +31,7 @@ function resolveProjectId(): string | undefined {
   );
 }
 
-function usePushNotifications() {
+function usePushNotifications(): PushNotificationsState {
   const { mutate: registerDevice } = useRegisterDeviceMutation();
   const registeredTokenRef = React.useRef<string | null>(null);
 
@@ -88,6 +96,11 @@ function usePushNotifications() {
       responseSub.remove();
     };
   }, [registerDevice]);
+
+  // Native doesn't need a permission primer; the OS dialog itself is the prompt
+  // and we defer it to onboarding. Shape-matches the web hook.
+  return { primerOpen: false, accept: noop, dismiss: noop };
 }
 
+export type { PushNotificationsState };
 export { usePushNotifications };
