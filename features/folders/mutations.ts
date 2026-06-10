@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { createFolder, createFolderInvitation, updateFolder } from "./api";
+import { acceptFolderInvitation, createFolder, createFolderInvitation, updateFolder } from "./api";
 import { folderQueryKeys } from "./queries";
 import type {
+  AcceptFolderInvitationRequest,
   CreateFolderInvitationRequest,
   CreateFolderRequest,
   UpdateFolderRequest,
@@ -38,4 +39,21 @@ function useCreateFolderInvitationMutation() {
   });
 }
 
-export { useCreateFolderInvitationMutation, useCreateFolderMutation, useUpdateFolderMutation };
+function useAcceptFolderInvitationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: AcceptFolderInvitationRequest }) =>
+      acceptFolderInvitation(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: folderQueryKeys.all });
+    },
+  });
+}
+
+export {
+  useAcceptFolderInvitationMutation,
+  useCreateFolderInvitationMutation,
+  useCreateFolderMutation,
+  useUpdateFolderMutation,
+};

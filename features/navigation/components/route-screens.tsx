@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FolderHeaderActions } from "@/features/folders/components/folder-header-actions";
+import { InviteAcceptScreen } from "@/features/folders/components/invite-accept-screen";
 import { MobileFoldersScreen } from "@/features/folders/components/mobile-folders-screen";
 import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkListView } from "@/features/home/components/link-list-view";
@@ -246,17 +247,17 @@ function SettingsAccountsRouteScreen() {
 }
 
 function InviteRouteScreen() {
-  const { isWideView } = useShellRouteState();
-  const params = useLocalSearchParams<{ token?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    folderId?: string | string[];
+    token?: string | string[];
+  }>();
+  const folderId = readParamValue(params.folderId);
   const token = readParamValue(params.token);
 
   return (
-    <DummyRouteScreen
-      title="초대 확인"
-      routePath="/invite"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="초대 토큰을 파싱하는 더미 화면이다. 공통 셸은 유지되고 탭 소속은 없다."
-      params={[{ label: "token", value: token }]}
+    <InviteAcceptScreen
+      folderId={folderId}
+      token={token}
     />
   );
 }

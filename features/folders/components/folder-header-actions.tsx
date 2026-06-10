@@ -125,7 +125,7 @@ function ShareFolderPlaceholder({
       },
     });
 
-    setInvitationUrl(resolveInvitationUrl(response.data.invitation));
+    setInvitationUrl(resolveInvitationUrl(response.data.invitation, folder.id));
   }, [durationDays, folder.id, invitationMutation]);
 
   const handleCopyInvitation = React.useCallback(() => {
@@ -290,18 +290,14 @@ function ShareFolderPlaceholder({
   );
 }
 
-function resolveInvitationUrl(invitation: string) {
-  if (/^https?:\/\//i.test(invitation)) {
-    return invitation;
-  }
-
-  const path = `/invite?token=${encodeURIComponent(invitation)}`;
+function resolveInvitationUrl(invitation: string, folderId: number) {
+  const path = `/invite?token=${encodeURIComponent(invitation)}&folderId=${folderId}`;
   if (process.env.EXPO_OS === "web" && typeof window !== "undefined") {
     return `${window.location.origin}${path}`;
   }
 
   return Linking.createURL("/invite", {
-    queryParams: { token: invitation },
+    queryParams: { folderId: String(folderId), token: invitation },
   });
 }
 
