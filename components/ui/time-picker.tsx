@@ -80,21 +80,21 @@ function TimePicker({ value, onChange, className }: TimePickerProps) {
 
   return (
     <View className={cn("flex-row items-center", className)}>
-      <View className="flex-1 items-center">
+      <View className="flex-1">
         <WheelPicker
           options={meridiemOptions}
           value={meridiem}
           onChange={handleMeridiemChange}
         />
       </View>
-      <View className="flex-1 items-center">
+      <View className="flex-1">
         <WheelPicker
           options={hourOptions}
           value={hour12}
           onChange={handleHourChange}
         />
       </View>
-      <View className="flex-1 items-center">
+      <View className="flex-1">
         <WheelPicker
           options={minuteOptions}
           value={value.minute}

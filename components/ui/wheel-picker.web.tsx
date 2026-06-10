@@ -140,7 +140,7 @@ function WheelPickerInner<T extends string | number>({
 
   return (
     <View
-      className={cn("relative", className)}
+      className={cn("relative w-full", className)}
       style={{ height: containerHeight }}
       onLayout={handleLayout}
     >
@@ -150,6 +150,12 @@ function WheelPickerInner<T extends string | number>({
         onScroll={handleScroll}
         scrollEventThrottle={16}
         contentContainerStyle={contentContainerStyle}
+        // Contain overscroll so reaching the wheel's top/bottom doesn't bubble
+        // the gesture up to whatever sits behind the popover. `touch-action:
+        // pan-y` makes the browser commit to vertical panning early — otherwise
+        // an ancestor's `touch-action: manipulation` can let the browser steal
+        // the first frames of the drag for tap detection.
+        style={{ overscrollBehavior: "contain", touchAction: "pan-y" } as object}
       >
         {options.map((option, index) => {
           const distance = Math.abs(index - activeIndex);

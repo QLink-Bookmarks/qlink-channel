@@ -132,7 +132,7 @@ function WheelPickerInner<T extends string | number>({
 
   return (
     <View
-      className={cn("relative", className)}
+      className={cn("relative w-full", className)}
       style={{ height: containerHeight }}
       onLayout={handleLayout}
     >

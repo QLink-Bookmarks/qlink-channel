@@ -95,21 +95,21 @@ function DatePicker({
 
   return (
     <View className={cn("flex-row items-center", className)}>
-      <View className="flex-1 items-center">
+      <View className="flex-1">
         <WheelPicker
           options={yearOptions}
           value={value.year}
           onChange={handleYearChange}
         />
       </View>
-      <View className="flex-1 items-center">
+      <View className="flex-1">
         <WheelPicker
           options={monthOptions}
           value={value.month}
           onChange={handleMonthChange}
         />
       </View>
-      <View className="flex-1 items-center">
+      <View className="flex-1">
         <WheelPicker
           options={dayOptions}
           value={value.day}

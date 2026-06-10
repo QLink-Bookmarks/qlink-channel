@@ -156,10 +156,13 @@ function PopoverVariant(props: DateTimePickerButtonProps) {
   const Icon = kind === "date" ? CalendarDays : Clock3;
   const iconSize = kind === "date" ? 18 : 20;
 
-  // The Popover root renders a wrapping View, so flex-1 has to live on it
-  // (and not just the inner Pressable) for the button to fill its row slot.
+  // The Popover root renders a wrapping View. Without h-10 here the row's
+  // stretch alignment would collapse the inner button to its text height
+  // (CSS quirk: `height` on a flex child doesn't contribute to the parent's
+  // intrinsic cross size, only `min-height` would). flex-1 makes the button
+  // fill its row slot horizontally.
   return (
-    <Popover className="flex-1">
+    <Popover className="h-10 flex-1">
       <PopoverTrigger asChild>
         <Pressable className={buttonClassName(className)}>
           <Text className={labelClassName(value != null)}>{label}</Text>
