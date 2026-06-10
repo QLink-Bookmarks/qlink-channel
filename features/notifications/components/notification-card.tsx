@@ -22,10 +22,12 @@ function formatNotificationTime(value: string) {
 
 function NotificationCard({
   className,
+  disabled,
   notification,
   onPress,
 }: {
   className?: string;
+  disabled?: boolean;
   notification: NotificationListItem;
   onPress?: (notification: NotificationListItem) => void;
 }) {
@@ -33,17 +35,27 @@ function NotificationCard({
 
   return (
     <Pressable
+      disabled={disabled}
       className={cn(
-        "gap-2 rounded-2xl border bg-card px-4 py-3 shadow-qlink-sm active:border-primary web:hover:border-primary web:hover:bg-accent/40",
-        unread ? "border-primary/30 bg-primary/5" : "border-border",
+        "relative gap-2 overflow-visible rounded-2xl border px-4 py-3 active:border-primary",
+        unread
+          ? "border-primary/40 bg-card shadow-qlink-sm web:hover:border-primary web:hover:bg-accent/40"
+          : "border-border/70 bg-muted/30 opacity-70 shadow-none web:hover:border-border",
+        disabled && "opacity-50",
         className,
       )}
       onPress={() => onPress?.(notification)}
     >
+      {unread ? (
+        <View className="absolute -right-1 -top-1 size-3 rounded-full border-2 border-background bg-primary" />
+      ) : null}
       <View className="flex-row items-start gap-3">
         <View className="min-w-0 flex-1">
           <Text
-            className="text-base font-semibold text-foreground"
+            className={cn(
+              "text-base font-semibold",
+              unread ? "text-foreground" : "text-muted-foreground",
+            )}
             numberOfLines={1}
           >
             {notification.title}
@@ -56,11 +68,13 @@ function NotificationCard({
           >
             {formatNotificationTime(notification.firedAt)}
           </Text>
-          {unread ? <View className="size-2.5 rounded-full bg-primary" /> : null}
         </View>
       </View>
       <Text
-        className="text-sm leading-5 text-muted-foreground"
+        className={cn(
+          "text-sm leading-5",
+          unread ? "text-muted-foreground" : "text-muted-foreground/80",
+        )}
         numberOfLines={2}
       >
         {notification.message}

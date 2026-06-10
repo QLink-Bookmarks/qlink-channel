@@ -5,6 +5,7 @@ import type {
   GetNotificationsResponse,
   PutDeviceRequest,
   PutDeviceResponse,
+  ReadNotificationResponse,
 } from "./types";
 
 async function getNotifications(params: GetNotificationsParams = {}) {
@@ -15,4 +16,8 @@ async function registerDevice(payload: PutDeviceRequest) {
   return api.put<PutDeviceResponse, PutDeviceRequest>("/api/devices", payload);
 }
 
-export { getNotifications, registerDevice };
+async function readNotification(notificationId: number | string) {
+  return api.put<ReadNotificationResponse>(`/api/notifications/${notificationId}/read`);
+}
+
+export { getNotifications, readNotification, registerDevice };

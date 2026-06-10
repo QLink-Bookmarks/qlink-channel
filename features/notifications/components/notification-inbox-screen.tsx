@@ -5,26 +5,49 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Text } from "@/components/ui/text";
+import { reportError } from "@/lib/error-reporting";
 
+import { useReadNotificationMutation } from "../mutations";
 import { useNotificationsQuery } from "../queries";
 import type { NotificationListItem } from "../types";
 import { NotificationCard } from "./notification-card";
 
+import { type Href, useRouter } from "expo-router";
+
 type NotificationInboxScreenMode = "mobile" | "wide";
 
 function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }) {
+  const router = useRouter();
   const notificationsQuery = useNotificationsQuery({ size: 30 });
+  const readNotificationMutation = useReadNotificationMutation();
   const notifications = notificationsQuery.data?.contents ?? [];
   const unreadCount = notifications.filter((notification) => !notification.readAt).length;
   const isRefreshing = notificationsQuery.isFetching && !notificationsQuery.isLoading;
 
-  const handleNotificationPress = React.useCallback((notification: NotificationListItem) => {
-    // TODO: Navigate to the target context when notification deep links are defined.
-    console.log("notification:press", {
-      context: notification.context,
-      contextId: notification.contextId,
-    });
-  }, []);
+  const handleNotificationPress = React.useCallback(
+    async (notification: NotificationListItem) => {
+      // TODO: Navigate by notification context once deep link targets are defined.
+      console.log("notification:press", {
+        context: notification.context,
+        contextId: notification.contextId,
+      });
+
+      try {
+        await readNotificationMutation.mutateAsync(notification.id);
+        router.push("/todos" as Href);
+      } catch (error: unknown) {
+        reportError(error, {
+          area: "notification-inbox-screen:read",
+          extra: {
+            context: notification.context,
+            contextId: notification.contextId,
+            notificationId: notification.id,
+          },
+        });
+      }
+    },
+    [readNotificationMutation, router],
+  );
 
   if (mode === "wide") {
     return (
@@ -67,6 +90,7 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
                 {notifications.map((notification) => (
                   <NotificationCard
                     key={notification.id}
+                    disabled={readNotificationMutation.isPending}
                     notification={notification}
                     onPress={handleNotificationPress}
                   />
@@ -109,6 +133,7 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
           notifications.map((notification) => (
             <NotificationCard
               key={notification.id}
+              disabled={readNotificationMutation.isPending}
               notification={notification}
               onPress={handleNotificationPress}
             />

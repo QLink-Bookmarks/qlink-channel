@@ -4,6 +4,7 @@ import { getNotifications } from "./api";
 import type { GetNotificationsParams } from "./types";
 
 const notificationQueryKeys = {
+  all: ["notifications"] as const,
   list: (params: GetNotificationsParams) => ["notifications", "list", params] as const,
 };
 

@@ -1,6 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { registerDevice } from "./api";
+import { readNotification, registerDevice } from "./api";
+import { notificationQueryKeys } from "./queries";
 import type { PutDeviceRequest, PutDeviceResponse } from "./types";
 
 function useRegisterDeviceMutation() {
@@ -9,4 +10,15 @@ function useRegisterDeviceMutation() {
   });
 }
 
-export { useRegisterDeviceMutation };
+function useReadNotificationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (notificationId: number | string) => readNotification(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
+    },
+  });
+}
+
+export { useReadNotificationMutation, useRegisterDeviceMutation };

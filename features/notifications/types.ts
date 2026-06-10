@@ -40,6 +40,7 @@ type GetNotificationsParams = {
 };
 
 type GetNotificationsResponse = ApiEnvelope<NotificationScrollResponse>;
+type ReadNotificationResponse = ApiEnvelope<null>;
 
 export type {
   DevicePlatform,
@@ -52,4 +53,5 @@ export type {
   PutDeviceRequest,
   PutDeviceResponse,
   PutDeviceResponseData,
+  ReadNotificationResponse,
 };
