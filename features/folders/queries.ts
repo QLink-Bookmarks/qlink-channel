@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getFolders } from "./api";
+import { getFolderMembers, getFolders } from "./api";
 import type { GetFoldersParams } from "./types";
 
 const folderQueryKeys = {
   all: ["folders"] as const,
   list: (params: GetFoldersParams) => ["folders", "list", params] as const,
+  members: (id: number) => ["folders", "members", id] as const,
 };
 
 function useFoldersQuery(params: GetFoldersParams = {}) {
@@ -24,4 +25,15 @@ function useFoldersQuery(params: GetFoldersParams = {}) {
   });
 }
 
-export { folderQueryKeys, useFoldersQuery };
+function useFolderMembersQuery(id: number, enabled = true) {
+  return useQuery({
+    enabled,
+    queryFn: async () => {
+      const response = await getFolderMembers(id);
+      return response.data;
+    },
+    queryKey: folderQueryKeys.members(id),
+  });
+}
+
+export { folderQueryKeys, useFolderMembersQuery, useFoldersQuery };

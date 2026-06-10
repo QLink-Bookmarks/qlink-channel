@@ -1,8 +1,12 @@
 import { View } from "react-native";
 
+import { IconButton } from "@/components/ui/icon-button";
+import { getThemeTokens } from "@/lib/theme";
 import type { Meta, StoryObj } from "@storybook/react-native";
 
 import { AccountRow } from "./account-row";
+
+import { Trash2 } from "lucide-react-native/icons";
 
 const meta = {
   title: "기능/계정/계정 행",
@@ -39,6 +43,27 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+const tokens = getThemeTokens("light");
+
 export const Basic: Story = {
   name: "기본",
+};
+
+export const WithIconAction: Story = {
+  name: "아이콘 액션",
+  args: {
+    action: (
+      <IconButton
+        accessibilityLabel="멤버 제외"
+        className="active:bg-destructive/10 web:hover:bg-destructive/10"
+        color={tokens.destructive}
+        icon={Trash2}
+        size="sm"
+        variant="ghost"
+      />
+    ),
+    actionLabel: undefined,
+    label: "멤버",
+    value: "이나제",
+  },
 };

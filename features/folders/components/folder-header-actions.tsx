@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { Sheet } from "@/components/layout/sheet";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -15,16 +16,22 @@ import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { AccountRow } from "@/features/account/components/account-row/account-row";
 import { useMyProfileQuery } from "@/features/account/queries";
+import { getThemeTokens } from "@/lib/theme";
+import { useToastStore } from "@/stores/toast-store";
 
-import { useCreateFolderInvitationMutation } from "../mutations";
-import type { Folder } from "../types";
+import { useCreateFolderInvitationMutation, useDeleteFolderMemberMutation } from "../mutations";
+import { useFolderMembersQuery } from "../queries";
+import type { Folder, FolderMember } from "../types";
 import type { CreateFolderDialogMode } from "./create-folder-dialog";
 import { EditFolderDialog } from "./create-folder-dialog";
 
+import { isAxiosError } from "axios";
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
-import { ChevronLeft, Copy, Pencil, Send } from "lucide-react-native/icons";
+import { type Href, useRouter } from "expo-router";
+import { ChevronLeft, Copy, Pencil, Send, Trash2 } from "lucide-react-native/icons";
 
 type FolderHeaderActionsProps = {
   mode: CreateFolderDialogMode;
@@ -82,22 +89,32 @@ function ShareFolderPlaceholder({
   folder: Folder;
   onOpenChange: (open: boolean) => void;
 }) {
+  const router = useRouter();
+  const tokens = React.useMemo(() => getThemeTokens("light"), []);
   const myProfileQuery = useMyProfileQuery();
-  const isOwner = folder.ownerId != null && myProfileQuery.data?.id === folder.ownerId;
+  const myUserId = myProfileQuery.data?.id;
+  const isOwner = folder.ownerId != null && myUserId === folder.ownerId;
+  const showToast = useToastStore((state) => state.showToast);
   const [view, setView] = React.useState<"overview" | "invite">("overview");
   const [durationDays, setDurationDays] = React.useState("");
   const [invitationUrl, setInvitationUrl] = React.useState("");
+  const [selectedMember, setSelectedMember] = React.useState<FolderMember | null>(null);
+  const membersQuery = useFolderMembersQuery(folder.id, open);
   const invitationMutation = useCreateFolderInvitationMutation();
+  const deleteMemberMutation = useDeleteFolderMemberMutation();
   const resetInvitationMutation = invitationMutation.reset;
+  const resetDeleteMemberMutation = deleteMemberMutation.reset;
 
   React.useEffect(() => {
     if (!open) {
       setView("overview");
       setDurationDays("");
       setInvitationUrl("");
+      setSelectedMember(null);
       resetInvitationMutation();
+      resetDeleteMemberMutation();
     }
-  }, [open, resetInvitationMutation]);
+  }, [open, resetDeleteMemberMutation, resetInvitationMutation]);
 
   const handleDurationDaysChange = React.useCallback((next: string) => {
     const digits = next.replace(/\D/g, "");
@@ -143,14 +160,112 @@ function ShareFolderPlaceholder({
     console.log("folders:share:kakao:todo", { folderId: folder.id, invitationUrl });
   }, [folder.id, invitationUrl]);
 
+  const handleConfirmDeleteMember = React.useCallback(async () => {
+    if (!selectedMember) {
+      return;
+    }
+
+    try {
+      await deleteMemberMutation.mutateAsync({
+        id: folder.id,
+        memberId: selectedMember.userId,
+      });
+    } catch {
+      return;
+    }
+    setSelectedMember(null);
+    onOpenChange(false);
+    showToast({
+      dismissible: true,
+      durationMs: 3000,
+      sourceKey: "folder-member-delete",
+      title: "공유 폴더 멤버에서 제외됐습니다.",
+      variant: "success",
+    });
+    router.replace("/home" as Href);
+  }, [deleteMemberMutation, folder.id, onOpenChange, router, selectedMember, showToast]);
+
+  const memberRows = React.useMemo(() => {
+    const members = membersQuery.data?.members ?? [];
+    const hasOwner = members.some((member) => member.userId === membersQuery.data?.ownerId);
+
+    if (!membersQuery.data || hasOwner) {
+      return members;
+    }
+
+    return [
+      {
+        role: "OWNER",
+        userId: membersQuery.data.ownerId,
+        userNickname: membersQuery.data.ownerNickname,
+      },
+      ...members,
+    ];
+  }, [membersQuery.data]);
+
+  const memberErrorMessage = getApiErrorMessage(membersQuery.error);
+  const deleteErrorMessage = getApiErrorMessage(deleteMemberMutation.error);
+  const isSelfLeave =
+    selectedMember != null &&
+    selectedMember.userId === myUserId &&
+    selectedMember.userId !== folder.ownerId;
+
+  const membersList = (
+    <View className="gap-2">
+      {memberRows.map((member) => {
+        const isOwnerMember = member.userId === membersQuery.data?.ownerId;
+        // TODO: Delegate 서버 구현 후 owner row의 위임/삭제 액션 UX를 연결한다.
+        const canDelete = !isOwnerMember && (isOwner || member.userId === myUserId);
+
+        return (
+          <AccountRow
+            key={member.userId}
+            label={isOwnerMember ? "소유자" : "멤버"}
+            value={member.userNickname}
+            action={
+              canDelete ? (
+                <IconButton
+                  accessibilityLabel={`${member.userNickname} 멤버 제외`}
+                  className="active:bg-destructive/10 web:hover:bg-destructive/10"
+                  color={tokens.destructive}
+                  icon={Trash2}
+                  size="sm"
+                  variant="ghost"
+                  onPress={() => setSelectedMember(member)}
+                />
+              ) : undefined
+            }
+          />
+        );
+      })}
+    </View>
+  );
+
   const overviewBody = (
     <View className="gap-4">
-      <View className="gap-1">
-        <Text className="text-base font-semibold text-foreground">{folder.name}</Text>
-        <Text className="text-sm text-muted-foreground">
-          공유 링크 생성과 멤버 초대 기능이 여기에 연결될 예정이에요.
+      {membersQuery.isLoading ? (
+        <ActivityIndicator
+          size="large"
+          className="self-center py-8"
+        />
+      ) : membersQuery.isError ? (
+        <Text className="text-sm font-medium text-destructive">
+          {memberErrorMessage ?? "공유 폴더 멤버를 불러오지 못했어요."}
         </Text>
-      </View>
+      ) : memberRows.length > 0 ? (
+        mode === "wide" ? (
+          <ScrollView
+            className="max-h-80"
+            showsVerticalScrollIndicator={false}
+          >
+            {membersList}
+          </ScrollView>
+        ) : (
+          membersList
+        )
+      ) : (
+        <Text className="text-sm text-muted-foreground">아직 공유 폴더 멤버가 없어요.</Text>
+      )}
       <View className="flex-row justify-end gap-2">
         <Button
           className="h-10"
@@ -238,7 +353,7 @@ function ShareFolderPlaceholder({
   const description =
     view === "invite"
       ? "초대 링크를 생성해 공유할 수 있어요."
-      : "공유 폴더 초대 기능을 준비 중이에요.";
+      : "공유 폴더 멤버를 확인하고 관리할 수 있어요.";
   const titleContent =
     view === "invite" ? (
       <View className="flex-row items-center gap-2">
@@ -257,16 +372,162 @@ function ShareFolderPlaceholder({
 
   if (mode === "wide") {
     return (
+      <>
+        <Dialog
+          open={open}
+          onOpenChange={onOpenChange}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              {view === "invite" ? titleContent : <DialogTitle>{title}</DialogTitle>}
+              <DialogDescription>{description}</DialogDescription>
+            </DialogHeader>
+            {body}
+          </DialogContent>
+        </Dialog>
+        <FolderMemberDeleteDialog
+          errorMessage={deleteErrorMessage}
+          isPending={deleteMemberMutation.isPending}
+          isSelfLeave={isSelfLeave}
+          member={selectedMember}
+          mode={mode}
+          open={selectedMember != null}
+          onConfirm={handleConfirmDeleteMember}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
+              setSelectedMember(null);
+              resetDeleteMemberMutation();
+            }
+          }}
+        />
+      </>
+    );
+  }
+
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <>
+      <Sheet
+        open={open}
+        fitContent
+        onOpenChange={onOpenChange}
+      >
+        <View className="gap-3">
+          {titleContent}
+          {body}
+        </View>
+      </Sheet>
+      <FolderMemberDeleteDialog
+        errorMessage={deleteErrorMessage}
+        isPending={deleteMemberMutation.isPending}
+        isSelfLeave={isSelfLeave}
+        member={selectedMember}
+        mode={mode}
+        open={selectedMember != null}
+        onConfirm={handleConfirmDeleteMember}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            setSelectedMember(null);
+            resetDeleteMemberMutation();
+          }
+        }}
+      />
+    </>
+  );
+}
+
+function FolderMemberDeleteDialog({
+  errorMessage,
+  isPending,
+  isSelfLeave,
+  member,
+  mode,
+  open,
+  onConfirm,
+  onOpenChange,
+}: {
+  errorMessage?: string;
+  isPending: boolean;
+  isSelfLeave: boolean;
+  member: FolderMember | null;
+  mode: CreateFolderDialogMode;
+  open: boolean;
+  onConfirm: () => void;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const title = isSelfLeave ? "공유 폴더 나가기" : "공유 폴더 멤버 제외";
+  const description = isSelfLeave
+    ? "공유 폴더에서 나가시겠어요?"
+    : `${member?.userNickname ?? "멤버"}을 제외시키겠어요?`;
+  const body = (
+    <View className="gap-4">
+      {mode === "mobile" ? (
+        <View className="gap-2">
+          <Text className="text-lg font-semibold text-foreground">{title}</Text>
+          <Text className="text-sm text-muted-foreground">{description}</Text>
+        </View>
+      ) : null}
+      {errorMessage ? (
+        <Text className="text-sm font-medium text-destructive">{errorMessage}</Text>
+      ) : null}
+      <View className="flex-row justify-end gap-2">
+        <Button
+          className="h-10"
+          disabled={isPending}
+          variant="outline"
+          onPress={() => onOpenChange(false)}
+        >
+          <Text>취소</Text>
+        </Button>
+        <Button
+          className="h-10"
+          disabled={isPending}
+          variant="destructive"
+          onPress={onConfirm}
+        >
+          {isPending ? <ActivityIndicator size="small" /> : null}
+          <Text>확인</Text>
+        </Button>
+      </View>
+    </View>
+  );
+
+  if (mode === "wide") {
+    return (
       <Dialog
         open={open}
         onOpenChange={onOpenChange}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
-            {view === "invite" ? titleContent : <DialogTitle>{title}</DialogTitle>}
+            <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
-          {body}
+          {errorMessage ? (
+            <Text className="text-sm font-medium text-destructive">{errorMessage}</Text>
+          ) : null}
+          <DialogFooter className="flex-row justify-end">
+            <Button
+              className="h-10"
+              disabled={isPending}
+              variant="outline"
+              onPress={() => onOpenChange(false)}
+            >
+              <Text>취소</Text>
+            </Button>
+            <Button
+              className="h-10"
+              disabled={isPending}
+              variant="destructive"
+              onPress={onConfirm}
+            >
+              {isPending ? <ActivityIndicator size="small" /> : null}
+              <Text>확인</Text>
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     );
@@ -280,14 +541,31 @@ function ShareFolderPlaceholder({
     <Sheet
       open={open}
       fitContent
+      stackBehavior="push"
       onOpenChange={onOpenChange}
     >
-      <View className="gap-3">
-        {titleContent}
-        {body}
-      </View>
+      {body}
     </Sheet>
   );
+}
+
+function getApiErrorMessage(error: unknown) {
+  if (!isAxiosError(error)) {
+    return undefined;
+  }
+
+  const data = error.response?.data;
+  if (!data || typeof data !== "object" || !("error" in data)) {
+    return undefined;
+  }
+
+  const errorDetail = (data as { error?: unknown }).error;
+  if (!errorDetail || typeof errorDetail !== "object" || !("message" in errorDetail)) {
+    return undefined;
+  }
+
+  const message = (errorDetail as { message?: unknown }).message;
+  return typeof message === "string" && message.trim() ? message : undefined;
 }
 
 function resolveInvitationUrl(invitation: string, folderId: number) {

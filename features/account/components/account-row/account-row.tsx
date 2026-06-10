@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
 
 import { Text } from "@/components/ui/text";
@@ -10,6 +11,7 @@ function AccountRow({
   label,
   value,
   actionLabel,
+  action,
   destructive,
   onActionPress,
 }: {
@@ -17,6 +19,7 @@ function AccountRow({
   label: string;
   value?: string;
   actionLabel?: string;
+  action?: ReactNode;
   destructive?: boolean;
   onActionPress?: () => void;
 }) {
@@ -31,6 +34,7 @@ function AccountRow({
         <Text className="text-xs text-muted-foreground">{label}</Text>
         {value ? <Text className="font-medium">{value}</Text> : null}
       </View>
+      {action ? action : null}
       {actionLabel ? (
         <Pressable onPress={onActionPress}>
           <Text

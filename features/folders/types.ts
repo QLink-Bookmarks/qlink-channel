@@ -20,6 +20,22 @@ type FolderScrollResponse = {
 
 type GetFoldersResponse = ApiEnvelope<FolderScrollResponse>;
 
+type FolderMember = {
+  userId: number;
+  role: string;
+  userNickname: string;
+};
+
+type GetFolderMembersResponseData = {
+  ownerId: number;
+  ownerNickname: string;
+  members: FolderMember[];
+};
+
+type GetFolderMembersResponse = ApiEnvelope<GetFolderMembersResponseData>;
+
+type DeleteFolderMemberResponse = ApiEnvelope<null>;
+
 type FolderOrder = "latest" | "earliest" | "laxico";
 
 type GetFoldersParams = {
@@ -64,9 +80,13 @@ export type {
   CreateFolderInvitationResponse,
   CreateFolderRequest,
   CreateFolderResponse,
+  DeleteFolderMemberResponse,
   Folder,
+  FolderMember,
   FolderOrder,
   FolderScrollResponse,
+  GetFolderMembersResponse,
+  GetFolderMembersResponseData,
   GetFoldersParams,
   GetFoldersResponse,
   UpdateFolderRequest,

@@ -7,6 +7,8 @@ import type {
   CreateFolderInvitationResponse,
   CreateFolderRequest,
   CreateFolderResponse,
+  DeleteFolderMemberResponse,
+  GetFolderMembersResponse,
   GetFoldersParams,
   GetFoldersResponse,
   UpdateFolderRequest,
@@ -15,6 +17,10 @@ import type {
 
 async function getFolders(params: GetFoldersParams = {}) {
   return api.get<GetFoldersResponse>("/api/folders", { params });
+}
+
+async function getFolderMembers(id: number) {
+  return api.get<GetFolderMembersResponse>(`/api/folders/${id}/members`);
 }
 
 async function createFolder(payload: CreateFolderRequest) {
@@ -39,4 +45,16 @@ async function updateFolder(id: number, payload: UpdateFolderRequest) {
   return api.put<UpdateFolderResponse, UpdateFolderRequest>(`/api/folders/${id}`, payload);
 }
 
-export { acceptFolderInvitation, createFolder, createFolderInvitation, getFolders, updateFolder };
+async function deleteFolderMember(id: number, memberId: number) {
+  return api.delete<DeleteFolderMemberResponse>(`/api/folders/${id}/members/${memberId}`);
+}
+
+export {
+  acceptFolderInvitation,
+  createFolder,
+  createFolderInvitation,
+  deleteFolderMember,
+  getFolderMembers,
+  getFolders,
+  updateFolder,
+};
