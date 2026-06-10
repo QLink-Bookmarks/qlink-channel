@@ -79,7 +79,7 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
   const isLoading = profileQuery.isLoading || settingsQuery.isLoading;
 
   const body = (
-    <View className="gap-6 px-4 pb-12 pt-4 md:px-6 md:pt-0">
+    <View className="gap-4 px-4 pb-12 pt-4 md:px-6 md:pt-0">
       {mode === "wide" ? (
         <PageHeader
           className="px-0"
@@ -95,7 +95,7 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
           className="py-16"
         />
       ) : (
-        <View className="gap-6">
+        <View className="gap-4">
           <ProfileSection
             mode={mode}
             nickname={profile?.nickname ?? "사용자"}
