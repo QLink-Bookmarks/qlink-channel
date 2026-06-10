@@ -1,6 +1,8 @@
 import { api } from "@/lib/api-client";
 
 import type {
+  CreateFolderInvitationRequest,
+  CreateFolderInvitationResponse,
   CreateFolderRequest,
   CreateFolderResponse,
   GetFoldersParams,
@@ -17,8 +19,15 @@ async function createFolder(payload: CreateFolderRequest) {
   return api.post<CreateFolderResponse, CreateFolderRequest>("/api/folders", payload);
 }
 
+async function createFolderInvitation(id: number, payload: CreateFolderInvitationRequest) {
+  return api.post<CreateFolderInvitationResponse, CreateFolderInvitationRequest>(
+    `/api/folders/${id}`,
+    payload,
+  );
+}
+
 async function updateFolder(id: number, payload: UpdateFolderRequest) {
   return api.put<UpdateFolderResponse, UpdateFolderRequest>(`/api/folders/${id}`, payload);
 }
 
-export { createFolder, getFolders, updateFolder };
+export { createFolder, createFolderInvitation, getFolders, updateFolder };

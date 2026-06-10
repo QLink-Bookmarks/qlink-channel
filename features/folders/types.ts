@@ -37,6 +37,12 @@ type CreateFolderRequest = {
 
 type CreateFolderResponse = ApiEnvelope<{ id: number }>;
 
+type CreateFolderInvitationRequest = {
+  durationDays?: number | null;
+};
+
+type CreateFolderInvitationResponse = ApiEnvelope<{ invitation: string }>;
+
 type UpdateFolderRequest = {
   name: string;
   emoji?: string | null;
@@ -46,6 +52,8 @@ type UpdateFolderRequest = {
 type UpdateFolderResponse = ApiEnvelope<{ id: number }>;
 
 export type {
+  CreateFolderInvitationRequest,
+  CreateFolderInvitationResponse,
   CreateFolderRequest,
   CreateFolderResponse,
   Folder,
