@@ -112,7 +112,8 @@ function InviteAcceptScreen({ folderId, token }: InviteAcceptScreenProps) {
         </View>
         {status === "success" ? (
           <Button
-            className="h-10"
+            className="h-10 self-center"
+            variant="gradient"
             onPress={handleGoFolder}
           >
             <Text>폴더로 이동</Text>
@@ -120,8 +121,8 @@ function InviteAcceptScreen({ folderId, token }: InviteAcceptScreenProps) {
         ) : null}
         {status === "client-error" || status === "server-error" ? (
           <Button
-            className="h-10"
-            variant="outline"
+            className="h-10 self-center"
+            variant="gradient"
             onPress={handleGoHome}
           >
             <Text>홈</Text>
