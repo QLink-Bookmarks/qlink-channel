@@ -32,6 +32,11 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
         contextId: notification.contextId,
       });
 
+      if (notification.readAt) {
+        router.push("/todos" as Href);
+        return;
+      }
+
       try {
         await readNotificationMutation.mutateAsync(notification.id);
         router.push("/todos" as Href);
