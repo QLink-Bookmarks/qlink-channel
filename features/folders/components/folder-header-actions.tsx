@@ -220,6 +220,8 @@ function ShareFolderPlaceholder({
         return (
           <AccountRow
             key={member.userId}
+            avatarEmoji={member.avatarEmoji}
+            avatarUrl={member.avatarUrl}
             label={isOwnerMember ? "소유자" : "멤버"}
             value={member.userNickname}
             action={
@@ -377,7 +379,7 @@ function ShareFolderPlaceholder({
           open={open}
           onOpenChange={onOpenChange}
         >
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg">
             <DialogHeader>
               {view === "invite" ? titleContent : <DialogTitle>{title}</DialogTitle>}
               <DialogDescription>{description}</DialogDescription>

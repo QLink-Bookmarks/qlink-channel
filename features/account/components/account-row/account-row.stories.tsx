@@ -19,6 +19,7 @@ const meta = {
     },
   },
   args: {
+    avatarEmoji: "🙂",
     label: "이메일",
     value: "injae@example.com",
     actionLabel: "변경",
@@ -63,7 +64,19 @@ export const WithIconAction: Story = {
       />
     ),
     actionLabel: undefined,
+    avatarEmoji: "🌿",
     label: "멤버",
     value: "이나제",
+  },
+};
+
+export const WithImageAvatar: Story = {
+  name: "이미지 아바타",
+  args: {
+    actionLabel: "보기",
+    avatarEmoji: "🙂",
+    avatarUrl: "https://github.com/shadcn.png",
+    label: "멤버",
+    value: "이미지 우선 표시",
   },
 };

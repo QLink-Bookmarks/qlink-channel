@@ -24,6 +24,8 @@ type FolderMember = {
   userId: number;
   role: string;
   userNickname: string;
+  avatarEmoji?: string | null;
+  avatarUrl?: string | null;
 };
 
 type GetFolderMembersResponseData = {

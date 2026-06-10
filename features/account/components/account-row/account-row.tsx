@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +11,8 @@ function AccountRow({
   className,
   label,
   value,
+  avatarEmoji,
+  avatarUrl,
   actionLabel,
   action,
   destructive,
@@ -18,6 +21,8 @@ function AccountRow({
   className?: string;
   label: string;
   value?: string;
+  avatarEmoji?: string | null;
+  avatarUrl?: string | null;
   actionLabel?: string;
   action?: ReactNode;
   destructive?: boolean;
@@ -30,9 +35,20 @@ function AccountRow({
         className,
       )}
     >
-      <View className="flex-1 gap-1">
-        <Text className="text-xs text-muted-foreground">{label}</Text>
-        {value ? <Text className="font-medium">{value}</Text> : null}
+      <View className="min-w-0 flex-1 flex-row items-center gap-3">
+        <Avatar
+          alt={value ?? label}
+          size="md"
+        >
+          {avatarUrl ? <AvatarImage source={{ uri: avatarUrl }} /> : null}
+          <AvatarFallback>
+            <Text className="text-lg">{avatarEmoji ?? "🙂"}</Text>
+          </AvatarFallback>
+        </Avatar>
+        <View className="min-w-0 flex-1 gap-1">
+          <Text className="text-xs text-muted-foreground">{label}</Text>
+          {value ? <Text className="font-medium">{value}</Text> : null}
+        </View>
       </View>
       {action ? action : null}
       {actionLabel ? (
