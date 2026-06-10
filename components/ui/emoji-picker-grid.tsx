@@ -146,3 +146,4 @@ function EmojiPickerGrid({ value, onChange, maxHeight = 240 }: EmojiPickerGridPr
 }
 
 export { EmojiPickerGrid };
+export type { EmojiPickerGridProps };

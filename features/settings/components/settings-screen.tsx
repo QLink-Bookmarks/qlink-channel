@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -24,11 +24,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { EmojiPickerGrid } from "@/components/ui/emoji-picker-grid";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { useUpdateMyProfileMutation } from "@/features/account/mutations";
 import { useMyProfileQuery, useMySettingsQuery } from "@/features/account/queries";
 import type { AiProviderType } from "@/features/account/types";
 import {
@@ -43,9 +45,8 @@ import { useDisplaySettings } from "@/stores/display-settings";
 import { useToastStore } from "@/stores/toast-store";
 
 import { useSettingsAutosave } from "../hooks/use-settings-autosave";
-import { EmojiPickerGrid } from "./emoji-picker-grid";
 
-import { ChevronRight, KeyRound, Sparkles } from "lucide-react-native/icons";
+import { Camera, ChevronRight, KeyRound, Sparkles } from "lucide-react-native/icons";
 
 type SettingsScreenMode = "wide" | "mobile";
 
@@ -100,6 +101,7 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
             mode={mode}
             nickname={profile?.nickname ?? "사용자"}
             username={profile?.username ?? ""}
+            avatarUrl={profile?.avatarUrl ?? null}
             avatarFromApi={profile?.avatarEmoji ?? null}
           />
 
@@ -165,17 +167,19 @@ function ProfileSection({
   mode,
   nickname,
   username,
+  avatarUrl,
   avatarFromApi,
 }: {
   mode: SettingsScreenMode;
   nickname: string;
   username: string;
+  avatarUrl: string | null;
   avatarFromApi: string | null;
 }) {
   const avatarOverride = useDisplaySettings((state) => state.profile.avatarEmoji);
   const setAvatarEmoji = useDisplaySettings((state) => state.setAvatarEmoji);
   const avatar = avatarOverride ?? avatarFromApi ?? "🌸";
-  const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [profileOpen, setProfileOpen] = React.useState(false);
   const [logoutOpen, setLogoutOpen] = React.useState(false);
 
   return (
@@ -185,29 +189,33 @@ function ProfileSection({
     >
       <View className="flex-row items-center gap-4">
         <Pressable
-          className="size-14 items-center justify-center rounded-full border border-border bg-card active:bg-accent web:hover:bg-accent"
-          onPress={() => setPickerOpen(true)}
+          className="min-w-0 flex-1 flex-row items-center gap-4 rounded-xl px-2 py-2 active:bg-accent web:hover:bg-accent"
+          onPress={() => setProfileOpen(true)}
         >
-          <Avatar alt={`${nickname} avatar`}>
+          <Avatar
+            alt={`${nickname} avatar`}
+            size="lg"
+          >
+            {avatarUrl ? <AvatarImage source={{ uri: avatarUrl }} /> : null}
             <AvatarFallback>
               <Text className="text-2xl leading-none">{avatar}</Text>
             </AvatarFallback>
           </Avatar>
+          <View className="min-w-0 flex-1">
+            <Text
+              numberOfLines={1}
+              className="text-base font-semibold text-foreground"
+            >
+              {nickname}
+            </Text>
+            <Text
+              numberOfLines={1}
+              className="text-sm text-muted-foreground"
+            >
+              {username}
+            </Text>
+          </View>
         </Pressable>
-        <View className="min-w-0 flex-1">
-          <Text
-            numberOfLines={1}
-            className="text-base font-semibold text-foreground"
-          >
-            {nickname}
-          </Text>
-          <Text
-            numberOfLines={1}
-            className="text-sm text-muted-foreground"
-          >
-            {username}
-          </Text>
-        </View>
         <View className="self-end pb-1">
           <Button
             variant="outline"
@@ -219,14 +227,17 @@ function ProfileSection({
         </View>
       </View>
 
-      <AvatarEmojiPickerOverlay
+      <ProfileEditOverlay
         mode={mode}
-        open={pickerOpen}
-        value={avatar}
-        onOpenChange={setPickerOpen}
-        onSelect={(emoji) => {
-          setAvatarEmoji(emoji);
-          setPickerOpen(false);
+        open={profileOpen}
+        avatarEmoji={avatar}
+        avatarUrl={avatarUrl}
+        nickname={nickname}
+        username={username}
+        onOpenChange={setProfileOpen}
+        onSaved={(nextAvatarEmoji) => {
+          setAvatarEmoji(nextAvatarEmoji);
+          setProfileOpen(false);
         }}
       />
 
@@ -255,32 +266,141 @@ function ProfileSection({
   );
 }
 
-function AvatarEmojiPickerOverlay({
+function ProfileEditOverlay({
   mode,
   open,
-  value,
+  avatarEmoji,
+  avatarUrl,
+  username,
+  nickname,
   onOpenChange,
-  onSelect,
+  onSaved,
 }: {
   mode: SettingsScreenMode;
   open: boolean;
-  value: string | null;
+  avatarEmoji: string | null;
+  avatarUrl: string | null;
+  username: string;
+  nickname: string;
   onOpenChange: (open: boolean) => void;
-  onSelect: (emoji: string | null) => void;
+  onSaved: (avatarEmoji: string | null) => void;
 }) {
-  const [draft, setDraft] = React.useState<string | null>(value);
+  const [draftAvatarEmoji, setDraftAvatarEmoji] = React.useState<string | null>(avatarEmoji);
+  const [draftUsername, setDraftUsername] = React.useState(username);
+  const [draftNickname, setDraftNickname] = React.useState(nickname);
+  const [validationError, setValidationError] = React.useState<string | undefined>();
+  const mutation = useUpdateMyProfileMutation();
+  const resetMutation = mutation.reset;
+  const showToast = useToastStore((state) => state.showToast);
 
   React.useEffect(() => {
     if (open) {
-      setDraft(value);
+      setDraftAvatarEmoji(avatarEmoji);
+      setDraftUsername(username);
+      setDraftNickname(nickname);
+      setValidationError(undefined);
+      resetMutation();
     }
-  }, [open, value]);
+  }, [avatarEmoji, nickname, open, resetMutation, username]);
+
+  const handleSave = React.useCallback(async () => {
+    const trimmedUsername = draftUsername.trim();
+    const trimmedNickname = draftNickname.trim();
+    if (!trimmedUsername || !trimmedNickname) {
+      setValidationError("아이디와 닉네임을 모두 입력해주세요.");
+      return;
+    }
+
+    try {
+      const response = await mutation.mutateAsync({
+        avatarEmoji: draftAvatarEmoji,
+        nickname: trimmedNickname,
+        username: trimmedUsername,
+      });
+      onSaved(response.data?.avatarEmoji ?? draftAvatarEmoji);
+      showToast({
+        description: "프로필 정보가 업데이트되었어요.",
+        dismissible: true,
+        durationMs: 3000,
+        sourceKey: "settings-profile",
+        title: "수정 완료",
+        variant: "success",
+      });
+    } catch {
+      showToast({
+        description: "프로필 수정에 실패했어요. 잠시 후 다시 시도해주세요.",
+        dismissible: true,
+        durationMs: 3000,
+        sourceKey: "settings-profile",
+        title: "수정 실패",
+        variant: "warning",
+      });
+    }
+  }, [draftAvatarEmoji, draftNickname, draftUsername, mutation, onSaved, showToast]);
 
   const body = (
     <View className="gap-4">
+      <View className="items-center">
+        <View className="relative">
+          <Avatar
+            alt={`${draftNickname || nickname} avatar`}
+            size="xl"
+          >
+            {avatarUrl ? <AvatarImage source={{ uri: avatarUrl }} /> : null}
+            <AvatarFallback>
+              <Text className="text-3xl leading-none">{draftAvatarEmoji ?? "🌸"}</Text>
+            </AvatarFallback>
+          </Avatar>
+          <Pressable
+            className="absolute -bottom-1 -right-1 size-9 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
+            hitSlop={8}
+          >
+            <Icon
+              as={Camera}
+              size={16}
+              className="text-foreground"
+            />
+          </Pressable>
+        </View>
+      </View>
+      <View className="gap-2">
+        <Text className="text-sm font-semibold text-muted-foreground">아이디</Text>
+        <Input
+          className="h-10 rounded-xl px-4 text-base"
+          autoCapitalize="none"
+          autoCorrect={false}
+          placeholder="아이디"
+          value={draftUsername}
+          onChangeText={(next) => {
+            setDraftUsername(next);
+            if (validationError) {
+              setValidationError(undefined);
+            }
+          }}
+        />
+        <Text className="text-xs text-muted-foreground">공유 프로필과 계정 식별에 사용돼요.</Text>
+      </View>
+      <View className="gap-2">
+        <Text className="text-sm font-semibold text-muted-foreground">닉네임</Text>
+        <Input
+          className="h-10 rounded-xl px-4 text-base"
+          placeholder="닉네임"
+          value={draftNickname}
+          onChangeText={(next) => {
+            setDraftNickname(next);
+            if (validationError) {
+              setValidationError(undefined);
+            }
+          }}
+        />
+        <Text className="text-xs text-muted-foreground">앱 안에서 표시되는 이름이에요.</Text>
+      </View>
+      {validationError ? (
+        <Text className="text-sm font-medium text-destructive">{validationError}</Text>
+      ) : null}
       <EmojiPickerGrid
-        value={draft}
-        onChange={setDraft}
+        value={draftAvatarEmoji}
+        onChange={setDraftAvatarEmoji}
       />
       <View className="flex-row justify-end gap-2">
         <Button
@@ -289,8 +409,12 @@ function AvatarEmojiPickerOverlay({
         >
           <Text>취소</Text>
         </Button>
-        <Button onPress={() => onSelect(draft)}>
-          <Text>저장</Text>
+        <Button
+          disabled={mutation.isPending}
+          onPress={handleSave}
+        >
+          {mutation.isPending ? <ActivityIndicator size="small" /> : null}
+          <Text>수정하기</Text>
         </Button>
       </View>
     </View>
@@ -304,8 +428,8 @@ function AvatarEmojiPickerOverlay({
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>아이콘 선택</DialogTitle>
-            <DialogDescription>대표 아이콘으로 사용할 이모지를 선택해주세요.</DialogDescription>
+            <DialogTitle>프로필 수정</DialogTitle>
+            <DialogDescription>아이디, 닉네임, 대표 이모지를 수정해요.</DialogDescription>
           </DialogHeader>
           {body}
         </DialogContent>
@@ -323,7 +447,7 @@ function AvatarEmojiPickerOverlay({
       fitContent
       onOpenChange={onOpenChange}
     >
-      <Text className="text-lg font-semibold text-foreground">아이콘 선택</Text>
+      <Text className="text-lg font-semibold text-foreground">프로필 수정</Text>
       {body}
     </Sheet>
   );

@@ -3,6 +3,8 @@ import { api } from "@/lib/api-client";
 import type {
   GetMyProfileResponse,
   GetMySettingsResponse,
+  UpdateMyProfileRequest,
+  UpdateMyProfileResponse,
   UpdateMySettingsRequest,
   UpdateMySettingsResponse,
 } from "./types";
@@ -22,4 +24,8 @@ async function updateMySettings(payload: UpdateMySettingsRequest) {
   );
 }
 
-export { getMyProfile, getMySettings, updateMySettings };
+async function updateMyProfile(payload: UpdateMyProfileRequest) {
+  return api.put<UpdateMyProfileResponse, UpdateMyProfileRequest>("/api/users/me", payload);
+}
+
+export { getMyProfile, getMySettings, updateMyProfile, updateMySettings };

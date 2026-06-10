@@ -57,6 +57,14 @@ type GetMyProfileResponseData = {
 
 type GetMyProfileResponse = ApiEnvelope<GetMyProfileResponseData>;
 
+type UpdateMyProfileRequest = {
+  username: string;
+  nickname: string;
+  avatarEmoji?: string | null;
+};
+
+type UpdateMyProfileResponse = ApiEnvelope<GetMyProfileResponseData | null>;
+
 export type {
   AiProviderType,
   GetMyProfileResponse,
@@ -65,6 +73,8 @@ export type {
   GetMySettingsResponseData,
   UpdateMySettingsRequest,
   UpdateMySettingsResponse,
+  UpdateMyProfileRequest,
+  UpdateMyProfileResponse,
   UserAiSettings,
   UserBehaviorSettings,
   UserDefaultModel,
