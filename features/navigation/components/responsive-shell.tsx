@@ -150,8 +150,8 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   }, [requestHomeSearchFocus, routeState.pathname, router]);
 
   const handleNotificationsPress = React.useCallback(() => {
-    console.log("shell:notifications");
-  }, []);
+    router.push("/notifications" as Href);
+  }, [router]);
 
   const handleProfilePress = React.useCallback(() => {
     router.push("/settings" as Href);

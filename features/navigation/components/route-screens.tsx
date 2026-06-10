@@ -10,6 +10,7 @@ import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkListView } from "@/features/home/components/link-list-view";
 import { MobileHomeScreen } from "@/features/home/components/mobile-home-screen";
 import { LinkDetailScreen } from "@/features/links/components/link-detail-screen";
+import { NotificationInboxScreen } from "@/features/notifications/components/notification-inbox-screen";
 import { SettingsScreen } from "@/features/settings/components/settings-screen";
 import { TodosScreen } from "@/features/todos/components/todos-screen/todos-screen";
 
@@ -153,6 +154,11 @@ function TodosRouteScreen() {
   return <TodosScreen mode={isWideView ? "wide" : "mobile"} />;
 }
 
+function NotificationsRouteScreen() {
+  const { isWideView } = useShellRouteState();
+  return <NotificationInboxScreen mode={isWideView ? "wide" : "mobile"} />;
+}
+
 function LinksRouteScreen() {
   const { isWideView } = useShellRouteState();
   const params = useLocalSearchParams<{ linkId?: string | string[] }>();
@@ -283,6 +289,7 @@ export {
   LinkDetailRouteScreen,
   LinksRouteScreen,
   NotFoundRouteScreen,
+  NotificationsRouteScreen,
   SettingsAccountsRouteScreen,
   SettingsAiRouteScreen,
   SettingsProfileRouteScreen,

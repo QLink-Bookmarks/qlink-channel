@@ -56,6 +56,7 @@ function isKnownShellPath(pathname: string) {
     pathname === "/folders" ||
     isFolderDetailPath(pathname) ||
     pathname === "/todos" ||
+    pathname === "/notifications" ||
     pathname === "/links" ||
     isLinkDetailPath(pathname) ||
     pathname === "/settings" ||
@@ -158,6 +159,8 @@ function getRouteTitle(pathname: string, params: RouteParams, isWideView: boolea
       return isWideView ? "홈" : "폴더";
     case "/todos":
       return "투두";
+    case "/notifications":
+      return "알림";
     case "/links":
       return "링크";
     case "/settings":
@@ -196,6 +199,10 @@ function getBackHref(pathname: string) {
 
   if (isSettingsSubPath(pathname)) {
     return "/settings";
+  }
+
+  if (pathname === "/notifications") {
+    return "/home";
   }
 
   return "/home";
