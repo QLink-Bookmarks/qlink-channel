@@ -290,9 +290,8 @@ function ProfileEditOverlay({
   const [draftAvatarEmoji, setDraftAvatarEmoji] = React.useState<string | null>(avatarEmoji);
   const [draftUsername, setDraftUsername] = React.useState(username);
   const [draftNickname, setDraftNickname] = React.useState(nickname);
-  // Local-only avatar image preview from the file picker. Not sent to the server yet.
-  // TODO(profile-avatar-upload): upload picked file via the avatar upload API and
-  // pass the returned URL into the profile update mutation.
+  // TODO(profile-avatar-upload): upload the picked file via the avatar upload API and pass
+  // the returned URL into the profile update mutation; this preview state is local-only.
   const [draftAvatarPreviewUrl, setDraftAvatarPreviewUrl] = React.useState<string | null>(null);
   const [validationError, setValidationError] = React.useState<string | undefined>();
   const mutation = useUpdateMyProfileMutation();

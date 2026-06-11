@@ -7,8 +7,6 @@ type ImageUploaderProps = Omit<PressableProps, "onPress"> & {
   children: React.ReactNode;
 };
 
-// TODO(profile-avatar-upload): once the avatar upload API lands, swap the data-URL
-// payload for an uploaded image URL and surface upload errors.
 function ImageUploader({
   children,
   onImagePicked,
@@ -24,7 +22,6 @@ function ImageUploader({
   const handleChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
-      // Reset so the same file can be picked again.
       event.target.value = "";
       if (!file) {
         return;

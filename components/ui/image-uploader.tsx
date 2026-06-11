@@ -6,7 +6,6 @@ type ImageUploaderProps = Omit<PressableProps, "onPress"> & {
   children: React.ReactNode;
 };
 
-// Native fallback. The web implementation lives in `image-uploader.web.tsx`.
 // TODO(profile-avatar-upload): integrate expo-image-picker on native and call
 // onImagePicked with the picked image (or a URL after server upload).
 function ImageUploader({ children, ...pressableProps }: ImageUploaderProps) {
