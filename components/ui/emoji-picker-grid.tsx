@@ -97,7 +97,7 @@ function EmojiPickerGrid({
   }, [entries, deferredQuery]);
 
   return (
-    <View className="gap-2">
+    <View className="w-full gap-2">
       <Input
         className="h-9 rounded-xl px-3 text-sm"
         placeholder="이모지 검색 (예: 웃음, smile)"
@@ -105,8 +105,8 @@ function EmojiPickerGrid({
         onChangeText={setQuery}
       />
       <View
-        className="overflow-hidden rounded-2xl border border-border bg-card"
-        style={fixedHeight ? { height: maxHeight } : undefined}
+        className="w-full overflow-hidden rounded-2xl border border-border bg-card"
+        style={[{ minWidth: 320 }, fixedHeight ? { height: maxHeight } : undefined]}
       >
         {entries === null ? (
           <View
