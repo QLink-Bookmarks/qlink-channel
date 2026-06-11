@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Platform, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Sheet } from "@/components/layout/sheet";
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { EmojiPickerGrid } from "@/components/ui/emoji-picker-grid";
 import { Icon } from "@/components/ui/icon";
+import { ImageUploader } from "@/components/ui/image-uploader";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
@@ -55,33 +56,6 @@ type ProviderTypeOption = {
   label: string;
   placeholder: string;
 };
-
-// Lets the camera button preview a locally-picked image in the avatar. The picked
-// data URL is local-only; nothing is sent to the server here.
-// TODO(profile-avatar-upload): replace the native branch with expo-image-picker
-// (and a real upload) once the avatar upload API lands.
-async function pickLocalImageAsDataUrl(): Promise<string | null> {
-  if (Platform.OS !== "web") {
-    return null;
-  }
-  return new Promise((resolve) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (!file) {
-        resolve(null);
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(file);
-    };
-    input.click();
-  });
-}
 
 const PROVIDER_TYPE_OPTIONS: ProviderTypeOption[] = [
   { type: "OPENAI", label: "OpenAI", placeholder: "sk-..." },
@@ -344,12 +318,6 @@ function ProfileEditOverlay({
     setDraftNickname(next);
     setValidationError(undefined);
   }, []);
-  const handlePickAvatarImage = React.useCallback(async () => {
-    const dataUrl = await pickLocalImageAsDataUrl();
-    if (dataUrl) {
-      setDraftAvatarPreviewUrl(dataUrl);
-    }
-  }, []);
 
   const handleSave = React.useCallback(async () => {
     const trimmedUsername = draftUsername.trim();
@@ -401,17 +369,17 @@ function ProfileEditOverlay({
               <Text className="text-3xl leading-none">{draftAvatarEmoji ?? "🌸"}</Text>
             </AvatarFallback>
           </Avatar>
-          <Pressable
+          <ImageUploader
             className="absolute -bottom-2 -right-2 size-9 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
             hitSlop={8}
-            onPress={handlePickAvatarImage}
+            onImagePicked={setDraftAvatarPreviewUrl}
           >
             <Icon
               as={Camera}
               size={16}
               className="text-foreground"
             />
-          </Pressable>
+          </ImageUploader>
         </View>
       </View>
       <View className="gap-2">

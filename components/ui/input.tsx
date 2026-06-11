@@ -9,6 +9,15 @@ import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 
 import { type VariantProps, cva } from "class-variance-authority";
 
+// react-native-web's TextInput strips React-style onCompositionStart/End props before they
+// reach the underlying <input>, AND its controlled-input bookkeeping rewrites the DOM value
+// back to props.value on every change. Together those make Hangul IME composition produce the
+// classic "한" → "ㅎ하한" duplication: each intermediate jamo (a) escapes into state because no
+// compositionstart handler ever fires to suppress it and (b) collides with the controlled
+// reconciliation when state lags the IME. We fix both by attaching composition listeners
+// imperatively (below) and by feeding the inner TextInput a locally-mirrored value so the
+// controlled reconciliation always matches what the IME is showing.
+
 const inputVariants = cva(
   "flex w-full min-w-0 flex-row items-center border border-input text-foreground shadow-sm shadow-black/5 dark:bg-input/30",
   {
@@ -32,8 +41,6 @@ const inputVariants = cva(
   },
 );
 
-type CompositionHandler = (event: { target: { value: string } }) => void;
-
 function Input({
   className,
   variant,
@@ -42,6 +49,9 @@ function Input({
   onFocus,
   onChangeText,
   style,
+  value,
+  defaultValue,
+  ref,
   ...props
 }: React.ComponentProps<typeof TextInput> &
   React.RefAttributes<TextInput> &
@@ -62,36 +72,89 @@ function Input({
   const TextInputComponent = (shouldUseBottomSheetInput
     ? BottomSheetTextInput
     : TextInput) as unknown as typeof TextInput;
-  // While the IME is composing (e.g. Hangul syllable assembly), the underlying <input> holds
-  // intermediate state that React's controlled value would clobber on each re-render. We defer
-  // propagating text until composition ends so the caller's state doesn't fight the IME.
+  // Tracks whether the IME is mid-composition. While true we stop propagating onChangeText to
+  // the caller so their state doesn't fight the IME; we also keep the locally mirrored value
+  // updated so RNW's controlled-input reconciliation matches what the IME currently shows.
   const isComposingRef = React.useRef(false);
+  // Keep the latest onChangeText reachable from the imperative listeners without re-attaching
+  // them on every render.
+  const onChangeTextRef = React.useRef(onChangeText);
+  onChangeTextRef.current = onChangeText;
 
-  const handleChangeText = React.useCallback(
-    (text: string) => {
-      if (isComposingRef.current) {
-        return;
+  // Mirror the controlled value locally. This is the value we hand to the underlying TextInput.
+  // During composition we update it eagerly from input events so RNW's value-reconciliation
+  // never resets the DOM input back to a stale parent state mid-syllable. We sync from the
+  // parent `value` prop only when not composing.
+  //
+  // Controlled vs uncontrolled is fixed at mount time (by whether `value` was passed) so we
+  // never trigger React's "controlled changing to uncontrolled" warning if the parent briefly
+  // passes undefined later.
+  const isControlledRef = React.useRef(value !== undefined);
+  const isControlled = isControlledRef.current;
+  const externalValue = typeof value === "string" ? value : value == null ? "" : String(value);
+  const [localValue, setLocalValue] = React.useState<string>(isControlled ? externalValue : "");
+  React.useEffect(() => {
+    if (!isControlled || isComposingRef.current) {
+      return;
+    }
+    setLocalValue(externalValue);
+  }, [externalValue, isControlled]);
+
+  const handleChangeText = React.useCallback((text: string) => {
+    setLocalValue(text);
+    if (isComposingRef.current) {
+      return;
+    }
+    onChangeTextRef.current?.(text);
+  }, []);
+
+  const innerRef = React.useRef<TextInput | null>(null);
+  const setRef = React.useCallback(
+    (node: TextInput | null) => {
+      innerRef.current = node;
+      if (typeof ref === "function") {
+        ref(node);
+      } else if (ref) {
+        (ref as React.MutableRefObject<TextInput | null>).current = node;
       }
-      onChangeText?.(text);
     },
-    [onChangeText],
+    [ref],
   );
 
-  const compositionProps =
-    Platform.OS === "web"
-      ? ({
-          onCompositionStart: () => {
-            isComposingRef.current = true;
-          },
-          onCompositionEnd: ((event) => {
-            isComposingRef.current = false;
-            onChangeText?.(event.target.value);
-          }) as CompositionHandler,
-        } as Record<string, unknown>)
-      : undefined;
+  // Attach compositionstart/compositionend directly to the underlying DOM input. RNW's
+  // TextInput drops those props from its supportedProps list, so the React-style handlers we
+  // used to spread would never reach the <input>. Attaching imperatively bypasses that filter
+  // and keeps the in-flight Hangul syllable from leaking into state.
+  React.useEffect(() => {
+    if (Platform.OS !== "web") {
+      return;
+    }
+    const node = innerRef.current as unknown as HTMLElement | null;
+    if (!node) {
+      return;
+    }
+    const handleStart = () => {
+      isComposingRef.current = true;
+    };
+    const handleEnd = (event: Event) => {
+      isComposingRef.current = false;
+      const target = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+      if (target) {
+        setLocalValue(target.value);
+        onChangeTextRef.current?.(target.value);
+      }
+    };
+    node.addEventListener("compositionstart", handleStart);
+    node.addEventListener("compositionend", handleEnd);
+    return () => {
+      node.removeEventListener("compositionstart", handleStart);
+      node.removeEventListener("compositionend", handleEnd);
+    };
+  }, [shouldUseBottomSheetInput]);
 
   return (
     <TextInputComponent
+      ref={setRef}
       className={cn(
         inputVariants({ variant, size }),
         props.editable === false &&
@@ -120,6 +183,8 @@ function Input({
         onFocus?.(event);
       }}
       onChangeText={handleChangeText}
+      value={isControlled ? localValue : undefined}
+      defaultValue={isControlled ? undefined : defaultValue}
       style={[
         Platform.OS !== "web" && isFocused
           ? {
@@ -130,7 +195,6 @@ function Input({
           : undefined,
         style,
       ]}
-      {...compositionProps}
       {...props}
     />
   );
