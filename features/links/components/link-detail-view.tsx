@@ -1073,7 +1073,7 @@ function LinkDetailView({
             }
           }}
         >
-          <DialogContent className="max-h-[80vh] max-w-2xl">
+          <DialogContent className="max-h-[80vh] max-w-3xl">
             <DialogHeader>
               <DialogTitle>할 일 추가 / 수정</DialogTitle>
               <DialogDescription>

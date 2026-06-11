@@ -436,7 +436,7 @@ function ProfileEditOverlay({
         open={open}
         onOpenChange={onOpenChange}
       >
-        <DialogContent className="max-h-[80vh] max-w-md overflow-y-auto">
+        <DialogContent className="scrollbar-none max-h-[80vh] max-w-md overflow-y-auto">
           <DialogHeader>
             <DialogTitle>프로필 수정</DialogTitle>
             <DialogDescription>아이디, 닉네임, 대표 이모지를 수정해요.</DialogDescription>
