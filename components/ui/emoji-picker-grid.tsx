@@ -55,9 +55,15 @@ type EmojiPickerGridProps = {
   value: string | null;
   onChange: (emoji: string | null) => void;
   maxHeight?: number;
+  fixedHeight?: boolean;
 };
 
-function EmojiPickerGrid({ value, onChange, maxHeight = 240 }: EmojiPickerGridProps) {
+function EmojiPickerGrid({
+  value,
+  onChange,
+  maxHeight = 240,
+  fixedHeight = false,
+}: EmojiPickerGridProps) {
   const [entries, setEntries] = React.useState<EmojiSearchEntry[] | null>(cachedEmojiIndex);
   const [query, setQuery] = React.useState("");
   const deferredQuery = React.useDeferredValue(query);
@@ -98,25 +104,28 @@ function EmojiPickerGrid({ value, onChange, maxHeight = 240 }: EmojiPickerGridPr
         value={query}
         onChangeText={setQuery}
       />
-      <View className="overflow-hidden rounded-2xl border border-border bg-card">
+      <View
+        className="overflow-hidden rounded-2xl border border-border bg-card"
+        style={fixedHeight ? { height: maxHeight } : undefined}
+      >
         {entries === null ? (
           <View
             className="items-center justify-center"
-            style={{ height: maxHeight }}
+            style={fixedHeight ? { flex: 1 } : { height: maxHeight }}
           >
             <ActivityIndicator size="small" />
           </View>
         ) : filteredEntries.length === 0 ? (
           <View
             className="items-center justify-center"
-            style={{ height: maxHeight }}
+            style={fixedHeight ? { flex: 1 } : { height: maxHeight }}
           >
             <Text className="text-sm text-muted-foreground">검색 결과가 없어요</Text>
           </View>
         ) : (
           <ScrollView
             className="scrollbar-accent"
-            style={{ maxHeight }}
+            style={fixedHeight ? { flex: 1 } : { maxHeight }}
             showsVerticalScrollIndicator
           >
             <View className="flex-row flex-wrap gap-1 p-2">

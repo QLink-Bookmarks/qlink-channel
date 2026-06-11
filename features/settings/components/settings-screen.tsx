@@ -183,47 +183,50 @@ function ProfileSection({
   const [logoutOpen, setLogoutOpen] = React.useState(false);
 
   return (
-    <SettingsSectionCard
-      title="프로필"
-      description="대표 아이콘과 닉네임을 확인해요."
-    >
-      <View className="flex-row items-center gap-4">
-        <Pressable
-          className="min-w-0 flex-1 flex-row items-center gap-4 rounded-xl px-2 py-2 active:bg-accent web:hover:bg-accent"
-          onPress={() => setProfileOpen(true)}
-        >
-          <Avatar
-            alt={`${nickname} avatar`}
-            size="lg"
+    <>
+      <SettingsSectionCard
+        title="프로필"
+        description="대표 아이콘과 닉네임을 확인해요."
+      >
+        <View className="flex-row items-center gap-4">
+          <Pressable
+            className="min-w-0 flex-1 flex-row items-center gap-4 rounded-xl px-2 py-2 active:bg-accent web:hover:bg-accent"
+            onPress={() => setProfileOpen(true)}
           >
-            {avatarUrl ? <AvatarImage source={{ uri: avatarUrl }} /> : null}
-            <AvatarFallback>
-              <Text className="text-2xl leading-none">{avatar}</Text>
-            </AvatarFallback>
-          </Avatar>
-          <View className="min-w-0 flex-1">
-            <Text
-              numberOfLines={1}
-              className="text-base font-semibold text-foreground"
+            <Avatar
+              alt={`${nickname} avatar`}
+              size="lg"
             >
-              {nickname}
-            </Text>
-            <Text
-              numberOfLines={1}
-              className="text-sm text-muted-foreground"
-            >
-              {username}
-            </Text>
-          </View>
-        </Pressable>
-        <Button
-          variant="outline"
-          size="sm"
-          onPress={() => setLogoutOpen(true)}
-        >
-          <Text>로그아웃</Text>
-        </Button>
-      </View>
+              {avatarUrl ? <AvatarImage source={{ uri: avatarUrl }} /> : null}
+              <AvatarFallback>
+                <Text className="text-2xl leading-none">{avatar}</Text>
+              </AvatarFallback>
+            </Avatar>
+            <View className="min-w-0 flex-1">
+              <Text
+                numberOfLines={1}
+                className="text-base font-semibold text-foreground"
+              >
+                {nickname}
+              </Text>
+              <Text
+                numberOfLines={1}
+                className="text-sm text-muted-foreground"
+              >
+                {username}
+              </Text>
+            </View>
+          </Pressable>
+          <Button
+            variant="outline"
+            size="sm"
+            className="self-center"
+            onPress={() => setLogoutOpen(true)}
+          >
+            <Text>로그아웃</Text>
+          </Button>
+        </View>
+      </SettingsSectionCard>
 
       <ProfileEditOverlay
         mode={mode}
@@ -260,7 +263,7 @@ function ProfileSection({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </SettingsSectionCard>
+    </>
   );
 }
 
@@ -336,7 +339,7 @@ function ProfileEditOverlay({
     }
   }, [draftAvatarEmoji, draftNickname, draftUsername, mutation, onSaved, showToast]);
 
-  const body = (
+  const renderBody = (pickerMaxHeight: number, pickerFixedHeight: boolean) => (
     <View className="gap-4">
       <View className="items-center">
         <View className="relative">
@@ -399,7 +402,8 @@ function ProfileEditOverlay({
       <EmojiPickerGrid
         value={draftAvatarEmoji}
         onChange={setDraftAvatarEmoji}
-        maxHeight={220}
+        maxHeight={pickerMaxHeight}
+        fixedHeight={pickerFixedHeight}
       />
       <View className="flex-row justify-end gap-2">
         <Button
@@ -430,7 +434,7 @@ function ProfileEditOverlay({
             <DialogTitle>프로필 수정</DialogTitle>
             <DialogDescription>아이디, 닉네임, 대표 이모지를 수정해요.</DialogDescription>
           </DialogHeader>
-          {body}
+          {renderBody(452, true)}
         </DialogContent>
       </Dialog>
     );
@@ -444,10 +448,11 @@ function ProfileEditOverlay({
     <Sheet
       open={open}
       fitContent
+      maxDynamicContentSize={560}
       onOpenChange={onOpenChange}
     >
       <Text className="text-lg font-semibold text-foreground">프로필 수정</Text>
-      {body}
+      {renderBody(220, false)}
     </Sheet>
   );
 }
