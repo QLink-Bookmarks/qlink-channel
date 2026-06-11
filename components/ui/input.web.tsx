@@ -4,6 +4,7 @@ import { TextInput } from "react-native";
 import { cn } from "@/lib/utils";
 
 import { type InputVariantProps, inputVariants } from "./input-variants";
+import { useControlledValueMirror } from "./use-controlled-value-mirror";
 
 function Input({
   className,
@@ -19,27 +20,12 @@ function Input({
   ...props
 }: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput> & InputVariantProps) {
   const isComposingRef = React.useRef(false);
-  const onChangeTextRef = React.useRef(onChangeText);
-  onChangeTextRef.current = onChangeText;
-
-  const isControlledRef = React.useRef(value !== undefined);
-  const isControlled = isControlledRef.current;
-  const externalValue = typeof value === "string" ? value : value == null ? "" : String(value);
-  const [localValue, setLocalValue] = React.useState<string>(isControlled ? externalValue : "");
-  React.useEffect(() => {
-    if (!isControlled || isComposingRef.current) {
-      return;
-    }
-    setLocalValue(externalValue);
-  }, [externalValue, isControlled]);
-
-  const handleChangeText = React.useCallback((text: string) => {
-    setLocalValue(text);
-    if (isComposingRef.current) {
-      return;
-    }
-    onChangeTextRef.current?.(text);
-  }, []);
+  const { inputValue, inputDefaultValue, handleChangeText, commit } = useControlledValueMirror({
+    value,
+    defaultValue,
+    onChangeText,
+    isComposingRef,
+  });
 
   const innerRef = React.useRef<TextInput | null>(null);
   const setRef = React.useCallback(
@@ -56,9 +42,7 @@ function Input({
 
   React.useEffect(() => {
     const node = innerRef.current as unknown as HTMLElement | null;
-    if (!node) {
-      return;
-    }
+    if (!node) return;
     const handleStart = () => {
       isComposingRef.current = true;
     };
@@ -66,8 +50,7 @@ function Input({
       isComposingRef.current = false;
       const target = event.target as HTMLInputElement | HTMLTextAreaElement | null;
       if (target) {
-        setLocalValue(target.value);
-        onChangeTextRef.current?.(target.value);
+        commit(target.value);
       }
     };
     node.addEventListener("compositionstart", handleStart);
@@ -76,7 +59,7 @@ function Input({
       node.removeEventListener("compositionstart", handleStart);
       node.removeEventListener("compositionend", handleEnd);
     };
-  }, []);
+  }, [commit]);
 
   return (
     <TextInput
@@ -90,15 +73,11 @@ function Input({
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         className,
       )}
-      onBlur={(event) => {
-        onBlur?.(event);
-      }}
-      onFocus={(event) => {
-        onFocus?.(event);
-      }}
+      onBlur={onBlur}
+      onFocus={onFocus}
       onChangeText={handleChangeText}
-      value={isControlled ? localValue : undefined}
-      defaultValue={isControlled ? undefined : defaultValue}
+      value={inputValue}
+      defaultValue={inputDefaultValue}
       style={style}
       {...props}
     />

@@ -8,6 +8,7 @@ import { useDisplaySettings } from "@/stores/display-settings";
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 
 import { type InputVariantProps, inputVariants } from "./input-variants";
+import { useControlledValueMirror } from "./use-controlled-value-mirror";
 
 function Input({
   className,
@@ -15,7 +16,10 @@ function Input({
   size,
   onBlur,
   onFocus,
+  onChangeText,
   style,
+  value,
+  defaultValue,
   ...props
 }: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput> & InputVariantProps) {
   const accent = useDisplaySettings((state) => state.display.accent);
@@ -26,6 +30,12 @@ function Input({
   const TextInputComponent = (isInsideSheet
     ? BottomSheetTextInput
     : TextInput) as unknown as typeof TextInput;
+
+  const { inputValue, inputDefaultValue, handleChangeText } = useControlledValueMirror({
+    value,
+    defaultValue,
+    onChangeText,
+  });
 
   return (
     <TextInputComponent
@@ -43,6 +53,9 @@ function Input({
         setIsFocused(true);
         onFocus?.(event);
       }}
+      onChangeText={handleChangeText}
+      value={inputValue}
+      defaultValue={inputDefaultValue}
       style={[
         isFocused
           ? {
