@@ -5,7 +5,10 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Text } from "@/components/ui/text";
+import { getTodos } from "@/features/todos/api";
+import { todoQueryKeys } from "@/features/todos/queries";
 import { reportError } from "@/lib/error-reporting";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useReadNotificationMutation } from "../mutations";
 import { useNotificationsQuery } from "../queries";
@@ -18,28 +21,43 @@ type NotificationInboxScreenMode = "mobile" | "wide";
 
 function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const notificationsQuery = useNotificationsQuery({ size: 30 });
   const readNotificationMutation = useReadNotificationMutation();
   const notifications = notificationsQuery.data?.contents ?? [];
   const unreadCount = notifications.filter((notification) => !notification.readAt).length;
   const isRefreshing = notificationsQuery.isFetching && !notificationsQuery.isLoading;
 
-  const handleNotificationPress = React.useCallback(
+  const navigateToTodoContext = React.useCallback(
     async (notification: NotificationListItem) => {
-      // TODO: Navigate by notification context once deep link targets are defined.
-      console.log("notification:press", {
-        context: notification.context,
-        contextId: notification.contextId,
-      });
-
-      if (notification.readAt) {
-        router.push("/todos" as Href);
+      if (notification.context !== "TODO") {
         return;
       }
+      const params = { order: "latest", size: 50 } as const;
+      const todosData = await queryClient.fetchQuery({
+        queryKey: todoQueryKeys.list(params),
+        queryFn: async () => (await getTodos(params)).data,
+      });
+      const todo = todosData?.contents.find((entry) => entry.id === notification.contextId);
+      if (!todo) {
+        return;
+      }
+      const target =
+        mode === "wide"
+          ? (`/links?linkId=${todo.linkId}` as Href)
+          : (`/links/${todo.linkId}` as Href);
+      router.push(target);
+    },
+    [mode, queryClient, router],
+  );
 
+  const handleNotificationPress = React.useCallback(
+    async (notification: NotificationListItem) => {
       try {
-        await readNotificationMutation.mutateAsync(notification.id);
-        router.push("/todos" as Href);
+        if (!notification.readAt) {
+          await readNotificationMutation.mutateAsync(notification.id);
+        }
+        await navigateToTodoContext(notification);
       } catch (error: unknown) {
         reportError(error, {
           area: "notification-inbox-screen:read",
@@ -51,7 +69,7 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
         });
       }
     },
-    [readNotificationMutation, router],
+    [navigateToTodoContext, readNotificationMutation],
   );
 
   if (mode === "wide") {
