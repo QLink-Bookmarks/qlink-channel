@@ -216,15 +216,13 @@ function ProfileSection({
             </Text>
           </View>
         </Pressable>
-        <View className="self-end pb-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onPress={() => setLogoutOpen(true)}
-          >
-            <Text>로그아웃</Text>
-          </Button>
-        </View>
+        <Button
+          variant="outline"
+          size="sm"
+          onPress={() => setLogoutOpen(true)}
+        >
+          <Text>로그아웃</Text>
+        </Button>
       </View>
 
       <ProfileEditOverlay
@@ -401,6 +399,7 @@ function ProfileEditOverlay({
       <EmojiPickerGrid
         value={draftAvatarEmoji}
         onChange={setDraftAvatarEmoji}
+        maxHeight={220}
       />
       <View className="flex-row justify-end gap-2">
         <Button
