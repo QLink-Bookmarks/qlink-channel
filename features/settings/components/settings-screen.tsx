@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Platform, Pressable, ScrollView, View } from "react-native";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Sheet } from "@/components/layout/sheet";
@@ -55,6 +55,33 @@ type ProviderTypeOption = {
   label: string;
   placeholder: string;
 };
+
+// Lets the camera button preview a locally-picked image in the avatar. The picked
+// data URL is local-only; nothing is sent to the server here.
+// TODO(profile-avatar-upload): replace the native branch with expo-image-picker
+// (and a real upload) once the avatar upload API lands.
+async function pickLocalImageAsDataUrl(): Promise<string | null> {
+  if (Platform.OS !== "web") {
+    return null;
+  }
+  return new Promise((resolve) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) {
+        resolve(null);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  });
+}
 
 const PROVIDER_TYPE_OPTIONS: ProviderTypeOption[] = [
   { type: "OPENAI", label: "OpenAI", placeholder: "sk-..." },
@@ -289,6 +316,10 @@ function ProfileEditOverlay({
   const [draftAvatarEmoji, setDraftAvatarEmoji] = React.useState<string | null>(avatarEmoji);
   const [draftUsername, setDraftUsername] = React.useState(username);
   const [draftNickname, setDraftNickname] = React.useState(nickname);
+  // Local-only avatar image preview from the file picker. Not sent to the server yet.
+  // TODO(profile-avatar-upload): upload picked file via the avatar upload API and
+  // pass the returned URL into the profile update mutation.
+  const [draftAvatarPreviewUrl, setDraftAvatarPreviewUrl] = React.useState<string | null>(null);
   const [validationError, setValidationError] = React.useState<string | undefined>();
   const mutation = useUpdateMyProfileMutation();
   const resetMutation = mutation.reset;
@@ -299,10 +330,26 @@ function ProfileEditOverlay({
       setDraftAvatarEmoji(avatarEmoji);
       setDraftUsername(username);
       setDraftNickname(nickname);
+      setDraftAvatarPreviewUrl(null);
       setValidationError(undefined);
       resetMutation();
     }
   }, [avatarEmoji, nickname, open, resetMutation, username]);
+
+  const handleUsernameChange = React.useCallback((next: string) => {
+    setDraftUsername(next);
+    setValidationError(undefined);
+  }, []);
+  const handleNicknameChange = React.useCallback((next: string) => {
+    setDraftNickname(next);
+    setValidationError(undefined);
+  }, []);
+  const handlePickAvatarImage = React.useCallback(async () => {
+    const dataUrl = await pickLocalImageAsDataUrl();
+    if (dataUrl) {
+      setDraftAvatarPreviewUrl(dataUrl);
+    }
+  }, []);
 
   const handleSave = React.useCallback(async () => {
     const trimmedUsername = draftUsername.trim();
@@ -339,6 +386,8 @@ function ProfileEditOverlay({
     }
   }, [draftAvatarEmoji, draftNickname, draftUsername, mutation, onSaved, showToast]);
 
+  const displayAvatarUrl = draftAvatarPreviewUrl ?? avatarUrl;
+
   const renderBody = (pickerMaxHeight: number, pickerFixedHeight: boolean) => (
     <View className="gap-4">
       <View className="items-center">
@@ -347,14 +396,15 @@ function ProfileEditOverlay({
             alt={`${draftNickname || nickname} avatar`}
             size="xl"
           >
-            {avatarUrl ? <AvatarImage source={{ uri: avatarUrl }} /> : null}
+            {displayAvatarUrl ? <AvatarImage source={{ uri: displayAvatarUrl }} /> : null}
             <AvatarFallback>
               <Text className="text-3xl leading-none">{draftAvatarEmoji ?? "🌸"}</Text>
             </AvatarFallback>
           </Avatar>
           <Pressable
-            className="absolute -bottom-1 -right-1 size-9 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
+            className="absolute -bottom-2 -right-2 size-9 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
             hitSlop={8}
+            onPress={handlePickAvatarImage}
           >
             <Icon
               as={Camera}
@@ -372,12 +422,7 @@ function ProfileEditOverlay({
           autoCorrect={false}
           placeholder="아이디"
           value={draftUsername}
-          onChangeText={(next) => {
-            setDraftUsername(next);
-            if (validationError) {
-              setValidationError(undefined);
-            }
-          }}
+          onChangeText={handleUsernameChange}
         />
         <Text className="text-xs text-muted-foreground">공유 프로필과 계정 식별에 사용돼요.</Text>
       </View>
@@ -387,12 +432,7 @@ function ProfileEditOverlay({
           className="h-10 rounded-xl px-4 text-base"
           placeholder="닉네임"
           value={draftNickname}
-          onChangeText={(next) => {
-            setDraftNickname(next);
-            if (validationError) {
-              setValidationError(undefined);
-            }
-          }}
+          onChangeText={handleNicknameChange}
         />
         <Text className="text-xs text-muted-foreground">앱 안에서 표시되는 이름이에요.</Text>
       </View>
