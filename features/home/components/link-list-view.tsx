@@ -26,11 +26,12 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
-import { deleteLink } from "@/features/links/api";
+import { deleteLink, getLinkDetail, updateLink } from "@/features/links/api";
 import { LinkCard } from "@/features/links/components/link-card/link-card";
 import { useLinksQuery } from "@/features/links/queries";
-import type { LinkListItem, LinkOrder } from "@/features/links/types";
+import type { LinkListItem, LinkOrder, UpdateLinkRequest } from "@/features/links/types";
 import { reportError } from "@/lib/error-reporting";
+import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { mapLinkListItem } from "../lib/link-card-mapper";
@@ -81,16 +82,25 @@ function HoverActionButton({
   );
 }
 
-function BookmarkBadgeButton({ onPress }: { onPress: () => void }) {
+function BookmarkBadgeButton({
+  isFavorite,
+  onPress,
+}: {
+  isFavorite: boolean;
+  onPress: () => void;
+}) {
   return (
     <Pressable
-      className="size-6 items-center justify-center rounded-full border border-border bg-card shadow-qlink-sm web:hover:bg-accent"
+      className={cn(
+        "size-6 items-center justify-center rounded-full border border-border shadow-qlink-sm web:hover:bg-accent",
+        isFavorite ? "bg-warning/15" : "bg-card",
+      )}
       onPress={onPress}
     >
       <Icon
         as={Star}
         size={12}
-        className="text-warning"
+        className={isFavorite ? "fill-warning text-warning" : "text-muted-foreground"}
       />
     </Pressable>
   );
@@ -118,15 +128,42 @@ function LinkListView({
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteLink(id),
   });
+  const favoriteMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: UpdateLinkRequest }) =>
+      updateLink(id, payload),
+  });
 
   const links = linksQuery.data?.contents ?? [];
   const isEmpty = !linksQuery.isLoading && links.length === 0;
   const totalLabel = meta ?? `${links.length}개 링크`;
 
-  const handleBookmark = React.useCallback((item: LinkListItem) => {
-    // TODO: Wire bookmark/pin once the API exposes a shortcut flag.
-    console.log("link-card:bookmark:todo", { id: item.id });
-  }, []);
+  const handleBookmark = React.useCallback(
+    async (item: LinkListItem) => {
+      try {
+        const detailResponse = await getLinkDetail(item.id);
+        const detail = detailResponse.data;
+        await favoriteMutation.mutateAsync({
+          id: item.id,
+          payload: {
+            isFavorite: !detail.isFavorite,
+            memo: detail.memo ?? null,
+            sourceType: detail.sourceType,
+            summary: detail.summary ?? null,
+            tags: detail.tags,
+            title: detail.title,
+            url: detail.url,
+          },
+        });
+        await queryClient.invalidateQueries({ queryKey: ["links", "list"] });
+      } catch (error: unknown) {
+        reportError(error, {
+          area: "link-list-view:toggle-favorite",
+          extra: { linkId: item.id, next: !item.isFavorite },
+        });
+      }
+    },
+    [favoriteMutation, queryClient],
+  );
 
   const handleConfirmDelete = React.useCallback(async () => {
     if (!deleteTargetLink) {
@@ -195,7 +232,10 @@ function LinkListView({
             {links.map((item) => {
               const mapped = mapLinkListItem(item);
               const bookmarkHoverAction = isWebWide ? (
-                <BookmarkBadgeButton onPress={() => handleBookmark(item)} />
+                <BookmarkBadgeButton
+                  isFavorite={item.isFavorite}
+                  onPress={() => handleBookmark(item)}
+                />
               ) : undefined;
               const trailingHoverActions = isWebWide ? (
                 <>

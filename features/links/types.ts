@@ -32,6 +32,7 @@ type UpdateLinkRequest = {
   tags: string[];
   memo?: string | null;
   sourceType: SourceType;
+  isFavorite: boolean;
 };
 
 type CreateLinkResponse = {
@@ -70,6 +71,7 @@ type LinkDetail = {
   todos: LinkTodo[];
   workModel?: string | null;
   status?: LinkStatus | null;
+  isFavorite: boolean;
 };
 
 type ApiEnvelope<TData> = {
@@ -106,6 +108,7 @@ type LinkListItem = {
   countMoreTodos: number;
   workModel?: string | null;
   status?: LinkStatus | null;
+  isFavorite: boolean;
 };
 
 type LinkScrollResponse = {
@@ -125,6 +128,7 @@ type GetLinksParams = {
   order?: LinkOrder;
   cursor?: string;
   size?: number;
+  isFavorite?: boolean;
 };
 
 export type {

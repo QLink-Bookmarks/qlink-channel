@@ -148,10 +148,11 @@ function DetailPlaceholder({ label }: { label: string }) {
 
 function buildUpdateLinkPayload(
   detail: LinkDetail,
-  overrides: Partial<Pick<UpdateLinkRequest, "memo" | "summary" | "tags">> = {},
+  overrides: Partial<Pick<UpdateLinkRequest, "isFavorite" | "memo" | "summary" | "tags">> = {},
 ): UpdateLinkRequest {
   // TODO: Switch link detail field updates to PATCH /api/links/{id} when the server exposes partial update support.
   return {
+    isFavorite: overrides.isFavorite ?? detail.isFavorite,
     memo: overrides.memo ?? detail.memo,
     sourceType: detail.sourceType,
     summary: overrides.summary ?? detail.summary,
@@ -178,14 +179,18 @@ function ActionButton({
   label,
   icon,
   variant = "outline",
+  iconClassName: iconClassNameOverride,
   onPress,
 }: {
   label: string;
   icon: React.ComponentProps<typeof Icon>["as"];
   variant?: React.ComponentProps<typeof Button>["variant"];
+  iconClassName?: string;
   onPress?: () => void;
 }) {
-  const iconClassName = variant === "gradient" ? "text-primary-foreground" : "text-foreground";
+  const iconClassName =
+    iconClassNameOverride ??
+    (variant === "gradient" ? "text-primary-foreground" : "text-foreground");
 
   return (
     <Button
@@ -433,6 +438,23 @@ function LinkDetailView({
     },
     [detail, handleDetailUpdated, tags, updateLinkMutation],
   );
+
+  const handleToggleFavorite = React.useCallback(async () => {
+    try {
+      const response = await updateLinkMutation.mutateAsync(
+        buildUpdateLinkPayload(detail, {
+          isFavorite: !detail.isFavorite,
+        }),
+      );
+      handleDetailUpdated(response);
+      await queryClient.invalidateQueries({ queryKey: ["links", "list"] });
+    } catch (error: unknown) {
+      reportError(error, {
+        area: "link-detail-view:toggle-favorite",
+        extra: { linkId: detail.id, next: !detail.isFavorite },
+      });
+    }
+  }, [detail, handleDetailUpdated, queryClient, updateLinkMutation]);
 
   const handleDeleteLink = React.useCallback(async () => {
     if (deleteLinkMutation.isPending) {
@@ -986,10 +1008,14 @@ function LinkDetailView({
                 variant="gradient"
                 onPress={handleOpenOriginal}
               />
-              <ActionButton
-                icon={Star}
-                label="바로가기 추가"
-              />
+              {mode === "panel" ? (
+                <ActionButton
+                  icon={Star}
+                  label={detail.isFavorite ? "바로가기 해제" : "바로가기 추가"}
+                  iconClassName={detail.isFavorite ? "text-warning" : undefined}
+                  onPress={handleToggleFavorite}
+                />
+              ) : null}
             </View>
             <View className="flex-row flex-wrap gap-3">
               <ActionButton
