@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { createLink, deleteLink, updateLink } from "./api";
-import type { CreateLinkRequest, UpdateLinkRequest } from "./types";
+import { createLink, deleteLink, setLinkFavorite, updateLink } from "./api";
+import type { CreateLinkRequest, SetLinkFavoriteRequest, UpdateLinkRequest } from "./types";
 
 function useCreateLinkMutation() {
   return useMutation({
@@ -21,4 +21,21 @@ function useDeleteLinkMutation(linkId: string | number) {
   });
 }
 
-export { useCreateLinkMutation, useDeleteLinkMutation, useUpdateLinkMutation };
+function useSetLinkFavoriteMutation() {
+  return useMutation({
+    mutationFn: ({
+      linkId,
+      payload,
+    }: {
+      linkId: string | number;
+      payload: SetLinkFavoriteRequest;
+    }) => setLinkFavorite(linkId, payload),
+  });
+}
+
+export {
+  useCreateLinkMutation,
+  useDeleteLinkMutation,
+  useSetLinkFavoriteMutation,
+  useUpdateLinkMutation,
+};

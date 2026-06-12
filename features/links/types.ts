@@ -32,8 +32,13 @@ type UpdateLinkRequest = {
   tags: string[];
   memo?: string | null;
   sourceType: SourceType;
+};
+
+type SetLinkFavoriteRequest = {
   isFavorite: boolean;
 };
+
+type SetLinkFavoriteResponse = ApiEnvelope<null>;
 
 type CreateLinkResponse = {
   success: boolean;
@@ -148,6 +153,8 @@ export type {
   LinkScrollResponse,
   LinkStatus,
   LinkTodo,
+  SetLinkFavoriteRequest,
+  SetLinkFavoriteResponse,
   SourceType,
   UpdateLinkRequest,
 };

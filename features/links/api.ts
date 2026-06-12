@@ -7,6 +7,8 @@ import type {
   GetLinksParams,
   GetLinksResponse,
   LinkDetailResponse,
+  SetLinkFavoriteRequest,
+  SetLinkFavoriteResponse,
   UpdateLinkRequest,
 } from "./types";
 
@@ -30,4 +32,11 @@ async function deleteLink(linkId: string | number) {
   return api.delete<DeleteLinkResponse>(`/api/links/${linkId}`);
 }
 
-export { createLink, deleteLink, getLinkDetail, getLinks, updateLink };
+async function setLinkFavorite(linkId: string | number, payload: SetLinkFavoriteRequest) {
+  return api.put<SetLinkFavoriteResponse, SetLinkFavoriteRequest>(
+    `/api/links/${linkId}/favorite`,
+    payload,
+  );
+}
+
+export { createLink, deleteLink, getLinkDetail, getLinks, setLinkFavorite, updateLink };

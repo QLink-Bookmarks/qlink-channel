@@ -31,7 +31,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { type TimeValue } from "@/components/ui/time-picker";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
 import { formatLinkStatus, formatSummaryModelLabel } from "@/features/home/lib/link-card-mapper";
-import { useDeleteLinkMutation, useUpdateLinkMutation } from "@/features/links/mutations";
+import {
+  useDeleteLinkMutation,
+  useSetLinkFavoriteMutation,
+  useUpdateLinkMutation,
+} from "@/features/links/mutations";
 import { getLinkDetailQueryKey } from "@/features/links/queries";
 import type {
   LinkDetail,
@@ -148,11 +152,10 @@ function DetailPlaceholder({ label }: { label: string }) {
 
 function buildUpdateLinkPayload(
   detail: LinkDetail,
-  overrides: Partial<Pick<UpdateLinkRequest, "isFavorite" | "memo" | "summary" | "tags">> = {},
+  overrides: Partial<Pick<UpdateLinkRequest, "memo" | "summary" | "tags">> = {},
 ): UpdateLinkRequest {
   // TODO: Switch link detail field updates to PATCH /api/links/{id} when the server exposes partial update support.
   return {
-    isFavorite: overrides.isFavorite ?? detail.isFavorite,
     memo: overrides.memo ?? detail.memo,
     sourceType: detail.sourceType,
     summary: overrides.summary ?? detail.summary,
@@ -224,6 +227,7 @@ function LinkDetailView({
   const queryClient = useQueryClient();
   const memoInputRef = React.useRef<TextInput>(null);
   const updateLinkMutation = useUpdateLinkMutation(detail.id);
+  const setFavoriteMutation = useSetLinkFavoriteMutation();
   const deleteLinkMutation = useDeleteLinkMutation(detail.id);
   const createTodoMutation = useCreateTodoMutation();
   const updateTodoMutation = useUpdateTodoMutation();
@@ -440,21 +444,25 @@ function LinkDetailView({
   );
 
   const handleToggleFavorite = React.useCallback(async () => {
+    const next = !detail.isFavorite;
     try {
-      const response = await updateLinkMutation.mutateAsync(
-        buildUpdateLinkPayload(detail, {
-          isFavorite: !detail.isFavorite,
-        }),
-      );
-      handleDetailUpdated(response);
+      await setFavoriteMutation.mutateAsync({
+        linkId: detail.id,
+        payload: { isFavorite: next },
+      });
+      handleDetailUpdated({
+        success: true,
+        data: { ...detail, isFavorite: next },
+        error: null,
+      });
       await queryClient.invalidateQueries({ queryKey: ["links", "list"] });
     } catch (error: unknown) {
       reportError(error, {
         area: "link-detail-view:toggle-favorite",
-        extra: { linkId: detail.id, next: !detail.isFavorite },
+        extra: { linkId: detail.id, next },
       });
     }
-  }, [detail, handleDetailUpdated, queryClient, updateLinkMutation]);
+  }, [detail, handleDetailUpdated, queryClient, setFavoriteMutation]);
 
   const handleDeleteLink = React.useCallback(async () => {
     if (deleteLinkMutation.isPending) {

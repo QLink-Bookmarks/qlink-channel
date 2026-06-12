@@ -26,10 +26,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
-import { deleteLink, getLinkDetail, updateLink } from "@/features/links/api";
+import { deleteLink } from "@/features/links/api";
 import { LinkCard } from "@/features/links/components/link-card/link-card";
+import { useSetLinkFavoriteMutation } from "@/features/links/mutations";
 import { useLinksQuery } from "@/features/links/queries";
-import type { LinkListItem, LinkOrder, UpdateLinkRequest } from "@/features/links/types";
+import type { LinkListItem, LinkOrder } from "@/features/links/types";
 import { reportError } from "@/lib/error-reporting";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -128,10 +129,7 @@ function LinkListView({
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteLink(id),
   });
-  const favoriteMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: UpdateLinkRequest }) =>
-      updateLink(id, payload),
-  });
+  const favoriteMutation = useSetLinkFavoriteMutation();
 
   const links = linksQuery.data?.contents ?? [];
   const isEmpty = !linksQuery.isLoading && links.length === 0;
@@ -139,26 +137,17 @@ function LinkListView({
 
   const handleBookmark = React.useCallback(
     async (item: LinkListItem) => {
+      const next = !item.isFavorite;
       try {
-        const detailResponse = await getLinkDetail(item.id);
-        const detail = detailResponse.data;
         await favoriteMutation.mutateAsync({
-          id: item.id,
-          payload: {
-            isFavorite: !detail.isFavorite,
-            memo: detail.memo ?? null,
-            sourceType: detail.sourceType,
-            summary: detail.summary ?? null,
-            tags: detail.tags,
-            title: detail.title,
-            url: detail.url,
-          },
+          linkId: item.id,
+          payload: { isFavorite: next },
         });
         await queryClient.invalidateQueries({ queryKey: ["links", "list"] });
       } catch (error: unknown) {
         reportError(error, {
           area: "link-list-view:toggle-favorite",
-          extra: { linkId: item.id, next: !item.isFavorite },
+          extra: { linkId: item.id, next },
         });
       }
     },
