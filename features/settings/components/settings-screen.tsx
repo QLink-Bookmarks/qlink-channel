@@ -53,6 +53,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useSettingsAutosave } from "../hooks/use-settings-autosave";
 
+import * as Linking from "expo-linking";
 import { Camera, ChevronRight, KeyRound, Sparkles } from "lucide-react-native/icons";
 
 type SettingsScreenMode = "wide" | "mobile";
@@ -348,6 +349,14 @@ function ProfileEditOverlay({
     [showToast, uploadImageMutation],
   );
 
+  const handleAvatarPress = React.useCallback(() => {
+    const target = draftAvatarUploadedUrl ?? avatarUrl;
+    if (!target) {
+      return;
+    }
+    void Linking.openURL(target);
+  }, [avatarUrl, draftAvatarUploadedUrl]);
+
   const handleSave = React.useCallback(async () => {
     const trimmedUsername = draftUsername.trim();
     const trimmedNickname = draftNickname.trim();
@@ -400,15 +409,28 @@ function ProfileEditOverlay({
     <View className="gap-4">
       <View className="items-center">
         <View className="relative">
-          <Avatar
-            alt={`${draftNickname || nickname} avatar`}
-            size="xl"
+          <Pressable
+            accessibilityRole="button"
+            disabled={!displayAvatarUrl || uploadImageMutation.isPending}
+            onPress={handleAvatarPress}
           >
-            {displayAvatarUrl ? <AvatarImage source={{ uri: displayAvatarUrl }} /> : null}
-            <AvatarFallback>
-              <Text className="text-3xl leading-none">{draftAvatarEmoji ?? "🌸"}</Text>
-            </AvatarFallback>
-          </Avatar>
+            <Avatar
+              alt={`${draftNickname || nickname} avatar`}
+              size="xl"
+            >
+              {displayAvatarUrl ? <AvatarImage source={{ uri: displayAvatarUrl }} /> : null}
+              <AvatarFallback>
+                <Text className="text-3xl leading-none">
+                  {uploadImageMutation.isPending ? "⏳" : (draftAvatarEmoji ?? "🌸")}
+                </Text>
+              </AvatarFallback>
+            </Avatar>
+          </Pressable>
+          {uploadImageMutation.isPending ? (
+            <View className="pointer-events-none absolute inset-0 items-center justify-center rounded-full bg-black/40">
+              <ActivityIndicator size="small" />
+            </View>
+          ) : null}
           <ImageUploader
             className="absolute -bottom-2 -right-2 size-9 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
             hitSlop={8}
