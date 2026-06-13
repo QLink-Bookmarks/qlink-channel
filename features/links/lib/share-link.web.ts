@@ -19,7 +19,7 @@ async function shareLink({ url, title, text }: ShareLinkInput): Promise<ShareLin
   }
   if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
     try {
-      await navigator.clipboard.writeText(`${text}`);
+      await navigator.clipboard.writeText(`${text}\n\n${url}`);
       return "copied";
     } catch {
       return "failed";

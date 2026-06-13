@@ -25,7 +25,7 @@ function buildShareText({ nickname, linkTitle, linkUrl }: BuildShareTextInput): 
   url: string;
 } {
   const phrase = SHARE_PHRASES[Math.floor(Math.random() * SHARE_PHRASES.length)];
-  const text = `${nickname}님${phrase}\n\n${linkTitle}\n${linkUrl}`;
+  const text = `${nickname}님${phrase}\n\n${linkTitle}`;
   return { title: SHARE_TITLE, text, url: linkUrl };
 }
 

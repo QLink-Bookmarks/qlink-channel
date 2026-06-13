@@ -126,11 +126,7 @@ function WideHomeScreen() {
 
   const favoritesQuery = useLinksQuery({ isFavorite: true, size: SHORTCUT_PREVIEW_COUNT });
   const todosQuery = useTodosQuery({ isCompleted: false, size: 30 });
-  const recentLinksQuery = useLinksQuery({
-    order: "latest",
-    size: RECENT_PREVIEW_COUNT,
-    isFavorite: false,
-  });
+  const recentLinksQuery = useLinksQuery({ order: "latest", size: RECENT_PREVIEW_COUNT });
   const toggleTodo = useToggleTodoCompletedMutation();
 
   const shortcuts = favoritesQuery.data?.contents ?? [];
