@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import * as AvatarPrimitive from "@rn-primitives/avatar";
 
 import { type VariantProps, cva } from "class-variance-authority";
+import { Image as ExpoImage, type ImageProps as ExpoImageProps } from "expo-image";
 
 const avatarVariants = cva("relative flex shrink-0 overflow-hidden rounded-full", {
   variants: {
@@ -43,17 +44,22 @@ function AvatarImage({
     source && typeof source === "object" && !Array.isArray(source) && "uri" in source
       ? (source as { uri?: string }).uri
       : undefined;
-  const stableSource = React.useMemo(
-    () => (uri ? { uri } : source),
-    // Stabilize on the uri string so the primitive's source-keyed effect doesn't refire on every parent render.
-    [uri, source],
+  const stableSource = React.useMemo<ExpoImageProps["source"]>(
+    () => (uri ? { uri } : undefined),
+    [uri],
   );
   return (
     <AvatarPrimitive.Image
-      className={cn("aspect-square size-full", className)}
+      asChild
       source={stableSource}
       {...props}
-    />
+    >
+      <ExpoImage
+        source={stableSource}
+        contentFit="cover"
+        className={cn("aspect-square size-full", className)}
+      />
+    </AvatarPrimitive.Image>
   );
 }
 
