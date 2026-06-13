@@ -22,7 +22,7 @@ export const apiClient = create({
   headers: {
     Accept: "application/json",
   },
-  withCredentials: false,
+  withCredentials: true,
 });
 
 apiClient.interceptors.request.use((config) => {
