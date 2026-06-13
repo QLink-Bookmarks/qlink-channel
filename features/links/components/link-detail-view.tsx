@@ -1058,14 +1058,12 @@ function LinkDetailView({
                 variant="gradient"
                 onPress={handleOpenOriginal}
               />
-              {mode === "panel" ? (
-                <ActionButton
-                  icon={Star}
-                  label={detail.isFavorite ? "바로가기 해제" : "바로가기 추가"}
-                  iconClassName={detail.isFavorite ? "text-warning" : undefined}
-                  onPress={handleToggleFavorite}
-                />
-              ) : null}
+              <ActionButton
+                icon={Star}
+                label={detail.isFavorite ? "바로가기 해제" : "바로가기 추가"}
+                iconClassName={detail.isFavorite ? "text-warning" : undefined}
+                onPress={handleToggleFavorite}
+              />
             </View>
             <View className="flex-row flex-wrap gap-3">
               <ActionButton

@@ -1,9 +1,12 @@
 import { Pressable, View } from "react-native";
 
+import { Icon } from "@/components/ui/icon";
 import { SegmentedControl, type SegmentedControlProps } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import type { LinkOrder } from "@/features/links/types";
 import { cn } from "@/lib/utils";
+
+import { Star } from "lucide-react-native/icons";
 
 const ORDER_OPTIONS: { label: string; value: LinkOrder }[] = [
   { label: "최신순", value: "latest" },
@@ -14,6 +17,8 @@ const ORDER_OPTIONS: { label: string; value: LinkOrder }[] = [
 type OrderFilterProps = {
   value: LinkOrder;
   onValueChange: (value: LinkOrder) => void;
+  favoriteOnly?: boolean;
+  onFavoriteOnlyChange?: (next: boolean) => void;
   variant?: SegmentedControlProps["variant"];
   className?: string;
 };
@@ -21,6 +26,8 @@ type OrderFilterProps = {
 function OrderFilter({
   value,
   onValueChange,
+  favoriteOnly = false,
+  onFavoriteOnlyChange,
   variant = "chipsBadge",
   className,
 }: OrderFilterProps) {
@@ -40,6 +47,30 @@ function OrderFilter({
           }
         }}
       />
+      {onFavoriteOnlyChange ? (
+        <Pressable
+          className={cn(
+            "min-h-8 flex-row items-center justify-center gap-1 border px-2.5",
+            isBadge ? "rounded-full" : "rounded-xl",
+            favoriteOnly ? "border-warning bg-warning/15" : "border-border bg-card",
+          )}
+          onPress={() => onFavoriteOnlyChange(!favoriteOnly)}
+        >
+          <Icon
+            as={Star}
+            size={13}
+            className={favoriteOnly ? "fill-warning text-warning" : "text-muted-foreground"}
+          />
+          <Text
+            className={cn(
+              "text-sm font-medium",
+              favoriteOnly ? "text-warning" : "text-muted-foreground",
+            )}
+          >
+            바로가기
+          </Text>
+        </Pressable>
+      ) : null}
       <Pressable
         className={cn(
           "min-h-8 flex-row items-center justify-center border border-border bg-card px-2.5",

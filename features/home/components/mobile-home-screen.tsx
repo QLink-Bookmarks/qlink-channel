@@ -16,7 +16,7 @@ import { mapLinkListItem } from "../lib/link-card-mapper";
 import { OrderFilter } from "./order-filter";
 
 import { type Href, useRouter } from "expo-router";
-import { Search } from "lucide-react-native";
+import { Search, Star } from "lucide-react-native";
 
 const ALL_VALUE = "all";
 const UNCATEGORIZED_FOLDER_VALUE = "0";
@@ -26,6 +26,7 @@ function MobileHomeScreen() {
   const foldersQuery = useFoldersQuery({ size: 15 });
   const [selectedFolder, setSelectedFolder] = React.useState<string>(ALL_VALUE);
   const [order, setOrder] = React.useState<LinkOrder>("latest");
+  const [favoriteOnly, setFavoriteOnly] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState("");
   const searchInputRef = React.useRef<TextInput>(null);
@@ -73,6 +74,7 @@ function MobileHomeScreen() {
     order,
     query: debouncedSearchQuery || undefined,
     size: 30,
+    isFavorite: favoriteOnly ? true : undefined,
   });
   const links = linksQuery.data?.contents ?? [];
   const isLoading = linksQuery.isLoading;
@@ -131,8 +133,10 @@ function MobileHomeScreen() {
 
         <View className="flex-row justify-end">
           <OrderFilter
+            favoriteOnly={favoriteOnly}
             value={order}
             variant="chipsBadge"
+            onFavoriteOnlyChange={setFavoriteOnly}
             onValueChange={setOrder}
           />
         </View>
@@ -152,9 +156,20 @@ function MobileHomeScreen() {
           <View className="gap-3">
             {links.map((item) => {
               const mapped = mapLinkListItem(item);
+              const bookmarkHoverAction = item.isFavorite ? (
+                <View className="size-6 items-center justify-center rounded-full border border-border bg-warning/15 shadow-qlink-sm">
+                  <Icon
+                    as={Star}
+                    size={12}
+                    className="fill-warning text-warning"
+                  />
+                </View>
+              ) : undefined;
               return (
                 <LinkCard
                   key={mapped.id}
+                  bookmarkHoverAction={bookmarkHoverAction}
+                  bookmarkPinned={item.isFavorite}
                   domain={mapped.domain}
                   faviconUrl={mapped.faviconUrl}
                   remainingTodoCount={mapped.remainingTodoCount}

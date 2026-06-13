@@ -119,12 +119,14 @@ function LinkListView({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [order, setOrder] = React.useState<LinkOrder>("latest");
+  const [favoriteOnly, setFavoriteOnly] = React.useState(false);
   const [folderMoveLink, setFolderMoveLink] = React.useState<LinkListItem | null>(null);
   const [deleteTargetLink, setDeleteTargetLink] = React.useState<LinkListItem | null>(null);
   const linksQuery = useLinksQuery({
     folderId,
     order,
     size: 30,
+    isFavorite: favoriteOnly ? true : undefined,
   });
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteLink(id),
@@ -202,7 +204,9 @@ function LinkListView({
       />
       <View className="gap-5 px-6 pb-6 pt-4 md:pt-0">
         <OrderFilter
+          favoriteOnly={favoriteOnly}
           value={order}
+          onFavoriteOnlyChange={setFavoriteOnly}
           onValueChange={setOrder}
         />
         {linksQuery.isLoading ? (
@@ -223,6 +227,11 @@ function LinkListView({
               const bookmarkHoverAction = isWebWide ? (
                 <BookmarkBadgeButton
                   isFavorite={item.isFavorite}
+                  onPress={() => handleBookmark(item)}
+                />
+              ) : item.isFavorite ? (
+                <BookmarkBadgeButton
+                  isFavorite
                   onPress={() => handleBookmark(item)}
                 />
               ) : undefined;
