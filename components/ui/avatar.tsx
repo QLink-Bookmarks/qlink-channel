@@ -1,3 +1,4 @@
+import * as React from "react";
 import { View } from "react-native";
 
 import { cn } from "@/lib/utils";
@@ -33,10 +34,24 @@ function Avatar({
   );
 }
 
-function AvatarImage({ className, ...props }: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+function AvatarImage({
+  className,
+  source,
+  ...props
+}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+  const uri =
+    source && typeof source === "object" && !Array.isArray(source) && "uri" in source
+      ? (source as { uri?: string }).uri
+      : undefined;
+  const stableSource = React.useMemo(
+    () => (uri ? { uri } : source),
+    // Stabilize on the uri string so the primitive's source-keyed effect doesn't refire on every parent render.
+    [uri, source],
+  );
   return (
     <AvatarPrimitive.Image
       className={cn("aspect-square size-full", className)}
+      source={stableSource}
       {...props}
     />
   );

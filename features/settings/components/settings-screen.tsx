@@ -32,7 +32,11 @@ import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { useUpdateMyProfileMutation } from "@/features/account/mutations";
-import { useMyProfileQuery, useMySettingsQuery } from "@/features/account/queries";
+import {
+  accountQueryKeys,
+  useMyProfileQuery,
+  useMySettingsQuery,
+} from "@/features/account/queries";
 import type { AiProviderType } from "@/features/account/types";
 import {
   AiModelPickerList,
@@ -45,6 +49,7 @@ import type { AiProviderWithModels } from "@/features/ai/types";
 import { useUploadImageMutation } from "@/features/images/mutations";
 import { useDisplaySettings } from "@/stores/display-settings";
 import { useToastStore } from "@/stores/toast-store";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useSettingsAutosave } from "../hooks/use-settings-autosave";
 
@@ -293,6 +298,7 @@ function ProfileEditOverlay({
   const [draftNickname, setDraftNickname] = React.useState(nickname);
   const [draftAvatarUploadedUrl, setDraftAvatarUploadedUrl] = React.useState<string | null>(null);
   const [validationError, setValidationError] = React.useState<string | undefined>();
+  const queryClient = useQueryClient();
   const mutation = useUpdateMyProfileMutation();
   const resetMutation = mutation.reset;
   const uploadImageMutation = useUploadImageMutation();
@@ -357,6 +363,7 @@ function ProfileEditOverlay({
         username: trimmedUsername,
         ...(draftAvatarUploadedUrl ? { avatarUrl: draftAvatarUploadedUrl } : {}),
       });
+      await queryClient.invalidateQueries({ queryKey: accountQueryKeys.myProfile() });
       onSaved(response.data?.avatarEmoji ?? draftAvatarEmoji);
       showToast({
         description: "프로필 정보가 업데이트되었어요.",
@@ -383,6 +390,7 @@ function ProfileEditOverlay({
     draftUsername,
     mutation,
     onSaved,
+    queryClient,
     showToast,
   ]);
 
