@@ -41,6 +41,7 @@ function LinkCard({
   statusVariant,
   summaryModelLabel,
   bookmarkHoverAction,
+  bookmarkPinned,
   leadingHoverActions,
   trailingHoverActions,
   onPress,
@@ -63,6 +64,8 @@ function LinkCard({
   summaryModelLabel?: string | null;
   /** Web-only corner badge anchored to the favicon's top-left (e.g. bookmark / shortcut toggle). */
   bookmarkHoverAction?: React.ReactNode;
+  /** When true the bookmark badge stays visible (no hover required). Use for favorited links. */
+  bookmarkPinned?: boolean;
   leadingHoverActions?: React.ReactNode;
   trailingHoverActions?: React.ReactNode;
   onPress?: () => void;
@@ -136,7 +139,7 @@ function LinkCard({
             <View
               className={cn(
                 "pointer-events-none absolute -left-1.5 -top-1.5 z-10 opacity-0 transition-opacity web:group-hover:opacity-100",
-                active && "pointer-events-auto opacity-100",
+                (active || bookmarkPinned) && "pointer-events-auto opacity-100",
               )}
               {...(Platform.OS === "web"
                 ? ({

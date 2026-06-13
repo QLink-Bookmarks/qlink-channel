@@ -251,6 +251,7 @@ function LinkListView({
                   <LinkCard
                     active={activeLinkId === mapped.id}
                     bookmarkHoverAction={bookmarkHoverAction}
+                    bookmarkPinned={item.isFavorite}
                     domain={mapped.domain}
                     faviconUrl={mapped.faviconUrl}
                     remainingTodoCount={mapped.remainingTodoCount}
