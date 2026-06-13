@@ -29,8 +29,11 @@ import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { type TimeValue } from "@/components/ui/time-picker";
+import { useMyProfileQuery } from "@/features/account/queries";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
 import { formatLinkStatus, formatSummaryModelLabel } from "@/features/home/lib/link-card-mapper";
+import { buildShareText } from "@/features/links/lib/build-share-text";
+import { shareLink } from "@/features/links/lib/share-link";
 import {
   useDeleteLinkMutation,
   useSetLinkFavoriteMutation,
@@ -64,6 +67,7 @@ import {
 } from "@/features/todos/mutations";
 import { reportError } from "@/lib/error-reporting";
 import { cn } from "@/lib/utils";
+import { useToastStore } from "@/stores/toast-store";
 import { useQueryClient } from "@tanstack/react-query";
 
 import * as Linking from "expo-linking";
@@ -228,6 +232,8 @@ function LinkDetailView({
   const memoInputRef = React.useRef<TextInput>(null);
   const updateLinkMutation = useUpdateLinkMutation(detail.id);
   const setFavoriteMutation = useSetLinkFavoriteMutation();
+  const myProfileQuery = useMyProfileQuery();
+  const showToast = useToastStore((state) => state.showToast);
   const deleteLinkMutation = useDeleteLinkMutation(detail.id);
   const createTodoMutation = useCreateTodoMutation();
   const updateTodoMutation = useUpdateTodoMutation();
@@ -463,6 +469,42 @@ function LinkDetailView({
       });
     }
   }, [detail, handleDetailUpdated, queryClient, setFavoriteMutation]);
+
+  const handleShare = React.useCallback(async () => {
+    const nickname = myProfileQuery.data?.nickname?.trim() || "QLINKer";
+    const payload = buildShareText({
+      nickname,
+      linkTitle: detail.title,
+      linkUrl: detail.url,
+    });
+    try {
+      const result = await shareLink(payload);
+      if (result === "copied") {
+        showToast({
+          description: "공유 문구가 복사됐어요. 원하는 곳에 붙여넣어 주세요.",
+          dismissible: true,
+          durationMs: 3000,
+          sourceKey: "link-detail-share",
+          title: "링크 복사 완료",
+          variant: "success",
+        });
+      } else if (result === "failed") {
+        showToast({
+          description: "공유에 실패했어요. 잠시 후 다시 시도해주세요.",
+          dismissible: true,
+          durationMs: 3000,
+          sourceKey: "link-detail-share",
+          title: "공유 실패",
+          variant: "warning",
+        });
+      }
+    } catch (error: unknown) {
+      reportError(error, {
+        area: "link-detail-view:share",
+        extra: { linkId: detail.id },
+      });
+    }
+  }, [detail.id, detail.title, detail.url, myProfileQuery.data, showToast]);
 
   const handleDeleteLink = React.useCallback(async () => {
     if (deleteLinkMutation.isPending) {
@@ -1034,6 +1076,7 @@ function LinkDetailView({
               <ActionButton
                 icon={Share2}
                 label="공유"
+                onPress={handleShare}
               />
             </View>
             <ActionButton
