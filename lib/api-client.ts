@@ -16,6 +16,16 @@ export type ApiRequestConfig<D = unknown> = AxiosRequestConfig<D> & {
 };
 
 const REFRESH_PATHS = ["/api/auth/token/refresh/web", "/api/auth/token/refresh/native"];
+const CSRF_REQUIRED_PATHS = [...REFRESH_PATHS, "/api/auth/signout"];
+
+function randomUuid(): string {
+  const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
+  if (c?.randomUUID) return c.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
+    const r = (Math.random() * 16) | 0;
+    return (ch === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
 
 export const apiClient = create({
   baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
@@ -33,6 +43,11 @@ apiClient.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   } else if (config.headers) {
     delete config.headers.Authorization;
+  }
+  const url = config.url ?? "";
+  if (CSRF_REQUIRED_PATHS.some((path) => url.endsWith(path))) {
+    config.headers = config.headers ?? {};
+    config.headers.csrf_token = randomUuid();
   }
   return config;
 });
