@@ -54,7 +54,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSettingsAutosave } from "../hooks/use-settings-autosave";
 
 import * as Linking from "expo-linking";
-import { Camera, ChevronRight, KeyRound, Sparkles } from "lucide-react-native/icons";
+import { Camera, ChevronRight, KeyRound, Sparkles, X } from "lucide-react-native/icons";
 
 type SettingsScreenMode = "wide" | "mobile";
 
@@ -298,6 +298,7 @@ function ProfileEditOverlay({
   const [draftUsername, setDraftUsername] = React.useState(username);
   const [draftNickname, setDraftNickname] = React.useState(nickname);
   const [draftAvatarUploadedUrl, setDraftAvatarUploadedUrl] = React.useState<string | null>(null);
+  const [isAvatarCleared, setIsAvatarCleared] = React.useState(false);
   const [validationError, setValidationError] = React.useState<string | undefined>();
   const queryClient = useQueryClient();
   const mutation = useUpdateMyProfileMutation();
@@ -312,6 +313,7 @@ function ProfileEditOverlay({
       setDraftUsername(username);
       setDraftNickname(nickname);
       setDraftAvatarUploadedUrl(null);
+      setIsAvatarCleared(false);
       setValidationError(undefined);
       resetMutation();
       resetUploadMutation();
@@ -334,6 +336,7 @@ function ProfileEditOverlay({
         const uploadedUrl = response.data?.url;
         if (uploadedUrl) {
           setDraftAvatarUploadedUrl(uploadedUrl);
+          setIsAvatarCleared(false);
         }
       } catch {
         showToast({
@@ -350,12 +353,17 @@ function ProfileEditOverlay({
   );
 
   const handleAvatarPress = React.useCallback(() => {
-    const target = draftAvatarUploadedUrl ?? avatarUrl;
+    const target = isAvatarCleared ? null : (draftAvatarUploadedUrl ?? avatarUrl);
     if (!target) {
       return;
     }
     void Linking.openURL(target);
-  }, [avatarUrl, draftAvatarUploadedUrl]);
+  }, [avatarUrl, draftAvatarUploadedUrl, isAvatarCleared]);
+
+  const handleClearAvatar = React.useCallback(() => {
+    setDraftAvatarUploadedUrl(null);
+    setIsAvatarCleared(true);
+  }, []);
 
   const handleSave = React.useCallback(async () => {
     const trimmedUsername = draftUsername.trim();
@@ -370,7 +378,11 @@ function ProfileEditOverlay({
         avatarEmoji: draftAvatarEmoji,
         nickname: trimmedNickname,
         username: trimmedUsername,
-        ...(draftAvatarUploadedUrl ? { avatarUrl: draftAvatarUploadedUrl } : {}),
+        ...(isAvatarCleared
+          ? { avatarUrl: null }
+          : draftAvatarUploadedUrl
+            ? { avatarUrl: draftAvatarUploadedUrl }
+            : {}),
       });
       await queryClient.invalidateQueries({ queryKey: accountQueryKeys.myProfile() });
       onSaved(response.data?.avatarEmoji ?? draftAvatarEmoji);
@@ -397,13 +409,14 @@ function ProfileEditOverlay({
     draftAvatarUploadedUrl,
     draftNickname,
     draftUsername,
+    isAvatarCleared,
     mutation,
     onSaved,
     queryClient,
     showToast,
   ]);
 
-  const displayAvatarUrl = draftAvatarUploadedUrl ?? avatarUrl;
+  const displayAvatarUrl = isAvatarCleared ? null : (draftAvatarUploadedUrl ?? avatarUrl);
 
   const renderBody = (pickerMaxHeight: number, pickerFixedHeight: boolean) => (
     <View className="gap-4">
@@ -430,6 +443,20 @@ function ProfileEditOverlay({
             <View className="pointer-events-none absolute inset-0 items-center justify-center rounded-full bg-black/40">
               <ActivityIndicator size="small" />
             </View>
+          ) : null}
+          {displayAvatarUrl && !uploadImageMutation.isPending ? (
+            <Pressable
+              accessibilityLabel="아바타 초기화"
+              className="absolute -left-2 -top-2 size-7 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
+              hitSlop={8}
+              onPress={handleClearAvatar}
+            >
+              <Icon
+                as={X}
+                size={14}
+                className="text-foreground"
+              />
+            </Pressable>
           ) : null}
           <ImageUploader
             className="absolute -bottom-2 -right-2 size-9 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
