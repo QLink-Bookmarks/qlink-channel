@@ -7,12 +7,14 @@
   "icon": "./assets/app_icon.png",
   "userInterfaceStyle": "automatic",
   "ios": {
+    "bundleIdentifier": "com.qlinkapps.qlink",
     "supportsTablet": true,
     "infoPlist": {
       "ITSAppUsesNonExemptEncryption": false
     }
   },
   "android": {
+    "package": "com.qlinkapps.qlink",
     "adaptiveIcon": {
       "foregroundImage": "./assets/app_icon.png",
       "backgroundColor": "#FFFFFF"
@@ -34,7 +36,29 @@
         "backgroundColor": "#ffffff"
       }
     ],
-    "@react-native-community/datetimepicker"
+    "@react-native-community/datetimepicker",
+    [
+      "expo-build-properties",
+      {
+        "android": {
+          "extraMavenRepos": [
+            "https://devrepo.kakao.com/nexus/content/groups/public/"
+          ]
+        }
+      }
+    ],
+    [
+      "@react-native-kakao/core",
+      {
+        "nativeAppKey": "4112c479d4da9c05fb7ec42b4cc063cf",
+        "android": {
+          "authCodeHandlerActivity": true
+        },
+        "ios": {
+          "handleKakaoOpenUrl": true
+        }
+      }
+    ]
   ],
   "experiments": {
     "reactCompiler": true,
