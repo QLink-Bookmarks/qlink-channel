@@ -5,12 +5,14 @@ import { BrandHeader } from "@/components/layout/brand-header";
 import { TopbarSearchField } from "@/components/layout/topbar-search-field";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Icon } from "@/components/ui/icon";
 import { Kbd } from "@/components/ui/kbd";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Text } from "@/components/ui/text";
 import { useMyProfileQuery } from "@/features/account/queries";
-import { LinkCard } from "@/features/links/components/link-card/link-card";
+import { LinkCardGrid } from "@/features/links/components/link-card-grid/link-card-grid";
+import { ShortcutTile } from "@/features/links/components/shortcut-tile/shortcut-tile";
 import { useLinksQuery } from "@/features/links/queries";
 import { TodoItem } from "@/features/todos/components/todo-item/todo-item";
 import { formatReminderLabel, isOverdue } from "@/features/todos/lib/todo-list-helpers";
@@ -21,9 +23,8 @@ import { useDisplaySettings } from "@/stores/display-settings";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { formatFullDateLabel, getGreetingMessage } from "../lib/greeting";
-import { getDomainFromUrl, mapLinkListItem } from "../lib/link-card-mapper";
+import { getDomainFromUrl, getFaviconUrl } from "../lib/link-card-mapper";
 import { AddShortcutDialog } from "./add-shortcut-dialog";
-import { AddShortcutTile, HomeShortcutTile } from "./home-shortcut-tile";
 
 import { type Href, useRouter } from "expo-router";
 import { Search } from "lucide-react-native";
@@ -88,7 +89,7 @@ function SectionHeader({
 function ActionPill({ children, onPress }: { children: React.ReactNode; onPress?: () => void }) {
   return (
     <Pressable
-      className="flex-row items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 active:opacity-70 web:transition-colors web:hover:border-primary"
+      className="h-9 min-w-[132px] flex-row items-center justify-center gap-2 rounded-full border border-border bg-card px-4 active:opacity-70 web:transition-colors web:hover:border-primary"
       onPress={onPress}
     >
       {children}
@@ -96,12 +97,10 @@ function ActionPill({ children, onPress }: { children: React.ReactNode; onPress?
   );
 }
 
-function EmptySectionCard({ message }: { message: string }) {
-  return (
-    <View className="rounded-2xl border border-border bg-card px-4 py-6">
-      <Text className="text-center text-sm text-muted-foreground">{message}</Text>
-    </View>
-  );
+function openExternalUrl(url: string) {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
 }
 
 function WideHomeScreen() {
@@ -140,7 +139,7 @@ function WideHomeScreen() {
       })
       .slice(0, TODO_PREVIEW_COUNT);
   }, [todos]);
-  const recentLinks = recentLinksQuery.data?.contents ?? [];
+  const recentLinks = recentLinksQuery.data?.contents.slice(0, RECENT_PREVIEW_COUNT) ?? [];
 
   const handleToggleTodo = React.useCallback(
     (todo: TodoListItem, next: boolean) => {
@@ -162,14 +161,14 @@ function WideHomeScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
-      <View className="w-full max-w-[980px] gap-8 self-center px-6 pb-16 pt-10">
+      <View className="w-full max-w-[980px] gap-8 self-center px-6 pb-16 pt-24">
         <View className="items-center gap-2">
           <BrandHeader
             accent={accent}
             mode={theme}
-            size="xl"
+            size="2xl"
             align="center"
-            className="px-0 pt-0"
+            className="mb-4 px-0 pt-0"
           />
           <Text className="text-xl font-bold text-foreground">
             안녕 {nickname}, {greeting} {avatarEmoji}
@@ -206,27 +205,32 @@ function WideHomeScreen() {
           />
         </View>
 
-        <View className="flex-row flex-wrap items-start justify-center gap-5">
+        <View className="flex-row flex-wrap items-start justify-center gap-3">
           {shortcuts.map((link) => (
-            <HomeShortcutTile
+            <ShortcutTile
               key={link.id}
-              url={link.url}
               label={link.title || getDomainFromUrl(link.url)}
+              faviconUrl={getFaviconUrl(link.url)}
+              onPress={() => openExternalUrl(link.url)}
             />
           ))}
-          <AddShortcutTile onPress={() => setIsAddShortcutOpen(true)} />
+          <ShortcutTile
+            add
+            label="바로가기 추가"
+            onPress={() => setIsAddShortcutOpen(true)}
+          />
         </View>
 
-        <View className="flex-row flex-wrap items-center justify-center gap-2">
+        <View className="flex-row flex-wrap items-center justify-center gap-4">
           <ActionPill onPress={() => dispatchWideShortcut("new-link")}>
-            <Text className="text-xs font-medium text-foreground">새 링크</Text>
+            <Text className="text-sm font-medium text-foreground">새 링크</Text>
             <Kbd size="sm">N</Kbd>
           </ActionPill>
           <ActionPill onPress={() => router.push("/todos" as Href)}>
-            <Text className="text-xs font-medium text-foreground">✅ 할일 {todos.length}</Text>
+            <Text className="text-sm font-medium text-foreground">✅ 할일 {todos.length}</Text>
           </ActionPill>
           <ActionPill onPress={() => router.push("/links" as Href)}>
-            <Text className="text-xs font-medium text-foreground">📚 전체 보기</Text>
+            <Text className="text-sm font-medium text-foreground">📚 전체 보기</Text>
           </ActionPill>
         </View>
 
@@ -240,7 +244,10 @@ function WideHomeScreen() {
           {todosQuery.isLoading ? (
             <ActivityIndicator className="py-8" />
           ) : previewTodos.length === 0 ? (
-            <EmptySectionCard message="예정된 할 일이 없어요." />
+            <EmptyState
+              emoji="🎶"
+              title="오늘 할 일이 없어요"
+            />
           ) : (
             <View className="flex-row flex-wrap gap-3">
               {previewTodos.map((todo) => (
@@ -277,40 +284,40 @@ function WideHomeScreen() {
           {recentLinksQuery.isLoading ? (
             <ActivityIndicator className="py-8" />
           ) : recentLinks.length === 0 ? (
-            <EmptySectionCard message="아직 저장한 링크가 없어요." />
+            <EmptyState
+              emoji="⛓️‍💥"
+              title="최근 저장 링크가 없어요"
+            />
           ) : (
-            <View className="flex-row flex-wrap gap-3">
-              {recentLinks.map((item) => {
-                const mapped = mapLinkListItem(item);
-                return (
-                  <View
-                    key={mapped.id}
-                    className={GRID_ITEM_CLASS}
-                  >
-                    <LinkCard
-                      domain={mapped.domain}
-                      faviconUrl={mapped.faviconUrl}
-                      remainingTodoCount={mapped.remainingTodoCount}
-                      statusLabel={mapped.statusLabel}
-                      statusVariant={mapped.statusVariant}
-                      summaryModelLabel={mapped.summaryModelLabel}
-                      tags={mapped.tags}
-                      title={mapped.title}
-                      todos={mapped.todos}
-                      todoLayout="stack"
-                      onPress={() => router.push(`/links/${mapped.id}` as Href)}
-                    />
-                  </View>
-                );
-              })}
-            </View>
+            <LinkCardGrid
+              links={recentLinks}
+              containerClassName="gap-3"
+              itemClassName={GRID_ITEM_CLASS}
+              todoLayout="stack"
+              onCardPress={(item) => router.push(`/links/${item.id}` as Href)}
+            />
           )}
         </View>
 
-        <View className="flex-row flex-wrap items-center justify-center gap-2 pt-2">
-          <Text className="text-xs text-muted-foreground">
-            N 새 링크 · ⌘K 검색 · ? 단축키 도움말
-          </Text>
+        <View className="flex-row flex-wrap items-center justify-center gap-5 pt-2">
+          <Kbd
+            label="새 링크"
+            labelPosition="right"
+          >
+            N
+          </Kbd>
+          <Kbd
+            label="검색"
+            labelPosition="right"
+          >
+            ⌘/Ctrl + K
+          </Kbd>
+          <Kbd
+            label="단축키 도움말"
+            labelPosition="right"
+          >
+            ?
+          </Kbd>
         </View>
       </View>
 
