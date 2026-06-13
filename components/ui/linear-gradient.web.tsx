@@ -1,8 +1,10 @@
 import { View } from "react-native";
 
-import { type AccentName, type ThemeMode, getThemeTokens } from "@/lib/theme";
+import type { AccentName, ThemeMode } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { useDisplaySettings } from "@/stores/display-settings";
+
+import { getCrossAccentStops } from "./gradient-stops";
 
 type LinearGradientProps = React.ComponentProps<typeof View> & {
   accent?: AccentName;
@@ -15,8 +17,7 @@ function LinearGradient({ className, style, colors, accent, mode, ...props }: Li
   const storeMode = useDisplaySettings((state) => state.display.theme);
   const resolvedAccent = accent ?? storeAccent;
   const resolvedMode = mode ?? storeMode;
-  const tokens = getThemeTokens(resolvedMode, resolvedAccent);
-  const tokenColors = [tokens.primary, tokens.primary2, tokens.chart3] as const;
+  const tokenColors = getCrossAccentStops(resolvedMode, resolvedAccent);
   const resolvedColors = colors ?? tokenColors;
   const backgroundImage = `linear-gradient(135deg, ${resolvedColors.join(", ")})`;
 

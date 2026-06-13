@@ -1,5 +1,7 @@
-import { type AccentName, type ThemeMode, getThemeTokens } from "@/lib/theme";
+import type { AccentName, ThemeMode } from "@/lib/theme";
 import { useDisplaySettings } from "@/stores/display-settings";
+
+import { getCrossAccentStops } from "./gradient-stops";
 
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 
@@ -21,8 +23,7 @@ function LinearGradient({
   const storeMode = useDisplaySettings((state) => state.display.theme);
   const resolvedAccent = accent ?? storeAccent;
   const resolvedMode = mode ?? storeMode;
-  const tokens = getThemeTokens(resolvedMode, resolvedAccent);
-  const tokenColors = [tokens.primary, tokens.primary2, tokens.chart3] as const;
+  const tokenColors = getCrossAccentStops(resolvedMode, resolvedAccent);
 
   return (
     <ExpoLinearGradient
