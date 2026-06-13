@@ -1,5 +1,5 @@
 import { DEV_AUTH_TOKEN } from "@/constants/auth";
-import { authStorage } from "@/lib/auth-storage";
+import { SessionStorage } from "@/lib/session-storage";
 
 import { create } from "zustand";
 
@@ -33,7 +33,7 @@ const useAuthStore = create<AuthState>((set) => ({
 
 async function hydrateAuthStore() {
   try {
-    const raw = await authStorage.getItem(STORAGE_KEY);
+    const raw = await SessionStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<AuthTokens>;
       useAuthStore.setState({
@@ -61,7 +61,7 @@ function startAuthPersistence() {
     ) {
       return;
     }
-    void authStorage.setItem(
+    void SessionStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ accessToken: state.accessToken, refreshToken: state.refreshToken }),
     );
