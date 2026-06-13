@@ -105,6 +105,18 @@ function AppStack() {
   );
 }
 
+function AuthenticatedBridges() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  if (!hasHydrated || !accessToken) return null;
+  return (
+    <>
+      <SettingsHydrator />
+      <PushNotificationsBridge />
+    </>
+  );
+}
+
 export default function RootLayout() {
   const theme = useDisplaySettings((state) => state.display.theme);
   const accent = useDisplaySettings((state) => state.display.accent);
@@ -116,9 +128,8 @@ export default function RootLayout() {
       <NativeThemeVarsView>
         <SafeAreaProvider initialMetrics={initialWindowMetrics}>
           <QueryProvider>
-            <SettingsHydrator />
+            <AuthenticatedBridges />
             <DisplayThemeBridge />
-            <PushNotificationsBridge />
             <AppErrorBoundary>
               <ThemeProvider value={getNavTheme(theme, accent)}>
                 <AppStack />
