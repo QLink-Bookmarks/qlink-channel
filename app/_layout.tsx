@@ -12,6 +12,7 @@ import { PushNotificationsBridge } from "@/features/notifications/components/pus
 import { getNavTheme } from "@/lib/theme";
 import { getNativeThemeVars } from "@/lib/theme-vars";
 import { QueryProvider } from "@/providers/query-provider";
+import { useAuthStore } from "@/stores/auth";
 import { useDisplaySettings } from "@/stores/display-settings";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
@@ -22,7 +23,7 @@ import { useColorScheme, vars } from "nativewind";
 const StorybookEnabled = process.env.EXPO_PUBLIC_STORYBOOK_ENABLED === "true";
 
 export const unstable_settings = {
-  initialRouteName: StorybookEnabled ? "(storybook)/index" : "(pages)",
+  initialRouteName: StorybookEnabled ? "(storybook)/index" : "(auth)",
 };
 
 function SettingsHydrator() {
@@ -74,6 +75,35 @@ function NativeThemeVarsView({ children }: { children: React.ReactNode }) {
   return <View style={[{ flex: 1 }, themeVars]}>{children}</View>;
 }
 
+function AppStack() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const isAuthenticated = hasHydrated && Boolean(accessToken);
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={StorybookEnabled}>
+        <Stack.Screen name="(storybook)/index" />
+      </Stack.Protected>
+
+      <Stack.Screen name="(auth)" />
+
+      <Stack.Protected guard={isAuthenticated}>
+        <Stack.Screen name="(pages)" />
+        <Stack.Screen
+          name="qr-scan"
+          options={{
+            headerShown: true,
+            title: "QR 스캔",
+            headerBackTitle: " ",
+            headerBackButtonDisplayMode: "minimal",
+          }}
+        />
+      </Stack.Protected>
+    </Stack>
+  );
+}
+
 export default function RootLayout() {
   const theme = useDisplaySettings((state) => state.display.theme);
   const accent = useDisplaySettings((state) => state.display.accent);
@@ -88,22 +118,7 @@ export default function RootLayout() {
             <PushNotificationsBridge />
             <AppErrorBoundary>
               <ThemeProvider value={getNavTheme(theme, accent)}>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Protected guard={StorybookEnabled}>
-                    <Stack.Screen name="(storybook)/index" />
-                  </Stack.Protected>
-
-                  <Stack.Screen name="(pages)" />
-                  <Stack.Screen
-                    name="qr-scan"
-                    options={{
-                      headerShown: true,
-                      title: "QR 스캔",
-                      headerBackTitle: " ",
-                      headerBackButtonDisplayMode: "minimal",
-                    }}
-                  />
-                </Stack>
+                <AppStack />
                 <PortalHost />
                 <ToastViewport />
               </ThemeProvider>
