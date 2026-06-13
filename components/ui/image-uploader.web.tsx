@@ -2,7 +2,7 @@ import * as React from "react";
 import { Pressable, type PressableProps } from "react-native";
 
 type ImageUploaderProps = Omit<PressableProps, "onPress"> & {
-  onImagePicked: (dataUrl: string) => void;
+  onImagePicked: (file: File) => void;
   accept?: string;
   children: React.ReactNode;
 };
@@ -26,13 +26,7 @@ function ImageUploader({
       if (!file) {
         return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          onImagePicked(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+      onImagePicked(file);
     },
     [onImagePicked],
   );

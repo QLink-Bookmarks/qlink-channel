@@ -61,6 +61,7 @@ type UpdateMyProfileRequest = {
   username: string;
   nickname: string;
   avatarEmoji?: string | null;
+  avatarUrl?: string | null;
 };
 
 type UpdateMyProfileResponse = ApiEnvelope<GetMyProfileResponseData | null>;

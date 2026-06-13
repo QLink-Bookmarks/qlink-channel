@@ -42,6 +42,7 @@ import {
 import { usePutAiUserProviderMutation } from "@/features/ai/mutations";
 import { useAiProviderModelsQuery } from "@/features/ai/queries";
 import type { AiProviderWithModels } from "@/features/ai/types";
+import { useUploadImageMutation } from "@/features/images/mutations";
 import { useDisplaySettings } from "@/stores/display-settings";
 import { useToastStore } from "@/stores/toast-store";
 
@@ -290,12 +291,12 @@ function ProfileEditOverlay({
   const [draftAvatarEmoji, setDraftAvatarEmoji] = React.useState<string | null>(avatarEmoji);
   const [draftUsername, setDraftUsername] = React.useState(username);
   const [draftNickname, setDraftNickname] = React.useState(nickname);
-  // TODO(profile-avatar-upload): upload the picked file via the avatar upload API and pass
-  // the returned URL into the profile update mutation; this preview state is local-only.
-  const [draftAvatarPreviewUrl, setDraftAvatarPreviewUrl] = React.useState<string | null>(null);
+  const [draftAvatarUploadedUrl, setDraftAvatarUploadedUrl] = React.useState<string | null>(null);
   const [validationError, setValidationError] = React.useState<string | undefined>();
   const mutation = useUpdateMyProfileMutation();
   const resetMutation = mutation.reset;
+  const uploadImageMutation = useUploadImageMutation();
+  const resetUploadMutation = uploadImageMutation.reset;
   const showToast = useToastStore((state) => state.showToast);
 
   React.useEffect(() => {
@@ -303,11 +304,12 @@ function ProfileEditOverlay({
       setDraftAvatarEmoji(avatarEmoji);
       setDraftUsername(username);
       setDraftNickname(nickname);
-      setDraftAvatarPreviewUrl(null);
+      setDraftAvatarUploadedUrl(null);
       setValidationError(undefined);
       resetMutation();
+      resetUploadMutation();
     }
-  }, [avatarEmoji, nickname, open, resetMutation, username]);
+  }, [avatarEmoji, nickname, open, resetMutation, resetUploadMutation, username]);
 
   const handleUsernameChange = React.useCallback((next: string) => {
     setDraftUsername(next);
@@ -317,6 +319,28 @@ function ProfileEditOverlay({
     setDraftNickname(next);
     setValidationError(undefined);
   }, []);
+
+  const handleAvatarPicked = React.useCallback(
+    async (file: File | Blob) => {
+      try {
+        const response = await uploadImageMutation.mutateAsync(file);
+        const uploadedUrl = response.data?.url;
+        if (uploadedUrl) {
+          setDraftAvatarUploadedUrl(uploadedUrl);
+        }
+      } catch {
+        showToast({
+          description: "이미지 업로드에 실패했어요. 잠시 후 다시 시도해주세요.",
+          dismissible: true,
+          durationMs: 3000,
+          sourceKey: "settings-profile-avatar",
+          title: "업로드 실패",
+          variant: "warning",
+        });
+      }
+    },
+    [showToast, uploadImageMutation],
+  );
 
   const handleSave = React.useCallback(async () => {
     const trimmedUsername = draftUsername.trim();
@@ -331,6 +355,7 @@ function ProfileEditOverlay({
         avatarEmoji: draftAvatarEmoji,
         nickname: trimmedNickname,
         username: trimmedUsername,
+        ...(draftAvatarUploadedUrl ? { avatarUrl: draftAvatarUploadedUrl } : {}),
       });
       onSaved(response.data?.avatarEmoji ?? draftAvatarEmoji);
       showToast({
@@ -351,9 +376,17 @@ function ProfileEditOverlay({
         variant: "warning",
       });
     }
-  }, [draftAvatarEmoji, draftNickname, draftUsername, mutation, onSaved, showToast]);
+  }, [
+    draftAvatarEmoji,
+    draftAvatarUploadedUrl,
+    draftNickname,
+    draftUsername,
+    mutation,
+    onSaved,
+    showToast,
+  ]);
 
-  const displayAvatarUrl = draftAvatarPreviewUrl ?? avatarUrl;
+  const displayAvatarUrl = draftAvatarUploadedUrl ?? avatarUrl;
 
   const renderBody = (pickerMaxHeight: number, pickerFixedHeight: boolean) => (
     <View className="gap-4">
@@ -371,7 +404,7 @@ function ProfileEditOverlay({
           <ImageUploader
             className="absolute -bottom-2 -right-2 size-9 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
             hitSlop={8}
-            onImagePicked={setDraftAvatarPreviewUrl}
+            onImagePicked={handleAvatarPicked}
           >
             <Icon
               as={Camera}
