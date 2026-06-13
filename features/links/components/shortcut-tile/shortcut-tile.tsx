@@ -29,24 +29,25 @@ function ShortcutTile({
   return (
     <Pressable
       className={cn(
-        "w-24 items-center gap-2 rounded-2xl border border-border-soft bg-surface p-3 shadow-qlink-sm active:border-primary",
+        "group w-24 items-center gap-2 rounded-2xl border border-border-soft bg-surface p-3 shadow-qlink-sm active:border-primary",
+        "web:transition-all web:hover:border-primary web:hover:bg-primary/5 web:hover:shadow-qlink-md",
         className,
       )}
       onPress={onPress}
     >
       <View className="relative">
         {add ? (
-          <View className="size-10 items-center justify-center rounded-xl border border-dashed border-border bg-surface-elevated">
+          <View className="size-8 items-center justify-center rounded-xl border border-dashed border-border bg-surface-elevated">
             <Icon
               as={Plus}
-              className="size-5 text-muted-foreground"
+              className="size-4 text-muted-foreground"
             />
           </View>
         ) : (
           <Favicon
             url={faviconUrl}
             fallback={label.slice(0, 1)}
-            size="lg"
+            size="md"
           />
         )}
         {removable ? (
@@ -63,7 +64,7 @@ function ShortcutTile({
       </View>
       <Text
         numberOfLines={1}
-        className="text-center text-xs font-medium"
+        className="text-center text-xs font-medium web:transition-colors web:group-hover:text-primary"
       >
         {label}
       </Text>

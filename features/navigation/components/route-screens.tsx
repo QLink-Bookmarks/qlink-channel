@@ -9,6 +9,7 @@ import { MobileFoldersScreen } from "@/features/folders/components/mobile-folder
 import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkListView } from "@/features/home/components/link-list-view";
 import { MobileHomeScreen } from "@/features/home/components/mobile-home-screen";
+import { WideHomeScreen } from "@/features/home/components/wide-home-screen";
 import { LinkDetailScreen } from "@/features/links/components/link-detail-screen";
 import { NotificationInboxScreen } from "@/features/notifications/components/notification-inbox-screen";
 import { SettingsScreen } from "@/features/settings/components/settings-screen";
@@ -57,14 +58,7 @@ function HomeRouteScreen() {
   const { isWideView } = useShellRouteState();
 
   if (isWideView) {
-    return (
-      <WidePlaceholderScreen
-        title="홈"
-        emoji="🏠"
-        meta="홈 대시보드는 준비 중이다."
-        description="홈 위젯이 곧 추가될 예정이다."
-      />
-    );
+    return <WideHomeScreen />;
   }
 
   return <MobileHomeScreen />;

@@ -69,7 +69,7 @@ function Input({
         props.editable === false &&
           "opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed",
         "outline-none transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground md:text-sm",
-        "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "focus-visible:outline-none focus-visible:ring-0",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         className,
       )}
