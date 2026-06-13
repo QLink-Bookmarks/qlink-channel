@@ -1,4 +1,3 @@
-import { DEV_AUTH_TOKEN } from "@/constants/auth";
 import { SessionStorage } from "@/lib/session-storage";
 
 import { create } from "zustand";
@@ -43,9 +42,6 @@ async function hydrateAuthStore() {
     }
   } catch {
     // ignore corrupt storage
-  }
-  if (!useAuthStore.getState().accessToken && DEV_AUTH_TOKEN) {
-    useAuthStore.setState({ accessToken: DEV_AUTH_TOKEN });
   }
   useAuthStore.setState({ hasHydrated: true });
 }
