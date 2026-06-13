@@ -32,3 +32,10 @@ output/
 storybook-static/
 docs/reference
 .eslintcache
+
+# Local tooling / E2E artifacts
+.claude/
+test-results/
+playwright.config.ts
+playwright.config.js
+e2e/
