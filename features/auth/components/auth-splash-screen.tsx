@@ -73,7 +73,7 @@ function UnauthenticatedScreen() {
   const colors = useCycledBrandColors(theme);
 
   return (
-    <View className="flex-1 items-center justify-center gap-6 bg-background px-6 py-12">
+    <View className="flex-1 items-center justify-center gap-12 bg-background px-6 py-12">
       <View className="items-center gap-3">
         <BrandHeader
           size="xl"

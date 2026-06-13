@@ -8,6 +8,7 @@ import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-c
 import { AppErrorBoundary } from "@/components/error/app-error-boundary";
 import { ToastViewport } from "@/components/ui/toast-viewport";
 import { useMySettingsQuery } from "@/features/account/queries";
+import { useSocialSdks } from "@/features/auth/hooks/use-social-sdks";
 import { PushNotificationsBridge } from "@/features/notifications/components/push-notifications-bridge";
 import { getNavTheme } from "@/lib/theme";
 import { getNativeThemeVars } from "@/lib/theme-vars";
@@ -107,6 +108,8 @@ function AppStack() {
 export default function RootLayout() {
   const theme = useDisplaySettings((state) => state.display.theme);
   const accent = useDisplaySettings((state) => state.display.accent);
+
+  useSocialSdks();
 
   return (
     <GestureHandlerRootView className={theme === "dark" ? "dark flex-1" : "flex-1"}>

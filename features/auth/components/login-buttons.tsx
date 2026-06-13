@@ -7,6 +7,8 @@ import { DEV_AUTH_TOKEN } from "@/constants/auth";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth";
 
+import { useKakaoLogin } from "../hooks/use-kakao-login";
+
 type LoginButtonProps = {
   onPress?: () => void;
 };
@@ -192,9 +194,10 @@ function DevLoginButton({ onPress }: LoginButtonProps) {
 }
 
 function LoginButtonsStack() {
+  const { handleKakaoLogin } = useKakaoLogin();
   return (
     <View className="w-full max-w-sm gap-3">
-      <KakaoLoginButton />
+      <KakaoLoginButton onPress={handleKakaoLogin} />
       <NaverLoginButton />
       <GoogleLoginButton />
       <AppleLoginButton />
