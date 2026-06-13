@@ -46,14 +46,18 @@ import {
 import { usePutAiUserProviderMutation } from "@/features/ai/mutations";
 import { useAiProviderModelsQuery } from "@/features/ai/queries";
 import type { AiProviderWithModels } from "@/features/ai/types";
+import { signOut as signOutApi } from "@/features/auth/api";
 import { useUploadImageMutation } from "@/features/images/mutations";
+import { reportError } from "@/lib/error-reporting";
+import { useAuthStore } from "@/stores/auth";
 import { useDisplaySettings } from "@/stores/display-settings";
 import { useToastStore } from "@/stores/toast-store";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useSettingsAutosave } from "../hooks/use-settings-autosave";
 
 import * as Linking from "expo-linking";
+import { type Href, useRouter } from "expo-router";
 import { Camera, ChevronRight, KeyRound, Sparkles, X } from "lucide-react-native/icons";
 
 type SettingsScreenMode = "wide" | "mobile";
@@ -190,6 +194,32 @@ function ProfileSection({
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [logoutOpen, setLogoutOpen] = React.useState(false);
 
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const signOutStore = useAuthStore((state) => state.signOut);
+  const showToast = useToastStore((state) => state.showToast);
+  const signOutMutation = useMutation({
+    mutationFn: () => signOutApi({ refreshToken: useAuthStore.getState().refreshToken }),
+  });
+  const handleConfirmLogout = React.useCallback(async () => {
+    try {
+      await signOutMutation.mutateAsync();
+    } catch (error) {
+      reportError(error, { area: "settings:sign-out" });
+    } finally {
+      signOutStore();
+      queryClient.clear();
+      setLogoutOpen(false);
+      router.replace("/" as Href);
+      showToast({
+        title: "로그아웃 되었어요",
+        variant: "success",
+        sourceKey: "settings-logout",
+        dismissible: true,
+      });
+    }
+  }, [queryClient, router, showToast, signOutMutation, signOutStore]);
+
   return (
     <>
       <SettingsSectionCard
@@ -257,15 +287,16 @@ function ProfileSection({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
-            <AlertDialogDescription>
-              로그아웃하면 다시 로그인해야 해요. (더미 다이얼로그)
-            </AlertDialogDescription>
+            <AlertDialogDescription>로그아웃하면 다시 로그인해야 해요.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>
+            <AlertDialogCancel disabled={signOutMutation.isPending}>
               <Text>취소</Text>
             </AlertDialogCancel>
-            <AlertDialogAction>
+            <AlertDialogAction
+              disabled={signOutMutation.isPending}
+              onPress={handleConfirmLogout}
+            >
               <Text>로그아웃</Text>
             </AlertDialogAction>
           </AlertDialogFooter>

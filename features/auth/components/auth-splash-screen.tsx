@@ -10,7 +10,7 @@ import { useDisplaySettings } from "@/stores/display-settings";
 import { useCycledBrandColors } from "../hooks/use-cycled-brand-colors";
 import { LoginButtonsStack } from "./login-buttons";
 
-import { type Href, useRouter } from "expo-router";
+import { type Href, useFocusEffect, useRouter } from "expo-router";
 
 type AuthCheckStatus = "checking" | "authenticated" | "unauthenticated";
 
@@ -46,11 +46,13 @@ function AuthSplashScreen() {
     };
   }, [accessToken, hasHydrated]);
 
-  React.useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/home" as Href);
-    }
-  }, [router, status]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (status === "authenticated") {
+        router.replace("/home" as Href);
+      }
+    }, [router, status]),
+  );
 
   if (status === "unauthenticated") {
     return <UnauthenticatedScreen />;

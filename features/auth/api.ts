@@ -1,6 +1,12 @@
 import { api } from "@/lib/api-client";
 
-import type { AuthTokenResponse, NativeRefreshTokenRequest, SignInRequest } from "./types";
+import type {
+  AuthTokenResponse,
+  NativeRefreshTokenRequest,
+  SignInRequest,
+  SignOutRequest,
+  SignOutResponse,
+} from "./types";
 
 async function signIn(payload: SignInRequest) {
   return api.post<AuthTokenResponse, SignInRequest>("/api/auth/sign", payload);
@@ -17,4 +23,8 @@ async function refreshTokenNative(payload: NativeRefreshTokenRequest) {
   );
 }
 
-export { refreshTokenNative, refreshTokenWeb, signIn };
+async function signOut(payload: SignOutRequest = {}) {
+  return api.delete<SignOutResponse>("/api/auth/signout", { data: payload });
+}
+
+export { refreshTokenNative, refreshTokenWeb, signIn, signOut };
