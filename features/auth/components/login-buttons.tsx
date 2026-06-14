@@ -4,6 +4,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { Text } from "@/components/ui/text";
 import { DEV_AUTH_TOKEN } from "@/constants/auth";
+import { isDevLoginEnabled } from "@/lib/app-variant";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth";
 
@@ -201,7 +202,7 @@ function LoginButtonsStack() {
       <NaverLoginButton />
       <GoogleLoginButton />
       <AppleLoginButton />
-      <DevLoginButton />
+      {isDevLoginEnabled ? <DevLoginButton /> : null}
     </View>
   );
 }

@@ -1,6 +1,7 @@
 import type { ExpoConfig } from "expo/config";
 
 const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_KEY ?? "";
+const appVariant = process.env.APP_VARIANT ?? "production";
 
 const config: ExpoConfig = {
   name: "qlink-channel",
@@ -66,6 +67,9 @@ const config: ExpoConfig = {
     reactCompiler: true,
     typedRoutes: true,
     tsconfigPaths: true,
+  },
+  extra: {
+    appVariant,
   },
 };
 
