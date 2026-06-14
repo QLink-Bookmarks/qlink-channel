@@ -3,6 +3,12 @@ import type { ExpoConfig } from "expo/config";
 const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_KEY ?? "";
 const appVariant = process.env.APP_VARIANT ?? "production";
 
+const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";
+// Google's iOS redirect scheme is the client id reversed (REVERSED_CLIENT_ID in the plist).
+const googleIosUrlScheme = googleIosClientId
+  ? `com.googleusercontent.apps.${googleIosClientId.replace(".apps.googleusercontent.com", "")}`
+  : "";
+
 const config: ExpoConfig = {
   name: "qlink-channel",
   slug: "qlink-channel",
@@ -60,6 +66,12 @@ const config: ExpoConfig = {
         ios: {
           handleKakaoOpenUrl: true,
         },
+      },
+    ],
+    [
+      "@react-native-google-signin/google-signin",
+      {
+        iosUrlScheme: googleIosUrlScheme,
       },
     ],
   ],

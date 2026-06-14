@@ -20,6 +20,10 @@ export default function Root({ children }: { children: React.ReactNode }) {
           integrity="sha384-JpLApTkB8lPskhVMhT+m5Ln8aHlnS0bsIexhaak0jOhAkMYedQoVghPfSpjNi9K1"
           crossOrigin="anonymous"
         />
+        <script
+          src="https://accounts.google.com/gsi/client"
+          async
+        />
         <ScrollViewStyleReset />
       </head>
       <body>{children}</body>

@@ -8,6 +8,7 @@ import { isDevLoginEnabled } from "@/lib/app-variant";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth";
 
+import { useGoogleLogin } from "../hooks/use-google-login";
 import { useKakaoLogin } from "../hooks/use-kakao-login";
 
 type LoginButtonProps = {
@@ -196,12 +197,13 @@ function DevLoginButton({ onPress }: LoginButtonProps) {
 
 function LoginButtonsStack() {
   const { handleKakaoLogin } = useKakaoLogin();
+  const { handleGoogleLogin } = useGoogleLogin();
   return (
     <View className="w-full max-w-sm gap-3">
+      <AppleLoginButton />
       <KakaoLoginButton onPress={handleKakaoLogin} />
       <NaverLoginButton />
-      <GoogleLoginButton />
-      <AppleLoginButton />
+      <GoogleLoginButton onPress={handleGoogleLogin} />
       {isDevLoginEnabled ? <DevLoginButton /> : null}
     </View>
   );
