@@ -10,6 +10,30 @@ const googleIosUrlScheme = googleIosClientId
   ? `com.googleusercontent.apps.${googleIosClientId.replace(".apps.googleusercontent.com", "")}`
   : "";
 
+// Native social-login plugins validate their keys and throw on empty values.
+// They are irrelevant to the web export (which runs in CI without these env
+// vars), so only include them when the matching key is present.
+const nativeAuthPlugins: NonNullable<ExpoConfig["plugins"]> = [];
+if (kakaoNativeAppKey) {
+  nativeAuthPlugins.push([
+    "@react-native-kakao/core",
+    {
+      nativeAppKey: kakaoNativeAppKey,
+      android: { authCodeHandlerActivity: true },
+      ios: { handleKakaoOpenUrl: true },
+    },
+  ]);
+}
+if (googleIosUrlScheme) {
+  nativeAuthPlugins.push([
+    "@react-native-google-signin/google-signin",
+    { iosUrlScheme: googleIosUrlScheme },
+  ]);
+}
+if (naverUrlScheme) {
+  nativeAuthPlugins.push(["@react-native-seoul/naver-login", { urlScheme: naverUrlScheme }]);
+}
+
 const config: ExpoConfig = {
   name: "qlink-channel",
   slug: "qlink-channel",
@@ -57,30 +81,7 @@ const config: ExpoConfig = {
         },
       },
     ],
-    [
-      "@react-native-kakao/core",
-      {
-        nativeAppKey: kakaoNativeAppKey,
-        android: {
-          authCodeHandlerActivity: true,
-        },
-        ios: {
-          handleKakaoOpenUrl: true,
-        },
-      },
-    ],
-    [
-      "@react-native-google-signin/google-signin",
-      {
-        iosUrlScheme: googleIosUrlScheme,
-      },
-    ],
-    [
-      "@react-native-seoul/naver-login",
-      {
-        urlScheme: naverUrlScheme,
-      },
-    ],
+    ...nativeAuthPlugins,
     "./plugins/with-ios-modular-headers",
   ],
   experiments: {
