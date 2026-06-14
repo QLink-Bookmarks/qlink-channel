@@ -11,11 +11,13 @@ import type { LinkListItem, LinkOrder } from "@/features/links/types";
 import { OrderFilter } from "./order-filter";
 
 import { type Href, useRouter } from "expo-router";
+import type { LucideIcon } from "lucide-react-native";
 
 type LinkListViewProps = {
   folderId?: number;
   title: string;
   emoji?: string;
+  icon?: LucideIcon;
   meta?: string;
   basePath: string;
   activeLinkId?: number | null;
@@ -26,6 +28,7 @@ function LinkListView({
   folderId,
   title,
   emoji,
+  icon,
   meta,
   basePath,
   activeLinkId,
@@ -69,6 +72,7 @@ function LinkListView({
       <PageHeader
         title={title}
         emoji={emoji}
+        icon={icon}
         meta={totalLabel}
         actions={headerActions}
       />

@@ -20,6 +20,7 @@ import { readParamValue } from "../routes";
 import { DummyRouteScreen } from "./dummy-route-screen";
 
 import { useLocalSearchParams } from "expo-router";
+import { BookCopyIcon } from "lucide-react-native";
 
 function WidePlaceholderScreen({
   title,
@@ -172,7 +173,7 @@ function LinksRouteScreen() {
   return (
     <LinkListView
       title="전체 보기"
-      emoji="📚"
+      icon={BookCopyIcon}
       basePath="/links"
       activeLinkId={linkIdParam ? Number(linkIdParam) : undefined}
     />

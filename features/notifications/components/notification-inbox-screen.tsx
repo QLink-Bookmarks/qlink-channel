@@ -16,6 +16,7 @@ import type { NotificationListItem } from "../types";
 import { NotificationCard } from "./notification-card";
 
 import { type Href, useRouter } from "expo-router";
+import { Bell } from "lucide-react-native";
 
 type NotificationInboxScreenMode = "mobile" | "wide";
 
@@ -89,7 +90,7 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
       >
         <PageHeader
           title="알림"
-          emoji="🔔"
+          icon={Bell}
           meta={unreadCount > 0 ? `안 읽은 알림 ${unreadCount}개` : "새 알림이 없어요"}
         />
         <View className="w-full max-w-4xl gap-3 px-6 pb-10 pt-2">

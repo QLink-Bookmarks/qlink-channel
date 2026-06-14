@@ -1,8 +1,11 @@
 import { View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
+
+import type { LucideIcon } from "lucide-react-native";
 
 // View scope: 와이드뷰 전용. md >= 768px에서 사용한다.
 
@@ -15,6 +18,7 @@ function PageHeader({
   className,
   title,
   emoji,
+  icon,
   meta,
   primaryAction,
   actions,
@@ -22,6 +26,7 @@ function PageHeader({
 }: React.ComponentProps<typeof View> & {
   title: string;
   emoji?: string;
+  icon?: LucideIcon;
   meta?: string;
   primaryAction?: PageHeaderPrimaryAction;
   actions?: React.ReactNode;
@@ -35,10 +40,18 @@ function PageHeader({
       {...props}
     >
       <View className="flex-1 gap-1">
-        <Text className="text-3xl font-extrabold">
-          {emoji ? `${emoji} ` : ""}
-          {title}
-        </Text>
+        <View className="flex-row items-center gap-2">
+          {icon ? (
+            <Icon
+              as={icon}
+              className="size-7 text-foreground"
+            />
+          ) : null}
+          <Text className="text-3xl font-extrabold">
+            {!icon && emoji ? `${emoji} ` : ""}
+            {title}
+          </Text>
+        </View>
         {meta ? <Text className="text-sm text-muted-foreground">{meta}</Text> : null}
       </View>
       {actions || primaryAction ? (

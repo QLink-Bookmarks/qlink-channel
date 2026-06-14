@@ -64,9 +64,9 @@ const widePrimaryItems: {
   label: string;
   icon: LucideIcon;
 }[] = [
-  { href: "/home", key: "home", label: "🏠 홈", icon: LucideHome },
-  { href: "/links", key: "links", label: "📚 전체", icon: BookCopyIcon },
-  { href: "/todos", key: "todos", label: "✅ 할일", icon: CheckSquare },
+  { href: "/home", key: "home", label: "홈", icon: LucideHome },
+  { href: "/links", key: "links", label: "전체", icon: BookCopyIcon },
+  { href: "/todos", key: "todos", label: "할일", icon: CheckSquare },
 ];
 const UNCATEGORIZED_FOLDER_ID = 0;
 
@@ -297,6 +297,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                     <SidebarItem
                       key={item.key}
                       active={routeState.wideSidebarKey === item.key}
+                      icon={item.icon}
                       label={item.label}
                       labelClassName="text-base"
                       onPress={() => router.replace(item.href as Href)}

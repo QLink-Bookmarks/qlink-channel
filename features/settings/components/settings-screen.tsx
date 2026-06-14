@@ -58,7 +58,7 @@ import { useSettingsAutosave } from "../hooks/use-settings-autosave";
 
 import * as Linking from "expo-linking";
 import { type Href, useRouter } from "expo-router";
-import { Camera, ChevronRight, KeyRound, Sparkles, X } from "lucide-react-native/icons";
+import { Camera, ChevronRight, KeyRound, Settings, Sparkles, X } from "lucide-react-native/icons";
 
 type SettingsScreenMode = "wide" | "mobile";
 
@@ -97,7 +97,7 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
         <PageHeader
           className="px-0"
           title="설정"
-          emoji="⚙️"
+          icon={Settings}
           meta="프로필, AI 제공자, 알림 설정을 관리해요."
         />
       ) : null}

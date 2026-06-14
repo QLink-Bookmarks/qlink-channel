@@ -25,6 +25,7 @@ import type { TodoListItem } from "../../types";
 import { TodoItem } from "../todo-item/todo-item";
 
 import { type Href, useRouter } from "expo-router";
+import { CheckSquare } from "lucide-react-native";
 
 type TodosScreenMode = "mobile" | "wide";
 
@@ -195,7 +196,7 @@ function WideTodosScreen() {
     >
       <PageHeader
         title="할일"
-        emoji="✅"
+        icon={CheckSquare}
         meta={`${totalCount}개`}
       />
       <View className="gap-5 px-6 pb-10 pt-4 md:pt-0">
