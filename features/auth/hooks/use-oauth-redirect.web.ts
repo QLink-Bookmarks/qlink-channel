@@ -55,7 +55,7 @@ function useOauthRedirect() {
         if (provider === "kakao") {
           await exchangeKakaoCode(redirect.code);
         } else if (provider === "naver") {
-          await exchangeNaverCode(redirect.code);
+          await exchangeNaverCode(redirect.code, redirect.state);
         }
       } catch (error) {
         reportError(error, { area: `auth:${provider}-exchange` });
