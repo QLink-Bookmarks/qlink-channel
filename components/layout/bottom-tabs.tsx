@@ -1,9 +1,11 @@
-import { Pressable, View } from "react-native";
+import * as React from "react";
+import { type LayoutChangeEvent, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
+import { useChromeStore } from "@/stores/chrome";
 
 import type { LucideIcon } from "lucide-react-native";
 
@@ -28,6 +30,18 @@ function BottomTabs({
   onValueChange?: (value: string) => void;
 }) {
   const insets = useSafeAreaInsets();
+  const setBottomTabsHeight = useChromeStore((state) => state.setBottomTabsHeight);
+
+  React.useEffect(() => {
+    return () => setBottomTabsHeight(0);
+  }, [setBottomTabsHeight]);
+
+  const handleLayout = React.useCallback(
+    (event: LayoutChangeEvent) => {
+      setBottomTabsHeight(event.nativeEvent.layout.height);
+    },
+    [setBottomTabsHeight],
+  );
 
   return (
     <View
@@ -41,6 +55,7 @@ function BottomTabs({
         },
         style,
       ]}
+      onLayout={handleLayout}
       {...props}
     >
       {items.map((item) => {

@@ -7,11 +7,13 @@ import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-vie
 import { Toast } from "@/components/ui/toast";
 import { useWideView } from "@/lib/hooks/use-wide-view";
 import { cn } from "@/lib/utils";
+import { useChromeStore } from "@/stores/chrome";
 import { useToastStore } from "@/stores/toast-store";
 
 function ToastViewport() {
   const insets = useSafeAreaInsets();
   const isWideView = useWideView();
+  const bottomTabsHeight = useChromeStore((state) => state.bottomTabsHeight);
   const items = useToastStore((state) => state.items);
   const dismissToast = useToastStore((state) => state.dismissToast);
   const pruneExpiredToasts = useToastStore((state) => state.pruneExpiredToasts);
@@ -71,7 +73,11 @@ function ToastViewport() {
       <View
         className={cn("pointer-events-none", isWideView ? "w-full max-w-sm pr-6" : "w-full px-4")}
         style={{
-          paddingBottom: isWideView ? Math.max(insets.bottom, 24) : insets.bottom + 104,
+          paddingBottom: isWideView
+            ? Math.max(insets.bottom, 24)
+            : bottomTabsHeight > 0
+              ? bottomTabsHeight + 16
+              : insets.bottom + 24,
         }}
       >
         <View
