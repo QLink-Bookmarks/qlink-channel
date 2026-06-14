@@ -198,7 +198,7 @@ function WideTodosScreen() {
         emoji="✅"
         meta={`${totalCount}개`}
       />
-      <View className="gap-6 px-6 pb-10 pt-2">
+      <View className="gap-5 px-6 pb-10 pt-4 md:pt-0">
         <SegmentedControl
           options={filterChips}
           selectionMode="single"
