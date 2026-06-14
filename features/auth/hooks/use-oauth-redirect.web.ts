@@ -4,7 +4,7 @@ import { reportError } from "@/lib/error-reporting";
 
 import { clearOauthState, resolveOauthState } from "../lib/oauth-state";
 import { exchangeKakaoCode } from "./use-kakao-login.web";
-import { exchangeNaverCode } from "./use-naver-login.web";
+import { processNaverRedirect } from "./use-naver-login.web";
 
 type OauthRedirect = { code: string; state: string | null };
 
@@ -28,40 +28,46 @@ function clearRedirectParams() {
   }, 0);
 }
 
-// Single web callback handler. Every provider redirects back to the app root
-// with `?code=&state=`; this resolves the provider from `state` and dispatches
-// to that provider's exchange, so the callbacks never collide.
+function hasNaverHash(): boolean {
+  return typeof window !== "undefined" && window.location.hash.includes("access_token");
+}
+
+// Single web callback handler. Kakao returns to the app root with `?code=&state=`
+// (resolved via `state`); Naver uses its SDK's implicit flow and returns the
+// token in the URL hash, handled by processNaverRedirect.
 function useOauthRedirect() {
-  const [isProcessing, setIsProcessing] = React.useState(() => Boolean(readRedirect()));
+  const [isProcessing, setIsProcessing] = React.useState(
+    () => Boolean(readRedirect()) || hasNaverHash(),
+  );
   const handledRef = React.useRef(false);
 
   React.useEffect(() => {
     if (handledRef.current) return;
-    const redirect = readRedirect();
-    if (!redirect) return;
     handledRef.current = true;
 
-    const provider = resolveOauthState(redirect.state);
-    if (!provider) {
-      clearRedirectParams();
-      clearOauthState();
-      setIsProcessing(false);
-      return;
-    }
-
-    setIsProcessing(true);
     void (async () => {
       try {
-        if (provider === "kakao") {
-          await exchangeKakaoCode(redirect.code);
-        } else if (provider === "naver") {
-          await exchangeNaverCode(redirect.code, redirect.state);
+        if (hasNaverHash()) {
+          setIsProcessing(true);
+          await processNaverRedirect();
+          return;
         }
-      } catch (error) {
-        reportError(error, { area: `auth:${provider}-exchange` });
-      } finally {
+
+        const redirect = readRedirect();
+        if (!redirect) {
+          return;
+        }
+
+        const provider = resolveOauthState(redirect.state);
+        if (provider === "kakao") {
+          setIsProcessing(true);
+          await exchangeKakaoCode(redirect.code);
+        }
         clearRedirectParams();
         clearOauthState();
+      } catch (error) {
+        reportError(error, { area: "auth:oauth-exchange" });
+      } finally {
         setIsProcessing(false);
       }
     })();

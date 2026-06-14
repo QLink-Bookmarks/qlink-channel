@@ -4,70 +4,131 @@ import { reportError } from "@/lib/error-reporting";
 import { useAuthStore } from "@/stores/auth";
 
 import { signIn } from "../api";
-import { beginOauthState } from "../lib/oauth-state";
 
-const NAVER_AUTHORIZE_URL = "https://nid.naver.com/oauth2.0/authorize";
-const NAVER_TOKEN_URL = "https://nid.naver.com/oauth2.0/token";
+const NAVER_SDK_SRC = "https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.2.js";
+const NAVER_BUTTON_HOST_ID = "naverIdLogin";
 
-function getRedirectUri(): string {
+type NaverLoginInstance = {
+  init: () => void;
+  getLoginStatus: (callback: (status: boolean) => void) => void;
+  accessToken?: { accessToken?: string };
+};
+
+type NaverLoginConstructor = new (options: {
+  clientId: string;
+  callbackUrl: string;
+  isPopup: boolean;
+  loginButton?: { color: string; type: number; height: number };
+  callbackHandle?: boolean;
+}) => NaverLoginInstance;
+
+declare global {
+  interface Window {
+    naver?: { LoginWithNaverId?: NaverLoginConstructor };
+  }
+}
+
+let scriptPromise: Promise<void> | null = null;
+let naverLoginInstance: NaverLoginInstance | null = null;
+
+function getCallbackUrl(): string {
   return typeof window !== "undefined" ? window.location.origin : "";
 }
 
-type NaverTokenResponse = {
-  access_token?: string;
-  refresh_token?: string;
-  error?: string;
-  error_description?: string;
-};
-
-// Exchange the authorization code for a Naver access token client-side.
-async function requestNaverAccessToken(code: string, state: string | null): Promise<string | null> {
-  const params = new URLSearchParams({
-    grant_type: "authorization_code",
-    client_id: process.env.EXPO_PUBLIC_NAVER_CLIENT_ID ?? "",
-    client_secret: process.env.EXPO_PUBLIC_NAVER_CLIENT_SECRET ?? "",
-    code,
-    state: state ?? "",
-  });
-  const response = await fetch(`${NAVER_TOKEN_URL}?${params.toString()}`);
-  if (!response.ok) {
-    return null;
+function loadNaverSdk(): Promise<void> {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Naver SDK is web-only"));
   }
-  const data = (await response.json()) as NaverTokenResponse;
-  return data.access_token ?? null;
+  if (window.naver?.LoginWithNaverId) {
+    return Promise.resolve();
+  }
+  if (!scriptPromise) {
+    scriptPromise = new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = NAVER_SDK_SRC;
+      script.async = true;
+      script.addEventListener("load", () => resolve());
+      script.addEventListener("error", () => reject(new Error("Failed to load Naver SDK")));
+      document.body.appendChild(script);
+    });
+  }
+  return scriptPromise;
 }
 
-// Called by the shared web redirect dispatcher once it confirms the returning
-// `?code=` belongs to Naver. We first exchange the code for a Naver access
-// token, then hand that token to the backend.
-async function exchangeNaverCode(code: string, state: string | null): Promise<void> {
-  const accessToken = await requestNaverAccessToken(code, state);
-  if (!accessToken) {
-    return;
+function ensureNaverLogin(): NaverLoginInstance | null {
+  const Ctor = window.naver?.LoginWithNaverId;
+  if (!Ctor) {
+    return null;
   }
-  const result = await signIn({
-    provider: "NAVER",
-    token: accessToken,
-    platform: "WEB",
+  if (naverLoginInstance) {
+    return naverLoginInstance;
+  }
+  // The SDK renders its login anchor into an element with this id; keep a
+  // hidden host so we can drive the SDK from our own button.
+  if (!document.getElementById(NAVER_BUTTON_HOST_ID)) {
+    const host = document.createElement("div");
+    host.id = NAVER_BUTTON_HOST_ID;
+    host.style.display = "none";
+    document.body.appendChild(host);
+  }
+  naverLoginInstance = new Ctor({
+    clientId: process.env.EXPO_PUBLIC_NAVER_CLIENT_ID ?? "",
+    callbackUrl: getCallbackUrl(),
+    isPopup: false,
+    loginButton: { color: "green", type: 3, height: 48 },
+    callbackHandle: true,
   });
+  naverLoginInstance.init();
+  return naverLoginInstance;
+}
+
+function hasNaverCallbackHash(): boolean {
+  return typeof window !== "undefined" && window.location.hash.includes("access_token");
+}
+
+function clearCallbackHash(): void {
+  window.history.replaceState(null, "", window.location.pathname + window.location.search);
+}
+
+// Implicit-flow callback: the SDK returns the access token in the URL hash.
+// Read it via getLoginStatus, then hand the token to the backend. Returns true
+// when a Naver callback was handled.
+async function processNaverRedirect(): Promise<boolean> {
+  if (!hasNaverCallbackHash()) {
+    return false;
+  }
+  await loadNaverSdk();
+  const naverLogin = ensureNaverLogin();
+  if (!naverLogin) {
+    clearCallbackHash();
+    return true;
+  }
+  const accessToken = await new Promise<string | null>((resolve) => {
+    naverLogin.getLoginStatus((status) => {
+      resolve(status ? (naverLogin.accessToken?.accessToken ?? null) : null);
+    });
+  });
+  clearCallbackHash();
+  if (!accessToken) {
+    return true;
+  }
+  const result = await signIn({ provider: "NAVER", token: accessToken, platform: "WEB" });
   if (result?.success && result.data) {
     useAuthStore.getState().authenticate({
       accessToken: result.data.accessToken,
       refreshToken: result.data.refreshToken,
     });
   }
+  return true;
 }
 
 function useNaverLogin() {
-  const handleNaverLogin = React.useCallback(() => {
+  const handleNaverLogin = React.useCallback(async () => {
     try {
-      const params = new URLSearchParams({
-        response_type: "code",
-        client_id: process.env.EXPO_PUBLIC_NAVER_CLIENT_ID ?? "",
-        redirect_uri: getRedirectUri(),
-        state: beginOauthState("naver"),
-      });
-      window.location.href = `${NAVER_AUTHORIZE_URL}?${params.toString()}`;
+      await loadNaverSdk();
+      ensureNaverLogin();
+      const anchor = document.querySelector<HTMLAnchorElement>(`#${NAVER_BUTTON_HOST_ID} a`);
+      anchor?.click();
     } catch (error) {
       reportError(error, { area: "auth:naver-login" });
     }
@@ -76,4 +137,4 @@ function useNaverLogin() {
   return { handleNaverLogin };
 }
 
-export { exchangeNaverCode, useNaverLogin };
+export { processNaverRedirect, useNaverLogin };
