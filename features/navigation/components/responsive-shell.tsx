@@ -10,6 +10,7 @@ import { Sheet } from "@/components/layout/sheet";
 import { Sidebar, SidebarCTA, SidebarItem, SidebarSection } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { IconButton } from "@/components/ui/icon-button";
@@ -100,6 +101,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const profileAvatarEmoji = avatarEmojiOverride ?? myProfileQuery.data?.avatarEmoji ?? "🌸";
   const profileNickname = myProfileQuery.data?.nickname ?? "사용자";
   const profileUsername = myProfileQuery.data?.username ?? "";
+  const profileAvatarUrl = myProfileQuery.data?.avatarUrl ?? null;
   const uncategorizedLinksQuery = useLinksQuery({ folderId: UNCATEGORIZED_FOLDER_ID, size: 100 });
   const { detail, error, handleOpenChange, isLoading, isOpen } = useLinkOverlayState({
     isWideView: routeState.isWideView,
@@ -392,9 +394,15 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                   variant="ghost"
                   onPress={handleProfilePress}
                 >
-                  <View className="size-6 items-center justify-center rounded-2xl">
-                    <Text className="text-xl leading-none">{profileAvatarEmoji}</Text>
-                  </View>
+                  <Avatar
+                    alt={`${profileNickname} avatar`}
+                    size="xs"
+                  >
+                    {profileAvatarUrl ? <AvatarImage source={{ uri: profileAvatarUrl }} /> : null}
+                    <AvatarFallback>
+                      <Text className="text-xl leading-none">{profileAvatarEmoji}</Text>
+                    </AvatarFallback>
+                  </Avatar>
                   <View className="min-w-0 flex-1 items-start">
                     <Text
                       numberOfLines={1}
