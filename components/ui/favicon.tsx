@@ -4,6 +4,12 @@ import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
 import { Image } from "expo-image";
+import { cssInterop } from "nativewind";
+
+// expo-image is a third-party component, so NativeWind does not map `className`
+// to `style` on native by default — without this the image receives no
+// dimensions and renders blank (web is unaffected). Register the interop once.
+cssInterop(Image, { className: "style" });
 
 type FaviconProps = React.ComponentProps<typeof View> & {
   url?: string;
