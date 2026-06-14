@@ -258,12 +258,7 @@ function SearchDialog({
       open={open}
       onOpenChange={onOpenChange}
     >
-      <DialogContent
-        className={cn(
-          "max-h-[80vh] gap-0 overflow-hidden rounded-2xl p-0",
-          includesWeb ? "w-[80vw] max-w-[80vw] sm:max-w-[80vw]" : "w-full max-w-2xl sm:max-w-2xl",
-        )}
-      >
+      <DialogContent className="max-h-[80vh] w-[500px] max-w-[90vw] gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-[90vw]">
         <DialogTitle className="sr-only">검색</DialogTitle>
 
         <View className="flex-row items-center gap-3 border-b border-border px-5 py-4 pr-12">
