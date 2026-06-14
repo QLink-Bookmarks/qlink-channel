@@ -44,7 +44,7 @@ function PageHeader({
           {icon ? (
             <Icon
               as={icon}
-              className="size-7 text-foreground"
+              className="size-7 text-primary"
             />
           ) : null}
           <Text className="text-3xl font-extrabold">
