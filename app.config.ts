@@ -74,6 +74,7 @@ const config: ExpoConfig = {
         iosUrlScheme: googleIosUrlScheme,
       },
     ],
+    "./plugins/with-ios-modular-headers",
   ],
   experiments: {
     reactCompiler: true,
