@@ -17,11 +17,18 @@ type CreateFolderDialogMode = "wide" | "mobile";
 type CreateFolderDialogProps = {
   mode: CreateFolderDialogMode;
   open: boolean;
+  defaultShared?: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: (folderId: number) => void;
 };
 
-function CreateFolderDialog({ mode, open, onOpenChange, onCreated }: CreateFolderDialogProps) {
+function CreateFolderDialog({
+  mode,
+  open,
+  defaultShared = false,
+  onOpenChange,
+  onCreated,
+}: CreateFolderDialogProps) {
   const [name, setName] = React.useState("");
   const [emoji, setEmoji] = React.useState<string | null>(null);
   const [isShared, setIsShared] = React.useState(false);
@@ -30,14 +37,16 @@ function CreateFolderDialog({ mode, open, onOpenChange, onCreated }: CreateFolde
   const resetMutation = mutation.reset;
 
   React.useEffect(() => {
-    if (!open) {
-      setName("");
-      setEmoji(null);
-      setIsShared(false);
-      setValidationError(undefined);
-      resetMutation();
+    if (open) {
+      setIsShared(defaultShared);
+      return;
     }
-  }, [open, resetMutation]);
+    setName("");
+    setEmoji(null);
+    setIsShared(false);
+    setValidationError(undefined);
+    resetMutation();
+  }, [defaultShared, open, resetMutation]);
 
   const handleSave = React.useCallback(async () => {
     const trimmed = name.trim();

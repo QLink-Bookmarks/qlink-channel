@@ -20,6 +20,7 @@ import { useToggleTodoCompletedMutation } from "@/features/todos/mutations";
 import { useTodosQuery } from "@/features/todos/queries";
 import type { TodoListItem } from "@/features/todos/types";
 import { useDisplaySettings } from "@/stores/display-settings";
+import { useSearchDialog } from "@/stores/search-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { formatFullDateLabel, getGreetingMessage } from "../lib/greeting";
@@ -89,7 +90,7 @@ function SectionHeader({
 function ActionPill({ children, onPress }: { children: React.ReactNode; onPress?: () => void }) {
   return (
     <Pressable
-      className="h-9 min-w-[132px] flex-row items-center justify-center gap-2 rounded-full border border-border bg-card px-4 active:opacity-70 web:transition-colors web:hover:border-primary"
+      className="h-9 min-w-20 flex-row items-center justify-center gap-2 rounded-full border border-border bg-card px-4 active:opacity-70 web:transition-colors web:hover:border-primary"
       onPress={onPress}
     >
       {children}
@@ -122,6 +123,20 @@ function WideHomeScreen() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [searchScope, setSearchScope] = React.useState("all");
   const [isAddShortcutOpen, setIsAddShortcutOpen] = React.useState(false);
+  const openSearchDialog = useSearchDialog((state) => state.open);
+
+  const handleWideSearch = React.useCallback(() => {
+    const query = searchQuery.trim();
+    if (searchScope === "web") {
+      if (query) {
+        openExternalUrl(`https://www.google.com/search?q=${encodeURIComponent(query)}`);
+        return;
+      }
+      openSearchDialog({ mode: "web" });
+      return;
+    }
+    openSearchDialog({ mode: searchScope === "links" ? "link" : "both", query });
+  }, [openSearchDialog, searchQuery, searchScope]);
 
   const favoritesQuery = useLinksQuery({ isFavorite: true, size: SHORTCUT_PREVIEW_COUNT });
   const todosQuery = useTodosQuery({ isCompleted: false, size: 30 });
@@ -187,9 +202,9 @@ function WideHomeScreen() {
                 className="size-5 text-muted-foreground"
               />
             }
-            action={{ label: "검색", onPress: () => dispatchWideShortcut("search") }}
+            action={{ label: "검색", onPress: handleWideSearch }}
             onChange={setSearchQuery}
-            onSubmit={() => dispatchWideShortcut("search")}
+            onSubmit={handleWideSearch}
           />
           <SegmentedControl
             labelClassName="text-sm"

@@ -11,13 +11,7 @@ import { Sidebar, SidebarCTA, SidebarItem, SidebarSection } from "@/components/l
 import { Topbar } from "@/components/layout/topbar";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { IconButton } from "@/components/ui/icon-button";
 import { Kbd } from "@/components/ui/kbd";
 import { Text } from "@/components/ui/text";
@@ -29,9 +23,11 @@ import { useFoldersQuery } from "@/features/folders/queries";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
 import { LinkCreateForm } from "@/features/links/components/link-create-form";
 import { useLinksQuery } from "@/features/links/queries";
+import { SearchDialog } from "@/features/search/components/search-dialog";
 import { useCreateFolderSheet } from "@/stores/create-folder-sheet";
 import { useDisplaySettings } from "@/stores/display-settings";
 import { useHomeSearchFocus } from "@/stores/home-search-focus";
+import { useSearchDialog } from "@/stores/search-dialog";
 
 import { useAddLinkSheet } from "../hooks/use-add-link-sheet";
 import { useLinkOverlayState } from "../hooks/use-link-overlay-state";
@@ -88,9 +84,14 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const isCreateFolderSheetOpen = useCreateFolderSheet((state) => state.isOpen);
   const setAccent = useDisplaySettings((state) => state.setAccent);
   const setTheme = useDisplaySettings((state) => state.setTheme);
-  const [isSearchDialogOpen, setIsSearchDialogOpen] = React.useState(false);
+  const isSearchDialogOpen = useSearchDialog((state) => state.isOpen);
+  const searchDialogMode = useSearchDialog((state) => state.mode);
+  const searchDialogInitialQuery = useSearchDialog((state) => state.initialQuery);
+  const openSearchDialog = useSearchDialog((state) => state.open);
+  const setSearchDialogOpen = useSearchDialog((state) => state.setOpen);
   const [isAddLinkDialogOpen, setIsAddLinkDialogOpen] = React.useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = React.useState(false);
+  const [createFolderShared, setCreateFolderShared] = React.useState(false);
   const [hasOpenedAddLinkSheet, setHasOpenedAddLinkSheet] = React.useState(false);
   const [pendingMobileLinkId, setPendingMobileLinkId] = React.useState<number | null>(null);
   const foldersQuery = useFoldersQuery({ size: 15 });
@@ -124,13 +125,20 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
     router.replace(routeState.backHref as Href);
   }, [routeState.backHref, router]);
 
-  const handleSearchDialogOpenChange = React.useCallback((open: boolean) => {
-    setIsSearchDialogOpen(open);
-  }, []);
-
   const handleWideSearchPress = React.useCallback(() => {
-    setIsSearchDialogOpen(true);
-  }, []);
+    openSearchDialog({ mode: "link" });
+  }, [openSearchDialog]);
+
+  const handleSearchSelectLink = React.useCallback(
+    (id: number) => {
+      if (canOpenWideOverlayInPlace(routeState.pathname)) {
+        router.replace(`${routeState.pathname}?linkId=${id}` as Href);
+        return;
+      }
+      router.replace(`/links?linkId=${id}` as Href);
+    },
+    [routeState.pathname, router],
+  );
 
   const handleWideAddLinkPress = React.useCallback(() => {
     setIsAddLinkDialogOpen(true);
@@ -198,7 +206,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
       if (isMetaOrCtrlK) {
         event.preventDefault();
         console.log("shortcut:search");
-        setIsSearchDialogOpen(true);
+        openSearchDialog({ mode: "link" });
         return;
       }
 
@@ -213,7 +221,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
     return () => {
       window.removeEventListener("keydown", handleWideKeyboardShortcut);
     };
-  }, [routeState.isWideView]);
+  }, [openSearchDialog, routeState.isWideView]);
 
   React.useEffect(() => {
     if (routeState.isWideView) {
@@ -329,7 +337,10 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                         />
                         <SidebarAddItem
                           label="+  폴더 추가"
-                          onPress={() => setIsCreateFolderOpen(true)}
+                          onPress={() => {
+                            setCreateFolderShared(false);
+                            setIsCreateFolderOpen(true);
+                          }}
                         />
                       </>
                     )}
@@ -354,8 +365,11 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                           );
                         })}
                         <SidebarAddItem
-                          label="+  공유 추가/참여"
-                          onPress={() => console.log("sidebar:share-join:todo")}
+                          label="+  공유폴더 추가"
+                          onPress={() => {
+                            setCreateFolderShared(true);
+                            setIsCreateFolderOpen(true);
+                          }}
                         />
                       </>
                     )}
@@ -452,42 +466,18 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
           />
         ) : null}
 
-        <Dialog
+        <SearchDialog
           open={isSearchDialogOpen}
-          onOpenChange={handleSearchDialogOpenChange}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>검색</DialogTitle>
-              <DialogDescription>
-                링크, 요약, 태그를 통합 검색할 예정인 더미 다이얼로그다.
-              </DialogDescription>
-            </DialogHeader>
-            <View className="gap-4">
-              <View className="rounded-[24px] border border-border bg-card px-5 py-4">
-                <Text className="text-base text-muted-foreground">링크 · 요약 · 태그 검색…</Text>
-              </View>
-              <View className="gap-2">
-                <Text className="text-sm font-semibold text-foreground">추천</Text>
-                <View className="gap-2">
-                  <View className="rounded-2xl bg-muted px-4 py-3">
-                    <Text className="text-sm text-foreground">최근 본 디자인 레퍼런스</Text>
-                  </View>
-                  <View className="rounded-2xl bg-muted px-4 py-3">
-                    <Text className="text-sm text-foreground">태그: 채용</Text>
-                  </View>
-                  <View className="rounded-2xl bg-muted px-4 py-3">
-                    <Text className="text-sm text-foreground">요약에 “마케팅” 포함</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </DialogContent>
-        </Dialog>
+          mode={searchDialogMode}
+          initialQuery={searchDialogInitialQuery}
+          onOpenChange={setSearchDialogOpen}
+          onSelectLink={handleSearchSelectLink}
+        />
 
         <CreateFolderDialog
           mode="wide"
           open={isCreateFolderOpen}
+          defaultShared={createFolderShared}
           onOpenChange={setIsCreateFolderOpen}
         />
 
