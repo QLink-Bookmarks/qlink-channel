@@ -8,6 +8,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useDisplaySettings } from "@/stores/display-settings";
 
 import { useCycledBrandColors } from "../hooks/use-cycled-brand-colors";
+import { useOauthRedirect } from "../hooks/use-oauth-redirect";
 import { LoginButtonsStack } from "./login-buttons";
 
 import { type Href, useFocusEffect, useRouter } from "expo-router";
@@ -19,6 +20,9 @@ function AuthSplashScreen() {
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const accessToken = useAuthStore((state) => state.accessToken);
   const [status, setStatus] = React.useState<AuthCheckStatus>("checking");
+
+  // Handles the web OAuth `?code=` redirect for any provider (Kakao/Naver).
+  useOauthRedirect();
 
   React.useEffect(() => {
     if (!hasHydrated) return;

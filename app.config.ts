@@ -3,6 +3,7 @@ import type { ExpoConfig } from "expo/config";
 const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_KEY ?? "";
 const appVariant = process.env.APP_VARIANT ?? "production";
 
+const naverUrlScheme = process.env.EXPO_PUBLIC_NAVER_URL_SCHEME ?? "";
 const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";
 // Google's iOS redirect scheme is the client id reversed (REVERSED_CLIENT_ID in the plist).
 const googleIosUrlScheme = googleIosClientId
@@ -72,6 +73,12 @@ const config: ExpoConfig = {
       "@react-native-google-signin/google-signin",
       {
         iosUrlScheme: googleIosUrlScheme,
+      },
+    ],
+    [
+      "@react-native-seoul/naver-login",
+      {
+        urlScheme: naverUrlScheme,
       },
     ],
     "./plugins/with-ios-modular-headers",

@@ -9,79 +9,54 @@ import {
 } from "@react-native-kakao/user";
 
 import { signIn } from "../api";
+import { beginOauthState } from "../lib/oauth-state";
 
 import { createURL } from "expo-linking";
 
-function readAuthorizationCode(): string | null {
-  if (typeof window === "undefined") return null;
-  const url = new URL(window.location.href);
-  return url.searchParams.get("code");
+function getRedirectUri(): string {
+  return createURL("");
 }
 
-function clearAuthorizationParams() {
-  if (typeof window === "undefined") return;
-  const url = new URL(window.location.href);
-  url.searchParams.delete("code");
-  url.searchParams.delete("state");
-  window.history.replaceState(null, "", url.toString());
+// Called by the shared web redirect dispatcher once it confirms the returning
+// `?code=` belongs to Kakao (via `state`).
+async function exchangeKakaoCode(code: string): Promise<void> {
+  const socialToken = await issueAccessTokenWithCodeWeb({
+    code,
+    redirectUri: getRedirectUri(),
+  });
+  if (!socialToken) {
+    return;
+  }
+  setAccessTokenWeb(socialToken.accessToken);
+  const result = await signIn({
+    provider: "KAKAO",
+    token: socialToken.accessToken,
+    platform: "WEB",
+  });
+  if (result?.success && result.data) {
+    useAuthStore.getState().authenticate({
+      accessToken: result.data.accessToken,
+      refreshToken: result.data.refreshToken,
+    });
+  }
 }
 
 function useKakaoLogin() {
-  const authenticate = useAuthStore((state) => state.authenticate);
-  const [isLoading, setIsLoading] = React.useState(() => Boolean(readAuthorizationCode()));
-  const exchangedRef = React.useRef(false);
-  const redirectUri = React.useMemo(() => createURL(""), []);
-
-  React.useEffect(() => {
-    if (exchangedRef.current) return;
-    const code = readAuthorizationCode();
-    if (!code) return;
-    exchangedRef.current = true;
-    setIsLoading(true);
-    (async () => {
-      try {
-        const socialToken = await issueAccessTokenWithCodeWeb({
-          code,
-          redirectUri,
-        });
-        if (!socialToken) {
-          return;
-        }
-        setAccessTokenWeb(socialToken.accessToken);
-        const response = await signIn({
-          provider: "KAKAO",
-          token: socialToken.accessToken,
-          platform: "WEB",
-        });
-        if (response?.success && response.data) {
-          authenticate({
-            accessToken: response.data.accessToken,
-            refreshToken: response.data.refreshToken,
-          });
-        }
-      } catch (error) {
-        reportError(error, { area: "auth:kakao-login-exchange" });
-      } finally {
-        clearAuthorizationParams();
-        setIsLoading(false);
-      }
-    })();
-  }, [authenticate, redirectUri]);
-
   const handleKakaoLogin = React.useCallback(async () => {
     try {
       await kakaoLogin({
         web: {
-          redirectUri,
+          redirectUri: getRedirectUri(),
           prompt: ["select_account"],
+          state: beginOauthState("kakao"),
         },
       });
     } catch (error) {
       reportError(error, { area: "auth:kakao-login" });
     }
-  }, [redirectUri]);
+  }, []);
 
-  return { handleKakaoLogin, isLoading };
+  return { handleKakaoLogin };
 }
 
-export { useKakaoLogin };
+export { exchangeKakaoCode, useKakaoLogin };
