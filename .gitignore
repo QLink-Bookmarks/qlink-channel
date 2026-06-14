@@ -2,6 +2,10 @@ node_modules/
 .expo/
 dist/
 npm-debug.*
+
+# Native projects (continuous native generation — run `npx expo prebuild`)
+/ios/
+/android/
 *.jks
 *.p8
 *.p12
