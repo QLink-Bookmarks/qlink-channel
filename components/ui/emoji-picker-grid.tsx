@@ -58,7 +58,7 @@ type EmojiPickerGridProps = {
   fixedHeight?: boolean;
 };
 
-function EmojiPickerGrid({
+function EmojiPickerGridBase({
   value,
   onChange,
   maxHeight = 240,
@@ -153,6 +153,8 @@ function EmojiPickerGrid({
     </View>
   );
 }
+
+const EmojiPickerGrid = React.memo(EmojiPickerGridBase);
 
 export { EmojiPickerGrid };
 export type { EmojiPickerGridProps };
