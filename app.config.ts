@@ -48,6 +48,7 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: "com.qlinkapps.qlink",
     supportsTablet: true,
+    usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -102,6 +103,7 @@ const config: ExpoConfig = {
       },
     ],
     ...nativeAuthPlugins,
+    "expo-apple-authentication",
     "./plugins/with-ios-modular-headers",
   ],
   experiments: {
