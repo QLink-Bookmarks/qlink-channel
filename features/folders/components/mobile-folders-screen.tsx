@@ -39,6 +39,17 @@ function MobileFoldersScreen() {
   const isCreateOpen = useCreateFolderSheet((state) => state.isOpen);
   const openCreateSheet = useCreateFolderSheet((state) => state.open);
   const setCreateOpen = useCreateFolderSheet((state) => state.setOpen);
+  const [createShared, setCreateShared] = React.useState(false);
+
+  const handleCreateMine = React.useCallback(() => {
+    setCreateShared(false);
+    openCreateSheet();
+  }, [openCreateSheet]);
+
+  const handleCreateShared = React.useCallback(() => {
+    setCreateShared(true);
+    openCreateSheet();
+  }, [openCreateSheet]);
 
   const folders = foldersQuery.data?.contents ?? [];
   const myFolders = folders.filter((folder) => !folder.isShared);
@@ -111,7 +122,7 @@ function MobileFoldersScreen() {
                   addLabel="새 폴더"
                   uncategorizedCount={uncategorizedCount}
                   showUncategorized
-                  onAddPress={openCreateSheet}
+                  onAddPress={handleCreateMine}
                   onFolderPress={handleFolderPress}
                   onUncategorizedPress={handleUncategorizedPress}
                 />
@@ -122,7 +133,7 @@ function MobileFoldersScreen() {
                   count={sharedFolders.length}
                   folders={sharedFolders}
                   addLabel="폴더 공유 시작"
-                  onAddPress={() => console.log("folders:share-start:todo")}
+                  onAddPress={handleCreateShared}
                   onFolderPress={handleFolderPress}
                 />
               ) : null}
@@ -141,6 +152,7 @@ function MobileFoldersScreen() {
       <CreateFolderDialog
         mode="mobile"
         open={isCreateOpen}
+        defaultShared={createShared}
         onOpenChange={setCreateOpen}
       />
     </>
