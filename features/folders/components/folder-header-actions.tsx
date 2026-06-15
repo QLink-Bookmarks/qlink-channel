@@ -367,11 +367,6 @@ function ShareFolderPlaceholder({
           variant="gradient"
           onPress={handleShareInvitation}
         >
-          <Icon
-            as={Send}
-            size={16}
-            className="text-primary-foreground"
-          />
           <Text>초대 링크 보내기</Text>
         </Button>
       </View>
