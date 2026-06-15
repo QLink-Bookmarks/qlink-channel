@@ -51,6 +51,8 @@ const config: ExpoConfig = {
     usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
+      NSCameraUsageDescription: "QR 코드를 스캔하려면 카메라 접근 권한이 필요해요.",
+      UIBackgroundModes: ["remote-notification"],
     },
     // Universal Links: only enabled once the web host is set. Requires hosting
     // `/.well-known/apple-app-site-association` (see public/.well-known) and a native rebuild.
