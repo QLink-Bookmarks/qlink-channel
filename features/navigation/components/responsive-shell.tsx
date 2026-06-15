@@ -124,8 +124,12 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   );
 
   const handleBack = React.useCallback(() => {
-    router.replace(routeState.backHref as Href);
-  }, [routeState.backHref, router]);
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace("/home" as Href);
+  }, [router]);
 
   const handleWideSearchPress = React.useCallback(() => {
     openSearchDialog({ mode: "link" });
