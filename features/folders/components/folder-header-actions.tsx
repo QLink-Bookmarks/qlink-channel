@@ -21,6 +21,8 @@ import { useMyProfileQuery } from "@/features/account/queries";
 import { getThemeTokens } from "@/lib/theme";
 import { useToastStore } from "@/stores/toast-store";
 
+import { buildInviteShareText } from "../lib/build-invite-share-text";
+import { shareInvitation } from "../lib/share-invitation";
 import { useCreateFolderInvitationMutation, useDeleteFolderMemberMutation } from "../mutations";
 import { useFolderMembersQuery } from "../queries";
 import type { Folder, FolderMember } from "../types";
@@ -155,10 +157,31 @@ function ShareFolderPlaceholder({
     });
   }, [invitationUrl]);
 
-  const handleKakaoShare = React.useCallback(() => {
-    // TODO: Wire Kakao share integration when product sharing requirements are finalized.
-    console.log("folders:share:kakao:todo", { folderId: folder.id, invitationUrl });
-  }, [folder.id, invitationUrl]);
+  const handleShareInvitation = React.useCallback(async () => {
+    if (!invitationUrl) {
+      return;
+    }
+
+    const username = myProfileQuery.data?.nickname ?? "사용자";
+    const { title, text } = buildInviteShareText({ username, inviteUrl: invitationUrl });
+    const result = await shareInvitation({ title, text });
+
+    if (result === "copied") {
+      showToast({
+        durationMs: 3000,
+        sourceKey: "folder-invite-share",
+        title: "초대 링크를 복사했어요.",
+        variant: "success",
+      });
+    } else if (result === "failed") {
+      showToast({
+        durationMs: 3000,
+        sourceKey: "folder-invite-share",
+        title: "초대 링크 공유에 실패했어요.",
+        variant: "error",
+      });
+    }
+  }, [invitationUrl, myProfileQuery.data?.nickname, showToast]);
 
   const handleConfirmDeleteMember = React.useCallback(async () => {
     if (!selectedMember) {
@@ -341,10 +364,15 @@ function ShareFolderPlaceholder({
         <Button
           className="h-10"
           disabled={!invitationUrl}
-          variant="kakao"
-          onPress={handleKakaoShare}
+          variant="gradient"
+          onPress={handleShareInvitation}
         >
-          <Text>카톡으로 공유하기</Text>
+          <Icon
+            as={Send}
+            size={16}
+            className="text-primary-foreground"
+          />
+          <Text>초대 링크 보내기</Text>
         </Button>
       </View>
     </View>
