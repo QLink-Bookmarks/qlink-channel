@@ -4,7 +4,6 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FolderHeaderActions } from "@/features/folders/components/folder-header-actions";
-import { InviteAcceptScreen } from "@/features/folders/components/invite-accept-screen";
 import { MobileFoldersScreen } from "@/features/folders/components/mobile-folders-screen";
 import { useFoldersQuery } from "@/features/folders/queries";
 import { LinkListView } from "@/features/home/components/link-list-view";
@@ -247,22 +246,6 @@ function SettingsAccountsRouteScreen() {
   );
 }
 
-function InviteRouteScreen() {
-  const params = useLocalSearchParams<{
-    folderId?: string | string[];
-    token?: string | string[];
-  }>();
-  const folderId = readParamValue(params.folderId);
-  const token = readParamValue(params.token);
-
-  return (
-    <InviteAcceptScreen
-      folderId={folderId}
-      token={token}
-    />
-  );
-}
-
 function NotFoundRouteScreen() {
   const { isWideView, pathname } = useShellRouteState();
 
@@ -280,7 +263,6 @@ export {
   FolderDetailRouteScreen,
   FoldersRouteScreen,
   HomeRouteScreen,
-  InviteRouteScreen,
   LinkDetailRouteScreen,
   LinksRouteScreen,
   NotFoundRouteScreen,
