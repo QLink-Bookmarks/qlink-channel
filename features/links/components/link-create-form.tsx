@@ -68,6 +68,7 @@ type FolderDraft = {
 type LinkCreateFormProps = {
   mode: LinkCreateFormMode;
   open: boolean;
+  initialUrl?: string;
   onCancel: () => void;
   onSaved?: (id: number) => void;
 };
@@ -91,7 +92,7 @@ function getFolderOptionValue(folderId: string | null) {
   return folderId ?? defaultFolderOptionValue;
 }
 
-function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) {
+function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreateFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const pendingQrResult = useQrScanStore((state) => state.pendingResult);
@@ -190,6 +191,12 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
       return;
     }
 
+    const sharedUrl = initialUrl?.trim();
+    if (sharedUrl) {
+      setUrl(sharedUrl);
+      return;
+    }
+
     Clipboard.getStringAsync()
       .then((clipboardText) => {
         const nextUrl = clipboardText.trim();
@@ -200,7 +207,7 @@ function LinkCreateForm({ mode, open, onCancel, onSaved }: LinkCreateFormProps) 
       .catch((error: unknown) => {
         handleClipboardReadFailure(error);
       });
-  }, [handleClipboardReadFailure, open, resetForm]);
+  }, [handleClipboardReadFailure, initialUrl, open, resetForm]);
 
   const handleCancel = React.useCallback(() => {
     resetForm();

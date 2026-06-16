@@ -37,7 +37,7 @@ import { canOpenWideOverlayInPlace } from "../routes";
 import type { MobileTabKey, WideSidebarKey } from "../types";
 import { WideKbdHelper } from "./wide-kbd-helper";
 
-import { type Href, Redirect, useRouter } from "expo-router";
+import { type Href, Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import {
   Bell,
   BookCopyIcon,
@@ -95,6 +95,8 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const [createFolderShared, setCreateFolderShared] = React.useState(false);
   const [hasOpenedAddLinkSheet, setHasOpenedAddLinkSheet] = React.useState(false);
   const [pendingMobileLinkId, setPendingMobileLinkId] = React.useState<number | null>(null);
+  const [sharedLinkUrl, setSharedLinkUrl] = React.useState<string | null>(null);
+  const { linkUrl: linkUrlParam } = useLocalSearchParams<{ linkUrl?: string }>();
   const foldersQuery = useFoldersQuery({ size: 15 });
   const myProfileQuery = useMyProfileQuery();
   const avatarEmojiOverride = useDisplaySettings((state) => state.profile.avatarEmoji);
@@ -108,6 +110,27 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
     overlayBaseHref: routeState.overlayBaseHref,
     overlayLinkId: routeState.overlayLinkId,
   });
+
+  React.useEffect(() => {
+    const url = linkUrlParam?.trim();
+    if (!url) {
+      return;
+    }
+    setSharedLinkUrl(url);
+    if (routeState.isWideView) {
+      setIsAddLinkDialogOpen(true);
+    } else {
+      setHasOpenedAddLinkSheet(true);
+      openAddLinkSheet();
+    }
+    router.setParams({ linkUrl: "" });
+  }, [linkUrlParam, openAddLinkSheet, routeState.isWideView, router]);
+
+  React.useEffect(() => {
+    if (!isAddLinkDialogOpen && !isAddLinkSheetOpen) {
+      setSharedLinkUrl(null);
+    }
+  }, [isAddLinkDialogOpen, isAddLinkSheetOpen]);
 
   const handleMobileTabChange = React.useCallback(
     (value: string) => {
@@ -518,6 +541,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                   <LinkCreateForm
                     mode="wide"
                     open={isAddLinkDialogOpen}
+                    initialUrl={sharedLinkUrl ?? undefined}
                     onCancel={() => setIsAddLinkDialogOpen(false)}
                     onSaved={handleWideLinkSaved}
                   />
@@ -608,6 +632,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
             <LinkCreateForm
               mode="mobile"
               open={isAddLinkSheetOpen}
+              initialUrl={sharedLinkUrl ?? undefined}
               onCancel={closeAddLinkSheet}
               onSaved={handleMobileLinkSaved}
             />

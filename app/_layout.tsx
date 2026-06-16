@@ -16,10 +16,12 @@ import { getNativeThemeVars } from "@/lib/theme-vars";
 import { QueryProvider } from "@/providers/query-provider";
 import { useAuthStore } from "@/stores/auth";
 import { useDisplaySettings } from "@/stores/display-settings";
+import { useShareIntentStore } from "@/stores/share-intent";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
+import { ShareIntentProvider, useShareIntentContext } from "expo-share-intent";
 import { useColorScheme, vars } from "nativewind";
 
 const StorybookEnabled = process.env.EXPO_PUBLIC_STORYBOOK_ENABLED === "true";
@@ -82,6 +84,41 @@ function AnalyticsBridge() {
   return null;
 }
 
+function ShareIntentBridge() {
+  const router = useRouter();
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const setPendingShare = useShareIntentStore((state) => state.setPending);
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntentContext();
+
+  React.useEffect(() => {
+    if (!hasShareIntent) {
+      return;
+    }
+    const sharedUrl = shareIntent.webUrl ?? shareIntent.text ?? "";
+    if (sharedUrl) {
+      // When signed in, open the create sheet now; otherwise stash it and let the
+      // auth splash route to it after login (mirrors the pending-invite flow).
+      if (hasHydrated && accessToken) {
+        router.push({ pathname: "/home", params: { linkUrl: sharedUrl } });
+      } else {
+        setPendingShare({ url: sharedUrl });
+      }
+    }
+    resetShareIntent();
+  }, [
+    accessToken,
+    hasHydrated,
+    hasShareIntent,
+    resetShareIntent,
+    router,
+    setPendingShare,
+    shareIntent,
+  ]);
+
+  return null;
+}
+
 function AppStack() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
@@ -132,23 +169,26 @@ export default function RootLayout() {
   useSocialSdks();
 
   return (
-    <GestureHandlerRootView className={theme === "dark" ? "dark flex-1" : "flex-1"}>
-      <NativeThemeVarsView>
-        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-          <QueryProvider>
-            <AuthenticatedBridges />
-            <DisplayThemeBridge />
-            <AppErrorBoundary>
-              <ThemeProvider value={getNavTheme(theme, accent)}>
-                <AnalyticsBridge />
-                <AppStack />
-                <PortalHost />
-                <ToastViewport />
-              </ThemeProvider>
-            </AppErrorBoundary>
-          </QueryProvider>
-        </SafeAreaProvider>
-      </NativeThemeVarsView>
-    </GestureHandlerRootView>
+    <ShareIntentProvider>
+      <GestureHandlerRootView className={theme === "dark" ? "dark flex-1" : "flex-1"}>
+        <NativeThemeVarsView>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+            <QueryProvider>
+              <AuthenticatedBridges />
+              <DisplayThemeBridge />
+              <AppErrorBoundary>
+                <ThemeProvider value={getNavTheme(theme, accent)}>
+                  <AnalyticsBridge />
+                  <ShareIntentBridge />
+                  <AppStack />
+                  <PortalHost />
+                  <ToastViewport />
+                </ThemeProvider>
+              </AppErrorBoundary>
+            </QueryProvider>
+          </SafeAreaProvider>
+        </NativeThemeVarsView>
+      </GestureHandlerRootView>
+    </ShareIntentProvider>
   );
 }

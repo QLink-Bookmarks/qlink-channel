@@ -127,6 +127,17 @@ const config: ExpoConfig = {
     "@react-native-community/datetimepicker",
     "@react-native-firebase/app",
     "@react-native-firebase/analytics",
+    [
+      "expo-share-intent",
+      {
+        iosActivationRules: {
+          NSExtensionActivationSupportsWebURLWithMaxCount: 1,
+          NSExtensionActivationSupportsWebPageWithMaxCount: 1,
+          NSExtensionActivationSupportsText: true,
+        },
+        androidIntentFilters: ["text/*"],
+      },
+    ],
     ...nativeAuthPlugins,
     "expo-apple-authentication",
     "./plugins/with-ios-modular-headers",

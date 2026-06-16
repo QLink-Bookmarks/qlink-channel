@@ -5,6 +5,7 @@ import { Text } from "@/components/ui/text";
 import { getMyProfile } from "@/features/account/api";
 import { useAuthStore } from "@/stores/auth";
 import { useInviteStore } from "@/stores/invite";
+import { useShareIntentStore } from "@/stores/share-intent";
 
 import { useOauthRedirect } from "../hooks/use-oauth-redirect";
 import { LoginPrompt } from "./login-prompt";
@@ -61,6 +62,13 @@ function AuthSplashScreen() {
             pendingInvite.folderId,
           )}` as Href,
         );
+        return;
+      }
+
+      const pendingShare = useShareIntentStore.getState().pending;
+      if (pendingShare) {
+        useShareIntentStore.getState().clearPending();
+        router.replace({ pathname: "/home", params: { linkUrl: pendingShare.url } });
         return;
       }
 
