@@ -8,6 +8,7 @@ import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-c
 import { AppErrorBoundary } from "@/components/error/app-error-boundary";
 import { ToastViewport } from "@/components/ui/toast-viewport";
 import { useMySettingsQuery } from "@/features/account/queries";
+import { useScreenTracking } from "@/features/analytics";
 import { useSocialSdks } from "@/features/auth/hooks/use-social-sdks";
 import { PushNotificationsBridge } from "@/features/notifications/components/push-notifications-bridge";
 import { getNavTheme } from "@/lib/theme";
@@ -76,6 +77,11 @@ function NativeThemeVarsView({ children }: { children: React.ReactNode }) {
   return <View style={[{ flex: 1 }, themeVars]}>{children}</View>;
 }
 
+function AnalyticsBridge() {
+  useScreenTracking();
+  return null;
+}
+
 function AppStack() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
@@ -134,6 +140,7 @@ export default function RootLayout() {
             <DisplayThemeBridge />
             <AppErrorBoundary>
               <ThemeProvider value={getNavTheme(theme, accent)}>
+                <AnalyticsBridge />
                 <AppStack />
                 <PortalHost />
                 <ToastViewport />
