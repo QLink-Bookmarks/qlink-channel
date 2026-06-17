@@ -96,6 +96,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const [hasOpenedAddLinkSheet, setHasOpenedAddLinkSheet] = React.useState(false);
   const [pendingMobileLinkId, setPendingMobileLinkId] = React.useState<number | null>(null);
   const [sharedLinkUrl, setSharedLinkUrl] = React.useState<string | null>(null);
+  const wasAddLinkOpenRef = React.useRef(false);
   const { linkUrl: linkUrlParam } = useLocalSearchParams<{ linkUrl?: string }>();
   const foldersQuery = useFoldersQuery({ size: 15 });
   const myProfileQuery = useMyProfileQuery();
@@ -127,9 +128,15 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   }, [linkUrlParam, openAddLinkSheet, routeState.isWideView, router]);
 
   React.useEffect(() => {
-    if (!isAddLinkDialogOpen && !isAddLinkSheetOpen) {
+    // Only clear the shared URL on the open -> closed transition. Clearing whenever
+    // both are closed races with the open sequence above: when linkUrlParam arrives the
+    // open state has not flipped to true yet, so this would wipe the URL we just set
+    // before the add-link form can read it.
+    const isAddLinkOpen = isAddLinkDialogOpen || isAddLinkSheetOpen;
+    if (wasAddLinkOpenRef.current && !isAddLinkOpen) {
       setSharedLinkUrl(null);
     }
+    wasAddLinkOpenRef.current = isAddLinkOpen;
   }, [isAddLinkDialogOpen, isAddLinkSheetOpen]);
 
   const handleMobileTabChange = React.useCallback(

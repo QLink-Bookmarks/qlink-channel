@@ -201,7 +201,9 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
       .then((clipboardText) => {
         const nextUrl = clipboardText.trim();
         if (nextUrl) {
-          setUrl(nextUrl);
+          // Don't clobber a URL that arrived (e.g. a shared link) while this async
+          // clipboard read was in flight behind the iOS paste-permission prompt.
+          setUrl((current) => (current ? current : nextUrl));
         }
       })
       .catch((error: unknown) => {
