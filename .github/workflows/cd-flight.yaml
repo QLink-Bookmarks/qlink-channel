@@ -1,0 +1,28 @@
+name: flight 빌드 (EAS TestFlight)
+
+# flight 브랜치 push/merge 시 EAS flight 워크플로(fingerprint -> build+submit or OTA)를 트리거한다.
+# build는 바로 동작하지만, submit(TestFlight) 단계는 eas.json submit 프로파일에
+# Apple 값(appleId/ascAppId/appleTeamId)이 채워져야 성공한다.
+on:
+  push:
+    branches:
+      - flight
+
+jobs:
+  trigger-flight:
+    name: Trigger EAS flight workflow
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_CI_TOKEN }}
+
+      - name: Run EAS flight workflow
+        run: eas workflow:run .eas/workflows/flight.yml --non-interactive

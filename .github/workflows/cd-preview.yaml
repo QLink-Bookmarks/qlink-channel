@@ -21,7 +21,7 @@ jobs:
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          token: ${{ secrets.EXPO_CI_TOKEN }}
 
       # --no-wait is the default: this only kicks off the EAS run, so the GitHub
       # runner exits immediately instead of idling while EAS builds.
