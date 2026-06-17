@@ -8,6 +8,7 @@ on:
 jobs:
   fingerprint:
     type: fingerprint
+    environment: preview
 
   get_ios_build:
     needs: [fingerprint]

@@ -1,0 +1,29 @@
+name: preview 빌드 (EAS)
+
+# preview 브랜치 push/merge 시 EAS preview 워크플로(fingerprint -> build or OTA)를 트리거한다.
+# EAS<->GitHub 조직 연동 없이, EXPO_TOKEN으로 `eas workflow:run`을 호출하는 방식.
+on:
+  push:
+    branches:
+      - preview
+
+jobs:
+  trigger-preview:
+    name: Trigger EAS preview workflow
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # --no-wait is the default: this only kicks off the EAS run, so the GitHub
+      # runner exits immediately instead of idling while EAS builds.
+      - name: Run EAS preview workflow
+        run: eas workflow:run .eas/workflows/preview.yml --non-interactive
