@@ -38,11 +38,19 @@ export default function Root({ children }: { children: React.ReactNode }) {
         />
         <meta
           property="og:image"
-          content="/app_icon.png"
+          content="/og-image.png"
+        />
+        <meta
+          property="og:image:width"
+          content="1200"
+        />
+        <meta
+          property="og:image:height"
+          content="630"
         />
         <meta
           name="twitter:card"
-          content="summary"
+          content="summary_large_image"
         />
         <script
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.9/kakao.min.js"
