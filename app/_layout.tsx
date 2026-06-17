@@ -10,6 +10,7 @@ import { ToastViewport } from "@/components/ui/toast-viewport";
 import { useMySettingsQuery } from "@/features/account/queries";
 import { useScreenTracking } from "@/features/analytics";
 import { useSocialSdks } from "@/features/auth/hooks/use-social-sdks";
+import { useDocumentTitle } from "@/features/navigation/hooks/use-document-title";
 import { PushNotificationsBridge } from "@/features/notifications/components/push-notifications-bridge";
 import { getNavTheme } from "@/lib/theme";
 import { getNativeThemeVars } from "@/lib/theme-vars";
@@ -81,6 +82,11 @@ function NativeThemeVarsView({ children }: { children: React.ReactNode }) {
 
 function AnalyticsBridge() {
   useScreenTracking();
+  return null;
+}
+
+function DocumentTitleBridge() {
+  useDocumentTitle();
   return null;
 }
 
@@ -179,6 +185,7 @@ export default function RootLayout() {
               <AppErrorBoundary>
                 <ThemeProvider value={getNavTheme(theme, accent)}>
                   <AnalyticsBridge />
+                  <DocumentTitleBridge />
                   <ShareIntentBridge />
                   <AppStack />
                   <PortalHost />
