@@ -44,11 +44,12 @@ if (naverUrlScheme) {
 }
 
 const config: ExpoConfig = {
-  name: "qlink-channel",
+  name: "QLink",
   slug: "qlink-channel",
   owner: "qlink1004",
   scheme: "qlinkchannel",
   version: "1.0.0",
+  description: "링크와 QR을 AI가 정리해주는 스마트 북마크",
   orientation: "portrait",
   icon: "./assets/app_icon.png",
   userInterfaceStyle: "automatic",
@@ -58,6 +59,7 @@ const config: ExpoConfig = {
     usesAppleSignIn: true,
     googleServicesFile: iosGoogleServicesFile,
     infoPlist: {
+      CFBundleDisplayName: "큐링크",
       ITSAppUsesNonExemptEncryption: false,
       NSCameraUsageDescription: "QR 코드를 스캔하려면 카메라 접근 권한이 필요해요.",
       UIBackgroundModes: ["remote-notification"],
@@ -92,6 +94,12 @@ const config: ExpoConfig = {
     favicon: "./assets/web_favicon.png",
     bundler: "metro",
     output: "static",
+    shortName: "QLink",
+    lang: "ko",
+    display: "standalone",
+    themeColor: "#6B7280",
+    backgroundColor: "#FFFFFF",
+    description: "링크와 QR을 AI가 정리해주는 스마트 북마크",
   },
   plugins: [
     // Must stay first: expo-build-properties' forceStaticLinking array is dropped from
