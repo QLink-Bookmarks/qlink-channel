@@ -138,8 +138,6 @@ const config: ExpoConfig = {
     [
       "expo-share-intent",
       {
-        // iOS share is handled by expo-share-extension (in-place save sheet, no app
-        // switch). expo-share-intent stays for Android only.
         disableIOS: true,
         androidIntentFilters: ["text/*"],
       },
@@ -148,8 +146,6 @@ const config: ExpoConfig = {
       "expo-share-extension",
       {
         height: 380,
-        // Saves call our API directly from the extension, so exclude app-only / heavy
-        // pods from the extension target to stay under the iOS extension memory cap.
         excludedPackages: [
           "expo-dev-client",
           "expo-splash-screen",
@@ -157,14 +153,10 @@ const config: ExpoConfig = {
           "@react-native-firebase/app",
           "@react-native-firebase/analytics",
         ],
-        // Captures the web page title (Chrome-style document.title) + meta tags.
         preprocessingFile: "./share/share-preprocessing.js",
         activationRules: [{ type: "url" }, { type: "text" }],
       },
     ],
-    // Must run after expo-share-extension: patches its generated Swift so the
-    // unconditional `import React_RCTAppDelegate` becomes conditional (it breaks the
-    // extension build under SDK 55 prebuilt RN + static frameworks).
     "./plugins/with-share-extension-rn-imports",
     ...nativeAuthPlugins,
     "expo-apple-authentication",
