@@ -409,11 +409,7 @@ function ProfileEditOverlay({
         avatarEmoji: draftAvatarEmoji,
         nickname: trimmedNickname,
         username: trimmedUsername,
-        ...(isAvatarCleared
-          ? { avatarUrl: null }
-          : draftAvatarUploadedUrl
-            ? { avatarUrl: draftAvatarUploadedUrl }
-            : {}),
+        avatarUrl: isAvatarCleared ? null : (draftAvatarUploadedUrl ?? avatarUrl),
       });
       await queryClient.invalidateQueries({ queryKey: accountQueryKeys.myProfile() });
       onSaved(response.data?.avatarEmoji ?? draftAvatarEmoji);
@@ -436,6 +432,7 @@ function ProfileEditOverlay({
       });
     }
   }, [
+    avatarUrl,
     draftAvatarEmoji,
     draftAvatarUploadedUrl,
     draftNickname,
