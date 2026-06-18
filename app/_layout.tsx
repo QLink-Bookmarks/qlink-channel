@@ -12,6 +12,7 @@ import { useScreenTracking } from "@/features/analytics";
 import { useSocialSdks } from "@/features/auth/hooks/use-social-sdks";
 import { useDocumentTitle } from "@/features/navigation/hooks/use-document-title";
 import { PushNotificationsBridge } from "@/features/notifications/components/push-notifications-bridge";
+import { AnimatedSplash } from "@/features/splash/components/animated-splash";
 import { getNavTheme } from "@/lib/theme";
 import { getNativeThemeVars } from "@/lib/theme-vars";
 import { QueryProvider } from "@/providers/query-provider";
@@ -195,6 +196,7 @@ export default function RootLayout() {
             </QueryProvider>
           </SafeAreaProvider>
         </NativeThemeVarsView>
+        <AnimatedSplash />
       </GestureHandlerRootView>
     </ShareIntentProvider>
   );
