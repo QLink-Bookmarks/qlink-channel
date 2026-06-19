@@ -1,11 +1,11 @@
-import "../global.css";
+import "./global.css";
 
 import { AppRegistry, View } from "react-native";
 
 import { DEFAULT_ACCENT } from "@/lib/theme";
 import { getNativeThemeVars } from "@/lib/theme-vars";
 
-import { ShareSheet } from "./share-sheet";
+import { ShareSheet } from "./share/share-sheet";
 
 import { vars } from "nativewind";
 

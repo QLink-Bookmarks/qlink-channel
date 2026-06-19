@@ -18,10 +18,7 @@ const shareConfig = withShareExtension(config);
 const baseRewrite = shareConfig.server.rewriteRequestUrl ?? ((url) => url);
 shareConfig.server.rewriteRequestUrl = (url) => {
   if (url.includes("shareExtension=true")) {
-    return url.replace(
-      /\/(?:\.expo\/\.virtual-metro-entry|index)\.bundle/,
-      "/share/index.share.bundle",
-    );
+    return url.replace(/\/(?:\.expo\/\.virtual-metro-entry|index)\.bundle/, "/index.share.bundle");
   }
   return baseRewrite(url);
 };
