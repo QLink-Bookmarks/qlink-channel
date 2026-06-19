@@ -21,6 +21,7 @@ const SPLASH_BACKGROUND = "#ffffff";
 // Readable slice of the grey `gradPrimary` gradient (hsl 220 9% 46% -> 64%).
 const BRAND_COLORS: [string, string] = ["#6B7280", "#9BA0AB"];
 const MUTED = "#9BA0AB";
+const GLYPH_SIZE = 180;
 
 function RiseIn({
   delay,
@@ -104,11 +105,19 @@ function AnimatedSplash() {
         animatedStyle,
       ]}
     >
-      <View className="items-center">
-        <View style={{ marginBottom: 24 }}>
-          <SplashGlyph size={128} />
-        </View>
-        <RiseIn delay={1100}>
+      <SplashGlyph size={GLYPH_SIZE} />
+
+      <View
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: 0,
+          right: 0,
+          alignItems: "center",
+          transform: [{ translateY: GLYPH_SIZE / 2 - 8 }],
+        }}
+      >
+        <RiseIn delay={600}>
           <BrandHeader
             title="QLINK"
             size="lg"
@@ -117,7 +126,7 @@ function AnimatedSplash() {
           />
         </RiseIn>
         <RiseIn
-          delay={1350}
+          delay={850}
           style={{ marginTop: 8 }}
         >
           <Text
@@ -130,7 +139,7 @@ function AnimatedSplash() {
       </View>
 
       <RiseIn
-        delay={1600}
+        delay={1100}
         style={{ position: "absolute", bottom: 60, left: 0, right: 0 }}
       >
         <View className="items-center">
