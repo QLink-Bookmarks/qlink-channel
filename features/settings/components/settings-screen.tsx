@@ -48,6 +48,8 @@ import { useAiProviderModelsQuery } from "@/features/ai/queries";
 import type { AiProviderWithModels } from "@/features/ai/types";
 import { signOut as signOutApi } from "@/features/auth/api";
 import { useUploadImageMutation } from "@/features/images/mutations";
+import type { ImageUploadInput } from "@/features/images/types";
+import { DeviceNotificationNotice } from "@/features/notifications/components/device-notification-notice";
 import { reportError } from "@/lib/error-reporting";
 import { useAuthStore } from "@/stores/auth";
 import { useDisplaySettings } from "@/stores/display-settings";
@@ -361,7 +363,7 @@ function ProfileEditOverlay({
   }, []);
 
   const handleAvatarPicked = React.useCallback(
-    async (file: File | Blob) => {
+    async (file: ImageUploadInput) => {
       try {
         const response = await uploadImageMutation.mutateAsync(file);
         const uploadedUrl = response.data?.url;
@@ -613,6 +615,7 @@ function BehaviorSection() {
       title="알림"
       description="할 일 알림을 받을지 선택해요."
     >
+      <DeviceNotificationNotice />
       <View className="flex-row items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
         <View className="min-w-0 flex-1 gap-1">
           <Text className="text-sm font-semibold text-foreground">리마인더 알림</Text>

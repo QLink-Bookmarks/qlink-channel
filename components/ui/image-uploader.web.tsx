@@ -1,8 +1,10 @@
 import * as React from "react";
 import { Pressable, type PressableProps } from "react-native";
 
+import type { ImageUploadInput } from "@/features/images/types";
+
 type ImageUploaderProps = Omit<PressableProps, "onPress"> & {
-  onImagePicked: (file: File) => void;
+  onImagePicked: (file: ImageUploadInput) => void;
   accept?: string;
   children: React.ReactNode;
 };

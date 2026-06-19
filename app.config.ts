@@ -133,6 +133,12 @@ const config: ExpoConfig = {
       },
     ],
     "@react-native-community/datetimepicker",
+    [
+      "expo-image-picker",
+      {
+        photosPermission: "프로필 사진을 변경하려면 사진 보관함 접근 권한이 필요해요.",
+      },
+    ],
     "@react-native-firebase/app",
     "@react-native-firebase/analytics",
     [

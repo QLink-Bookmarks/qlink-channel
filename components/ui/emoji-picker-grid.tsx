@@ -1,5 +1,13 @@
 import * as React from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import {
+  ActivityIndicator,
+  InteractionManager,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
@@ -9,6 +17,11 @@ type EmojiSearchEntry = {
   emoji: string;
   searchText: string;
 };
+
+// Render in chunks: mounting all ~3700 emoji cells at once freezes the JS thread
+// on iOS. Start small and grow as the user scrolls toward the bottom.
+const PAGE_SIZE = 150;
+const LOAD_MORE_THRESHOLD = 240;
 
 let cachedEmojiIndex: EmojiSearchEntry[] | null = null;
 
@@ -66,6 +79,7 @@ function EmojiPickerGridBase({
 }: EmojiPickerGridProps) {
   const [entries, setEntries] = React.useState<EmojiSearchEntry[] | null>(cachedEmojiIndex);
   const [query, setQuery] = React.useState("");
+  const [visibleCount, setVisibleCount] = React.useState(PAGE_SIZE);
   const deferredQuery = React.useDeferredValue(query);
 
   React.useEffect(() => {
@@ -74,14 +88,19 @@ function EmojiPickerGridBase({
     }
 
     let isCancelled = false;
-    loadEmojiIndex().then((loaded) => {
-      if (!isCancelled) {
-        setEntries(loaded);
-      }
+    // Defer the heavy import + index build until after the sheet's open animation
+    // settles, so opening the editor stays smooth.
+    const task = InteractionManager.runAfterInteractions(() => {
+      loadEmojiIndex().then((loaded) => {
+        if (!isCancelled) {
+          setEntries(loaded);
+        }
+      });
     });
 
     return () => {
       isCancelled = true;
+      task.cancel();
     };
   }, [entries]);
 
@@ -95,6 +114,27 @@ function EmojiPickerGridBase({
     }
     return entries.filter((entry) => entry.searchText.includes(trimmed));
   }, [entries, deferredQuery]);
+
+  // Reset paging whenever the result set changes.
+  React.useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [deferredQuery, entries]);
+
+  const visibleEntries = React.useMemo(
+    () => filteredEntries.slice(0, visibleCount),
+    [filteredEntries, visibleCount],
+  );
+
+  const handleScroll = React.useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+      const distanceToBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      if (distanceToBottom < LOAD_MORE_THRESHOLD) {
+        setVisibleCount((count) => Math.min(count + PAGE_SIZE, filteredEntries.length));
+      }
+    },
+    [filteredEntries.length],
+  );
 
   return (
     <View className="w-full gap-2">
@@ -127,9 +167,11 @@ function EmojiPickerGridBase({
             className="scrollbar-accent"
             style={fixedHeight ? { flex: 1 } : { maxHeight }}
             showsVerticalScrollIndicator
+            onScroll={handleScroll}
+            scrollEventThrottle={64}
           >
             <View className="flex-row flex-wrap gap-1 p-2">
-              {filteredEntries.map((entry) => {
+              {visibleEntries.map((entry) => {
                 const isSelected = entry.emoji === value;
                 return (
                   <Pressable
