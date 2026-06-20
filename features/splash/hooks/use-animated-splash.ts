@@ -13,9 +13,9 @@ void SplashScreen.preventAutoHideAsync();
 
 let hasPlayed = false;
 
-// Hold long enough for the full sequence (glyph -> wordmark -> tagline -> dots,
+// Hold long enough for the full sequence (glyph assemble -> wordmark -> dots rise,
 // last rise settles ~2.2s) before fading out.
-const HOLD_MS = 2400;
+const HOLD_MS = 2700;
 const FADE_MS = 500;
 
 function useAnimatedSplash() {

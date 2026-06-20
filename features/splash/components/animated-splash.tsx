@@ -11,7 +11,6 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { BrandHeader } from "@/components/layout/brand-header";
-import { Text } from "@/components/ui/text";
 
 import { useAnimatedSplash } from "../hooks/use-animated-splash";
 import { SplashGlyph } from "./splash-glyph";
@@ -21,7 +20,7 @@ const SPLASH_BACKGROUND = "#ffffff";
 // Readable slice of the grey `gradPrimary` gradient (hsl 220 9% 46% -> 64%).
 const BRAND_COLORS: [string, string] = ["#6B7280", "#9BA0AB"];
 const MUTED = "#9BA0AB";
-const GLYPH_SIZE = 180;
+const GLYPH_SIZE = 120;
 
 function RiseIn({
   delay,
@@ -105,41 +104,26 @@ function AnimatedSplash() {
         animatedStyle,
       ]}
     >
-      <SplashGlyph size={GLYPH_SIZE} />
-
       <View
         style={{
           position: "absolute",
           top: "50%",
-          left: 0,
-          right: 0,
-          alignItems: "center",
-          transform: [{ translateY: GLYPH_SIZE / 2 - 8 }],
+          alignSelf: "center",
+          transform: [{ translateY: -(GLYPH_SIZE / 2 + 90) }],
         }}
       >
-        <RiseIn delay={600}>
-          <BrandHeader
-            title="QLINK"
-            size="lg"
-            align="center"
-            colors={BRAND_COLORS}
-          />
-        </RiseIn>
-        <RiseIn
-          delay={850}
-          style={{ marginTop: 8 }}
-        >
-          <Text
-            className="text-sm font-medium"
-            style={{ color: MUTED }}
-          >
-            흩어진 링크를 한곳에
-          </Text>
-        </RiseIn>
+        <SplashGlyph size={GLYPH_SIZE} />
       </View>
 
+      <BrandHeader
+        title="QLINK"
+        size="lg"
+        align="center"
+        colors={BRAND_COLORS}
+      />
+
       <RiseIn
-        delay={1100}
+        delay={1600}
         style={{ position: "absolute", bottom: 60, left: 0, right: 0 }}
       >
         <View className="items-center">
