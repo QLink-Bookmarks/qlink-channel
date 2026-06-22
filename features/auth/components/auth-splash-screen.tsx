@@ -18,6 +18,8 @@ function AuthSplashScreen() {
   const router = useRouter();
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const inviteHasHydrated = useInviteStore((state) => state.hasHydrated);
+  const shareHasHydrated = useShareIntentStore((state) => state.hasHydrated);
   const [status, setStatus] = React.useState<AuthCheckStatus>("checking");
 
   // Handles the web OAuth `?code=` redirect for any provider (Kakao/Naver).
@@ -55,6 +57,14 @@ function AuthSplashScreen() {
         return;
       }
 
+      // Both stores hydrate asynchronously (SecureStore on native, sessionStorage
+      // on web). Wait for them before deciding where to go, otherwise a pending
+      // invite that hasn't loaded yet gets missed and we wrongly land on /home —
+      // a race whose outcome varied by device.
+      if (!inviteHasHydrated || !shareHasHydrated) {
+        return;
+      }
+
       const pendingInvite = useInviteStore.getState().pending;
       if (pendingInvite) {
         router.replace(
@@ -73,7 +83,7 @@ function AuthSplashScreen() {
       }
 
       router.replace("/home" as Href);
-    }, [router, status]),
+    }, [inviteHasHydrated, router, shareHasHydrated, status]),
   );
 
   if (status === "unauthenticated") {

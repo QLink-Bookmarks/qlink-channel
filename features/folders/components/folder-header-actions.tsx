@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { AccountRow } from "@/features/account/components/account-row/account-row";
 import { useMyProfileQuery } from "@/features/account/queries";
+import { getWebAppOrigin } from "@/lib/app-variant";
 import { getThemeTokens } from "@/lib/theme";
 import { useToastStore } from "@/stores/toast-store";
 
@@ -31,7 +32,6 @@ import { EditFolderDialog } from "./create-folder-dialog";
 
 import { isAxiosError } from "axios";
 import * as Clipboard from "expo-clipboard";
-import * as Linking from "expo-linking";
 import { type Href, useRouter } from "expo-router";
 import { ChevronLeft, Copy, Pencil, Send, Trash2 } from "lucide-react-native/icons";
 
@@ -594,14 +594,10 @@ function getApiErrorMessage(error: unknown) {
 }
 
 function resolveInvitationUrl(invitation: string, folderId: number) {
-  const path = `/invite?token=${encodeURIComponent(invitation)}&folderId=${folderId}`;
-  if (process.env.EXPO_OS === "web" && typeof window !== "undefined") {
-    return `${window.location.origin}${path}`;
-  }
-
-  return Linking.createURL("/invite", {
-    queryParams: { folderId: String(folderId), token: invitation },
-  });
+  // Always hand out a web link (never a `qlinkchannel://` deep link) so the
+  // invite opens the web accept page first; mobile then hops into the app from
+  // there. Host is pinned per build variant.
+  return `${getWebAppOrigin()}/invite?token=${encodeURIComponent(invitation)}&folderId=${folderId}`;
 }
 
 export { FolderHeaderActions };
