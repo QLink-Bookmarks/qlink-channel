@@ -57,10 +57,16 @@ function startAuthPersistence() {
     ) {
       return;
     }
-    void SessionStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ accessToken: state.accessToken, refreshToken: state.refreshToken }),
-    );
+    // On sign-out both tokens are null — delete the keychain entry outright
+    // instead of leaving a null-filled record (matches invite/share stores).
+    if (state.accessToken || state.refreshToken) {
+      void SessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ accessToken: state.accessToken, refreshToken: state.refreshToken }),
+      );
+    } else {
+      void SessionStorage.removeItem(STORAGE_KEY);
+    }
   });
 }
 
