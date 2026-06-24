@@ -43,17 +43,25 @@ type FolderHeaderActionsProps = {
 function FolderHeaderActions({ mode, folder }: FolderHeaderActionsProps) {
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [isShareOpen, setIsShareOpen] = React.useState(false);
+  const myProfileQuery = useMyProfileQuery();
+  const isOwner = folder.ownerId != null && myProfileQuery.data?.id === folder.ownerId;
+  // Personal folders are always editable by their owner; for shared folders only
+  // the owner may edit or manage sharing — members get neither button.
+  const canEdit = !folder.isShared || isOwner;
+  const canShare = folder.isShared && isOwner;
 
   return (
     <>
       <View className="flex-row items-center gap-1">
-        <IconButton
-          accessibilityLabel="폴더 수정"
-          icon={Pencil}
-          size="sm"
-          onPress={() => setIsEditOpen(true)}
-        />
-        {folder.isShared ? (
+        {canEdit ? (
+          <IconButton
+            accessibilityLabel="폴더 수정"
+            icon={Pencil}
+            size="sm"
+            onPress={() => setIsEditOpen(true)}
+          />
+        ) : null}
+        {canShare ? (
           <IconButton
             accessibilityLabel="폴더 공유"
             icon={Send}
