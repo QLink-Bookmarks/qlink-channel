@@ -5,8 +5,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
-import { type AccentName, DEFAULT_ACCENT, type ThemeMode, getThemeTokens } from "@/lib/theme";
+import { type AccentName, type ThemeMode, getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { useDisplaySettings } from "@/stores/display-settings";
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -97,8 +98,8 @@ function Sheet({
   maxSize = "80%",
   fitContent = false,
   maxDynamicContentSize = 700,
-  accent = DEFAULT_ACCENT,
-  mode = "light",
+  accent,
+  mode,
   backgroundStyle,
   children,
   onOpenChange,
@@ -106,6 +107,12 @@ function Sheet({
 }: SheetProps) {
   const sheetRef = React.useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
+  // Default to the active app theme so sheets follow dark mode even when the
+  // caller doesn't pass mode/accent explicitly.
+  const storeTheme = useDisplaySettings((state) => state.display.theme);
+  const storeAccent = useDisplaySettings((state) => state.display.accent);
+  const resolvedMode = mode ?? storeTheme;
+  const resolvedAccent = accent ?? storeAccent;
   const safeTopInset = Math.max(insets.top, 12);
   const snapPoints = React.useMemo(
     () => (fitContent ? undefined : [defaultSize, maxSize]),
@@ -122,15 +129,18 @@ function Sheet({
       wasOpenRef.current = false;
     }
   }, [open]);
-  const sheetTokens = React.useMemo(() => getThemeTokens(mode, accent), [accent, mode]);
+  const sheetTokens = React.useMemo(
+    () => getThemeTokens(resolvedMode, resolvedAccent),
+    [resolvedAccent, resolvedMode],
+  );
   const backdropStyle = React.useMemo<StyleProp<ViewStyle>>(
     () => ({
       backgroundColor:
-        mode === "dark"
+        resolvedMode === "dark"
           ? `rgba(${sheetTokens.glowRgb}, 0.14)`
           : `rgba(${sheetTokens.glowRgb}, 0.24)`,
     }),
-    [mode, sheetTokens],
+    [resolvedMode, sheetTokens],
   );
   const sheetStyle = React.useMemo<StyleProp<ViewStyle>>(
     () => ({
@@ -177,12 +187,12 @@ function Sheet({
     (props: BottomSheetBackgroundProps) => (
       <SheetBackground
         {...props}
-        accent={accent}
-        mode={mode}
+        accent={resolvedAccent}
+        mode={resolvedMode}
         backgroundStyle={backgroundStyle}
       />
     ),
-    [accent, backgroundStyle, mode],
+    [resolvedAccent, backgroundStyle, resolvedMode],
   );
 
   const renderHandle = React.useCallback(
