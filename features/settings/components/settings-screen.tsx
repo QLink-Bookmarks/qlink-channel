@@ -211,6 +211,7 @@ function ProfileSection({
     } finally {
       signOutStore();
       queryClient.clear();
+      setAvatarEmoji(null);
       setLogoutOpen(false);
       router.replace("/" as Href);
       showToast({
@@ -220,7 +221,7 @@ function ProfileSection({
         dismissible: true,
       });
     }
-  }, [queryClient, router, showToast, signOutMutation, signOutStore]);
+  }, [queryClient, router, setAvatarEmoji, showToast, signOutMutation, signOutStore]);
 
   return (
     <>
@@ -370,6 +371,7 @@ function ProfileEditOverlay({
         if (uploadedUrl) {
           setDraftAvatarUploadedUrl(uploadedUrl);
           setIsAvatarCleared(false);
+          setDraftAvatarEmoji(null);
         }
       } catch {
         showToast({
@@ -396,6 +398,18 @@ function ProfileEditOverlay({
   const handleClearAvatar = React.useCallback(() => {
     setDraftAvatarUploadedUrl(null);
     setIsAvatarCleared(true);
+  }, []);
+
+  const handleEmojiChange = React.useCallback((next: string | null) => {
+    setDraftAvatarEmoji(next);
+    if (next) {
+      setDraftAvatarUploadedUrl(null);
+      setIsAvatarCleared(true);
+    }
+  }, []);
+
+  const handleClearEmoji = React.useCallback(() => {
+    setDraftAvatarEmoji(null);
   }, []);
 
   const handleSave = React.useCallback(async () => {
@@ -488,6 +502,20 @@ function ProfileEditOverlay({
               />
             </Pressable>
           ) : null}
+          {!displayAvatarUrl && !uploadImageMutation.isPending && draftAvatarEmoji ? (
+            <Pressable
+              accessibilityLabel="이모지 제거"
+              className="absolute -left-2 -top-2 size-7 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
+              hitSlop={8}
+              onPress={handleClearEmoji}
+            >
+              <Icon
+                as={X}
+                size={14}
+                className="text-foreground"
+              />
+            </Pressable>
+          ) : null}
           <ImageUploader
             className="absolute -bottom-2 -right-2 size-9 items-center justify-center rounded-full border border-border bg-background shadow-sm active:bg-accent web:hover:bg-accent"
             hitSlop={8}
@@ -528,7 +556,7 @@ function ProfileEditOverlay({
       ) : null}
       <EmojiPickerGrid
         value={draftAvatarEmoji}
-        onChange={setDraftAvatarEmoji}
+        onChange={handleEmojiChange}
         maxHeight={pickerMaxHeight}
         fixedHeight={pickerFixedHeight}
       />

@@ -109,12 +109,13 @@ const useDisplaySettings = create<SettingsState>()((set) => ({
     }),
 }));
 
-function extractPersisted(state: SettingsState): PersistedSettings {
+// profile.avatarEmoji is per-user (source of truth is the API); never persist it,
+// otherwise the override leaks across sessions and to the next signed-in user.
+function extractPersisted(state: SettingsState): Omit<PersistedSettings, "profile"> {
   return {
     ai: state.ai,
     behavior: state.behavior,
     display: state.display,
-    profile: state.profile,
   };
 }
 
@@ -144,9 +145,6 @@ async function hydratePersistedSettings() {
           id: parsed.ai?.defaultModel?.id ?? null,
           model: parsed.ai?.defaultModel?.model ?? null,
         },
-      },
-      profile: {
-        avatarEmoji: parsed.profile?.avatarEmoji ?? null,
       },
     });
   } catch {
