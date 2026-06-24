@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
+import { getAppVariant } from "@/lib/app-variant";
 
 import { X } from "lucide-react-native/icons";
 
@@ -43,10 +44,15 @@ function OpenInAppBanner({ token, folderId }: OpenInAppBannerProps) {
   const [dismissed, setDismissed] = React.useState(false);
   const [platform] = React.useState(detectMobilePlatform);
   const storeUrl = getStoreUrl(platform);
+  const isProduction = getAppVariant() === "production";
 
-  // Only surface this when the app is actually published (a store URL exists);
-  // without it "open in app" is a dead end for users who don't have the app.
-  if (dismissed || !platform || !token || !folderId || !storeUrl) {
+  if (dismissed || !platform || !token || !folderId) {
+    return null;
+  }
+  // Outside production, always surface the banner so testers can hand off to the
+  // app even without a published store listing. In production keep it gated on a
+  // store URL, otherwise "open in app" is a dead end for users without the app.
+  if (isProduction && !storeUrl) {
     return null;
   }
 
@@ -55,7 +61,7 @@ function OpenInAppBanner({ token, folderId }: OpenInAppBannerProps) {
   )}&folderId=${encodeURIComponent(folderId)}`;
 
   // Try to hand off to the installed app. If the page never backgrounds (app not
-  // installed), fall back to the store so the user can install and continue.
+  // installed), fall back to the store, or tell the user no app is installed.
   const handleOpenApp = () => {
     let backgrounded = false;
     const onVisibilityChange = () => {
@@ -69,7 +75,11 @@ function OpenInAppBanner({ token, folderId }: OpenInAppBannerProps) {
     window.setTimeout(() => {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       if (!backgrounded && !document.hidden) {
-        window.location.href = storeUrl;
+        if (storeUrl) {
+          window.location.href = storeUrl;
+        } else {
+          window.alert("설치된 앱이 없어요. 개발자에게 문의해주세요.");
+        }
       }
     }, 1500);
   };
@@ -80,7 +90,9 @@ function OpenInAppBanner({ token, folderId }: OpenInAppBannerProps) {
         <View className="flex-1">
           <Text className="text-sm font-semibold text-foreground">앱에서 열기</Text>
           <Text className="text-xs text-muted-foreground">
-            앱이 있으면 앱에서, 없으면 스토어에서 이어가세요.
+            {storeUrl
+              ? "앱이 있으면 앱에서, 없으면 스토어에서 이어가세요."
+              : "앱이 설치돼 있으면 앱에서 이어가세요."}
           </Text>
         </View>
         <Button
