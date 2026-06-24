@@ -32,4 +32,3 @@ jobs:
     params:
       platform: ios
       branch: preview
-      channel: preview
