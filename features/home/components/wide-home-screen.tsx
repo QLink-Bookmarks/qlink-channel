@@ -327,12 +327,6 @@ function WideHomeScreen() {
           >
             ⌘/Ctrl + K
           </Kbd>
-          <Kbd
-            label="단축키 도움말"
-            labelPosition="right"
-          >
-            ?
-          </Kbd>
         </View>
       </View>
 
