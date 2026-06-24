@@ -246,26 +246,12 @@ function SettingsAccountsRouteScreen() {
   );
 }
 
-function NotFoundRouteScreen() {
-  const { isWideView, pathname } = useShellRouteState();
-
-  return (
-    <DummyRouteScreen
-      title="페이지를 찾을 수 없음"
-      routePath={pathname}
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="공통 셸은 유지한 상태로 노출되는 not-found 더미 화면이다."
-    />
-  );
-}
-
 export {
   FolderDetailRouteScreen,
   FoldersRouteScreen,
   HomeRouteScreen,
   LinkDetailRouteScreen,
   LinksRouteScreen,
-  NotFoundRouteScreen,
   NotificationsRouteScreen,
   SettingsAccountsRouteScreen,
   SettingsAiRouteScreen,

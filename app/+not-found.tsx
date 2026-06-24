@@ -1,10 +1,5 @@
-import { ResponsiveShell } from "@/features/navigation/components/responsive-shell";
-import { NotFoundRouteScreen } from "@/features/navigation/components/route-screens";
+import { NotFoundScreen } from "@/features/navigation/components/not-found-screen";
 
 export default function NotFound() {
-  return (
-    <ResponsiveShell>
-      <NotFoundRouteScreen />
-    </ResponsiveShell>
-  );
+  return <NotFoundScreen />;
 }
