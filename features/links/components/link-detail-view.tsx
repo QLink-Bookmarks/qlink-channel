@@ -297,7 +297,6 @@ function LinkDetailView({
     myProfileQuery.data?.id != null &&
     currentFolder.ownerId === myProfileQuery.data.id;
   const isMyOwnLink = !isSharedFolder || isFolderOwner;
-  const canCopyToPersonal = isSharedFolder && !isFolderOwner;
 
   const isTodoMutationPending =
     createTodoMutation.isPending || updateTodoMutation.isPending || deleteTodoMutation.isPending;
@@ -1144,21 +1143,6 @@ function LinkDetailView({
           </DetailSection>
 
           <View className="gap-3 pb-2">
-            {isMyOwnLink ? (
-              <ActionButton
-                icon={Pencil}
-                label="수정하기"
-                onPress={() => setIsEditUnavailableOpen(true)}
-              />
-            ) : null}
-            {canCopyToPersonal ? (
-              <ActionButton
-                icon={FolderPlus}
-                label="개인 폴더로 추가"
-                loading={copyLinkMutation.isPending}
-                onPress={() => setIsCopyFolderOpen(true)}
-              />
-            ) : null}
             <View className="flex-row flex-wrap gap-3">
               <ActionButton
                 icon={ExternalLink}
@@ -1185,11 +1169,27 @@ function LinkDetailView({
                 onPress={handleShare}
               />
             </View>
-            <ActionButton
-              icon={Trash2}
-              label="링크 삭제"
-              onPress={() => setIsDeleteDialogOpen(true)}
-            />
+            <View className="flex-row flex-wrap gap-3">
+              {isMyOwnLink ? (
+                <ActionButton
+                  icon={Pencil}
+                  label="수정하기"
+                  onPress={() => setIsEditUnavailableOpen(true)}
+                />
+              ) : (
+                <ActionButton
+                  icon={FolderPlus}
+                  label="개인 폴더로 추가"
+                  loading={copyLinkMutation.isPending}
+                  onPress={() => setIsCopyFolderOpen(true)}
+                />
+              )}
+              <ActionButton
+                icon={Trash2}
+                label="링크 삭제"
+                onPress={() => setIsDeleteDialogOpen(true)}
+              />
+            </View>
           </View>
         </View>
       </ScrollView>
