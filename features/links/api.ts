@@ -1,6 +1,8 @@
 import { api } from "@/lib/api-client";
 
 import type {
+  CopyLinkRequest,
+  CopyLinkResponse,
   CreateLinkRequest,
   CreateLinkResponse,
   DeleteLinkResponse,
@@ -39,4 +41,16 @@ async function setLinkFavorite(linkId: string | number, payload: SetLinkFavorite
   );
 }
 
-export { createLink, deleteLink, getLinkDetail, getLinks, setLinkFavorite, updateLink };
+async function copySharedFolderLink(linkId: string | number, payload: CopyLinkRequest) {
+  return api.post<CopyLinkResponse, CopyLinkRequest>(`/api/links/${linkId}/copy`, payload);
+}
+
+export {
+  copySharedFolderLink,
+  createLink,
+  deleteLink,
+  getLinkDetail,
+  getLinks,
+  setLinkFavorite,
+  updateLink,
+};

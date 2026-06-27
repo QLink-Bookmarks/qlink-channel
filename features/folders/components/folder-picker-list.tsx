@@ -16,6 +16,7 @@ type FolderPickerSelection = { id: number | null; label: string; emoji?: string 
 type FolderPickerListProps = {
   selectedFolderId: number | null;
   noneOption?: { label: string; icon?: string } | null;
+  filterFolder?: (folder: Folder) => boolean;
   onSelect: (selection: FolderPickerSelection) => void;
   className?: string;
 };
@@ -27,11 +28,14 @@ function getFolderLabel(folder: Folder): string {
 function FolderPickerList({
   selectedFolderId,
   noneOption = { label: "없음 - ✨ AI 자동 분류", icon: "✨" },
+  filterFolder,
   onSelect,
   className,
 }: FolderPickerListProps) {
   const foldersQuery = useFoldersQuery({ size: 15 });
-  const folders = foldersQuery.data?.contents ?? [];
+  const folders = (foldersQuery.data?.contents ?? []).filter(
+    (folder) => filterFolder?.(folder) ?? true,
+  );
 
   if (foldersQuery.isLoading) {
     return (

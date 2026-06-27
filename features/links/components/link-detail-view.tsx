@@ -31,10 +31,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { type TimeValue } from "@/components/ui/time-picker";
 import { useMyProfileQuery } from "@/features/account/queries";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
+import { useFoldersQuery } from "@/features/folders/queries";
 import { formatLinkStatus, formatSummaryModelLabel } from "@/features/home/lib/link-card-mapper";
 import { buildShareText } from "@/features/links/lib/build-share-text";
 import { shareLink } from "@/features/links/lib/share-link";
 import {
+  useCopyLinkMutation,
   useDeleteLinkMutation,
   useSetLinkFavoriteMutation,
   useUpdateLinkMutation,
@@ -71,10 +73,12 @@ import { useToastStore } from "@/stores/toast-store";
 import { useQueryClient } from "@tanstack/react-query";
 
 import * as Linking from "expo-linking";
+import { type Href, useRouter } from "expo-router";
 import {
   Ellipsis,
   ExternalLink,
   FolderOpen,
+  FolderPlus,
   Pencil,
   RefreshCw,
   Share2,
@@ -187,12 +191,16 @@ function ActionButton({
   icon,
   variant = "outline",
   iconClassName: iconClassNameOverride,
+  loading = false,
+  disabled = false,
   onPress,
 }: {
   label: string;
   icon: React.ComponentProps<typeof Icon>["as"];
   variant?: React.ComponentProps<typeof Button>["variant"];
   iconClassName?: string;
+  loading?: boolean;
+  disabled?: boolean;
   onPress?: () => void;
 }) {
   const iconClassName =
@@ -203,14 +211,19 @@ function ActionButton({
     <Button
       className="h-11 min-w-0 flex-1 self-auto rounded-2xl"
       variant={variant}
+      disabled={disabled || loading}
       onPress={onPress}
     >
       <View>
-        <Icon
-          as={icon}
-          size={16}
-          className={iconClassName}
-        />
+        {loading ? (
+          <ActivityIndicator size="small" />
+        ) : (
+          <Icon
+            as={icon}
+            size={16}
+            className={iconClassName}
+          />
+        )}
       </View>
       <Text>{label}</Text>
     </Button>
@@ -228,11 +241,14 @@ function LinkDetailView({
   onClose?: () => void;
   onDeleted?: () => void;
 }) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const memoInputRef = React.useRef<TextInput>(null);
   const updateLinkMutation = useUpdateLinkMutation(detail.id);
   const setFavoriteMutation = useSetLinkFavoriteMutation();
   const myProfileQuery = useMyProfileQuery();
+  const foldersQuery = useFoldersQuery({ size: 15 });
+  const copyLinkMutation = useCopyLinkMutation(detail.id);
   const showToast = useToastStore((state) => state.showToast);
   const deleteLinkMutation = useDeleteLinkMutation(detail.id);
   const createTodoMutation = useCreateTodoMutation();
@@ -247,6 +263,8 @@ function LinkDetailView({
   const [isTagEditMode, setIsTagEditMode] = React.useState(false);
   const [pendingTagName, setPendingTagName] = React.useState<string | null>(null);
   const [isFolderMoveOpen, setIsFolderMoveOpen] = React.useState(false);
+  const [isCopyFolderOpen, setIsCopyFolderOpen] = React.useState(false);
+  const [isEditUnavailableOpen, setIsEditUnavailableOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isMemoEditing, setIsMemoEditing] = React.useState(false);
   const [memoDraft, setMemoDraft] = React.useState(detail.memo ?? "");
@@ -265,6 +283,21 @@ function LinkDetailView({
     () => formatSummaryModelLabel(detail.status, detail.workModel),
     [detail.status, detail.workModel],
   );
+
+  const currentFolder = React.useMemo(
+    () =>
+      detail.folderId != null
+        ? (foldersQuery.data?.contents ?? []).find((folder) => folder.id === detail.folderId)
+        : undefined,
+    [detail.folderId, foldersQuery.data?.contents],
+  );
+  const isSharedFolder = currentFolder?.isShared === true;
+  const isFolderOwner =
+    currentFolder?.ownerId != null &&
+    myProfileQuery.data?.id != null &&
+    currentFolder.ownerId === myProfileQuery.data.id;
+  const isMyOwnLink = !isSharedFolder || isFolderOwner;
+  const canCopyToPersonal = isSharedFolder && !isFolderOwner;
 
   const isTodoMutationPending =
     createTodoMutation.isPending || updateTodoMutation.isPending || deleteTodoMutation.isPending;
@@ -505,6 +538,66 @@ function LinkDetailView({
       });
     }
   }, [detail.id, detail.title, detail.url, myProfileQuery.data, showToast]);
+
+  const navigateToLink = React.useCallback(
+    (linkId: number) => {
+      if (mode === "panel") {
+        router.replace(`/links?linkId=${linkId}` as Href);
+        return;
+      }
+
+      router.push(`/links/${linkId}` as Href);
+    },
+    [mode, router],
+  );
+
+  const handleCopyToPersonalSelect = React.useCallback(
+    async (folderId: number | null) => {
+      setIsCopyFolderOpen(false);
+
+      if (folderId == null || detail.folderId == null) {
+        return;
+      }
+
+      let copiedLinkId: number | undefined;
+      try {
+        const response = await copyLinkMutation.mutateAsync({
+          fromFolderId: detail.folderId,
+          toFolderId: folderId,
+        });
+        copiedLinkId = response.data?.id;
+      } catch (error: unknown) {
+        showToast({
+          description: "잠시 후 다시 시도해주세요.",
+          dismissible: true,
+          durationMs: 4000,
+          sourceKey: "link-detail-copy",
+          title: "링크 복사에 실패했어요.",
+          variant: "error",
+        });
+        reportError(error, {
+          area: "link-detail-view:copy-link",
+          extra: { fromFolderId: detail.folderId, linkId: detail.id, toFolderId: folderId },
+        });
+        return;
+      }
+
+      const nextLinkId = copiedLinkId;
+      showToast({
+        actionLabel: nextLinkId != null ? "이동" : undefined,
+        dismissible: true,
+        durationMs: 6000,
+        onAction: nextLinkId != null ? () => navigateToLink(nextLinkId) : undefined,
+        sourceKey: "link-detail-copy",
+        title: "링크가 복사됐어요.",
+        variant: "success",
+      });
+
+      void queryClient.invalidateQueries({ queryKey: ["links", "list"] });
+      void queryClient.invalidateQueries({ queryKey: ["folders"] });
+    },
+    [copyLinkMutation, detail.folderId, detail.id, navigateToLink, queryClient, showToast],
+  );
 
   const handleDeleteLink = React.useCallback(async () => {
     if (deleteLinkMutation.isPending) {
@@ -1051,6 +1144,21 @@ function LinkDetailView({
           </DetailSection>
 
           <View className="gap-3 pb-2">
+            {isMyOwnLink ? (
+              <ActionButton
+                icon={Pencil}
+                label="수정하기"
+                onPress={() => setIsEditUnavailableOpen(true)}
+              />
+            ) : null}
+            {canCopyToPersonal ? (
+              <ActionButton
+                icon={FolderPlus}
+                label="개인 폴더로 추가"
+                loading={copyLinkMutation.isPending}
+                onPress={() => setIsCopyFolderOpen(true)}
+              />
+            ) : null}
             <View className="flex-row flex-wrap gap-3">
               <ActionButton
                 icon={ExternalLink}
@@ -1139,6 +1247,55 @@ function LinkDetailView({
 
       {mode === "panel" ? (
         <Dialog
+          open={isCopyFolderOpen}
+          onOpenChange={setIsCopyFolderOpen}
+        >
+          <DialogContent className="max-h-[80vh] min-h-[24rem] min-w-[24rem] max-w-md">
+            <DialogHeader>
+              <DialogTitle>개인 폴더로 추가</DialogTitle>
+              <DialogDescription>복사할 개인 폴더를 선택해주세요.</DialogDescription>
+            </DialogHeader>
+            <ScrollView
+              className="flex-1"
+              contentInsetAdjustmentBehavior="automatic"
+              showsVerticalScrollIndicator={false}
+            >
+              <FolderPickerList
+                noneOption={null}
+                filterFolder={(folder) => !folder.isShared}
+                selectedFolderId={null}
+                onSelect={(selection) => handleCopyToPersonalSelect(selection.id)}
+              />
+            </ScrollView>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Sheet
+          open={isCopyFolderOpen}
+          fitContent
+          onOpenChange={setIsCopyFolderOpen}
+        >
+          <View className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">개인 폴더로 추가</Text>
+            <FolderPickerList
+              noneOption={null}
+              filterFolder={(folder) => !folder.isShared}
+              selectedFolderId={null}
+              onSelect={(selection) => handleCopyToPersonalSelect(selection.id)}
+            />
+            <Button
+              className="h-10 self-stretch"
+              variant="outline"
+              onPress={() => setIsCopyFolderOpen(false)}
+            >
+              <Text>닫기</Text>
+            </Button>
+          </View>
+        </Sheet>
+      )}
+
+      {mode === "panel" ? (
+        <Dialog
           open={isTodoEditorOpen}
           onOpenChange={(open) => {
             if (!open) {
@@ -1209,6 +1366,26 @@ function LinkDetailView({
               <Text className="text-center">
                 {deleteLinkMutation.isPending ? "삭제 중..." : "삭제"}
               </Text>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={isEditUnavailableOpen}
+        onOpenChange={setIsEditUnavailableOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>수정하기</AlertDialogTitle>
+            <AlertDialogDescription>UX 추가 예정이에요</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row justify-center">
+            <AlertDialogAction
+              className="native:px-3 flex-1 justify-center sm:flex-none"
+              onPress={() => setIsEditUnavailableOpen(false)}
+            >
+              <Text className="text-center">확인</Text>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

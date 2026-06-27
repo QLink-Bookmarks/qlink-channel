@@ -38,6 +38,15 @@ type SetLinkFavoriteRequest = {
   isFavorite: boolean;
 };
 
+type CopyLinkRequest = {
+  fromFolderId: number;
+  toFolderId: number;
+};
+
+type CopyLinkResponse = ApiEnvelope<{
+  id: number;
+}>;
+
 type SetLinkFavoriteResponse = ApiEnvelope<null>;
 
 type CreateLinkResponse = {
@@ -138,6 +147,8 @@ type GetLinksParams = {
 
 export type {
   ApiEnvelope,
+  CopyLinkRequest,
+  CopyLinkResponse,
   CreateLinkRequest,
   CreateLinkResponse,
   CreateLinkTodoRequest,

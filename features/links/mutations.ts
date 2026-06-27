@@ -1,7 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { createLink, deleteLink, setLinkFavorite, updateLink } from "./api";
-import type { CreateLinkRequest, SetLinkFavoriteRequest, UpdateLinkRequest } from "./types";
+import { copySharedFolderLink, createLink, deleteLink, setLinkFavorite, updateLink } from "./api";
+import type {
+  CopyLinkRequest,
+  CreateLinkRequest,
+  SetLinkFavoriteRequest,
+  UpdateLinkRequest,
+} from "./types";
 
 function useCreateLinkMutation() {
   return useMutation({
@@ -21,6 +26,12 @@ function useDeleteLinkMutation(linkId: string | number) {
   });
 }
 
+function useCopyLinkMutation(linkId: string | number) {
+  return useMutation({
+    mutationFn: (payload: CopyLinkRequest) => copySharedFolderLink(linkId, payload),
+  });
+}
+
 function useSetLinkFavoriteMutation() {
   return useMutation({
     mutationFn: ({
@@ -34,6 +45,7 @@ function useSetLinkFavoriteMutation() {
 }
 
 export {
+  useCopyLinkMutation,
   useCreateLinkMutation,
   useDeleteLinkMutation,
   useSetLinkFavoriteMutation,
