@@ -37,7 +37,7 @@ import {
   useMyProfileQuery,
   useMySettingsQuery,
 } from "@/features/account/queries";
-import type { AiProviderType } from "@/features/account/types";
+import type { AiProviderType, ConnectedAuthProvider } from "@/features/account/types";
 import {
   AiModelPickerList,
   type AiModelSelection,
@@ -47,6 +47,7 @@ import { usePutAiUserProviderMutation } from "@/features/ai/mutations";
 import { useAiProviderModelsQuery } from "@/features/ai/queries";
 import type { AiProviderWithModels } from "@/features/ai/types";
 import { signOut as signOutApi } from "@/features/auth/api";
+import { ConnectedProvidersRow } from "@/features/auth/components/connect-providers";
 import { useUploadImageMutation } from "@/features/images/mutations";
 import type { ImageUploadInput } from "@/features/images/types";
 import { DeviceNotificationNotice } from "@/features/notifications/components/device-notification-notice";
@@ -117,6 +118,7 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
             username={profile?.username ?? ""}
             avatarUrl={profile?.avatarUrl ?? null}
             avatarFromApi={profile?.avatarEmoji ?? null}
+            connectedProviders={settings?.providers ?? []}
           />
 
           {mode === "mobile" ? <DisplaySection /> : null}
@@ -183,12 +185,14 @@ function ProfileSection({
   username,
   avatarUrl,
   avatarFromApi,
+  connectedProviders,
 }: {
   mode: SettingsScreenMode;
   nickname: string;
   username: string;
   avatarUrl: string | null;
   avatarFromApi: string | null;
+  connectedProviders: ConnectedAuthProvider[];
 }) {
   const avatarOverride = useDisplaySettings((state) => state.profile.avatarEmoji);
   const setAvatarEmoji = useDisplaySettings((state) => state.setAvatarEmoji);
@@ -267,6 +271,10 @@ function ProfileSection({
             <Text>로그아웃</Text>
           </Button>
         </View>
+        <ConnectedProvidersRow
+          mode={mode}
+          connectedProviders={connectedProviders}
+        />
       </SettingsSectionCard>
 
       <ProfileEditOverlay

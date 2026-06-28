@@ -2,7 +2,9 @@ import * as React from "react";
 
 import { reportError } from "@/lib/error-reporting";
 
-import { clearOauthState, resolveOauthState } from "../lib/oauth-state";
+import type { ConnectOutcome } from "../lib/connect-with-token";
+import { clearOauthMode, clearOauthState, resolveOauthState } from "../lib/oauth-state";
+import { useConnectFeedback } from "./use-connect-feedback";
 import { exchangeKakaoCode } from "./use-kakao-login.web";
 import { processNaverRedirect } from "./use-naver-login.web";
 
@@ -40,16 +42,18 @@ function useOauthRedirect() {
     () => Boolean(readRedirect()) || hasNaverHash(),
   );
   const handledRef = React.useRef(false);
+  const applyConnectOutcome = useConnectFeedback();
 
   React.useEffect(() => {
     if (handledRef.current) return;
     handledRef.current = true;
 
     void (async () => {
+      let outcome: ConnectOutcome | null = null;
       try {
         if (hasNaverHash()) {
           setIsProcessing(true);
-          await processNaverRedirect();
+          outcome = await processNaverRedirect();
           return;
         }
 
@@ -61,17 +65,23 @@ function useOauthRedirect() {
         const provider = resolveOauthState(redirect.state);
         if (provider === "kakao") {
           setIsProcessing(true);
-          await exchangeKakaoCode(redirect.code);
+          outcome = await exchangeKakaoCode(redirect.code);
         }
         clearRedirectParams();
         clearOauthState();
       } catch (error) {
         reportError(error, { area: "auth:oauth-exchange" });
       } finally {
+        clearOauthMode();
         setIsProcessing(false);
+        // A non-null outcome means this round-trip was a provider "connect"
+        // (not a login), so surface the result instead of authenticating.
+        if (outcome) {
+          await applyConnectOutcome(outcome);
+        }
       }
     })();
-  }, []);
+  }, [applyConnectOutcome]);
 
   return { isProcessing };
 }

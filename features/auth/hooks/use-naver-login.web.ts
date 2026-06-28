@@ -4,6 +4,8 @@ import { reportError } from "@/lib/error-reporting";
 import { useAuthStore } from "@/stores/auth";
 
 import { signIn } from "../api";
+import { type ConnectOutcome, connectWithToken } from "../lib/connect-with-token";
+import { getOauthMode, setOauthMode } from "../lib/oauth-state";
 
 const NAVER_SDK_SRC = "https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.2.js";
 const NAVER_BUTTON_HOST_ID = "naverIdLogin";
@@ -91,17 +93,18 @@ function clearCallbackHash(): void {
 }
 
 // Implicit-flow callback: the SDK returns the access token in the URL hash.
-// Read it via getLoginStatus, then hand the token to the backend. Returns true
-// when a Naver callback was handled.
-async function processNaverRedirect(): Promise<boolean> {
+// Read it via getLoginStatus, then hand the token to the backend. Returns a
+// connect outcome when this was a "connect" flow, or null otherwise (login or
+// no callback present).
+async function processNaverRedirect(): Promise<ConnectOutcome | null> {
   if (!hasNaverCallbackHash()) {
-    return false;
+    return null;
   }
   await loadNaverSdk();
   const naverLogin = ensureNaverLogin();
   if (!naverLogin) {
     clearCallbackHash();
-    return true;
+    return null;
   }
   const accessToken = await new Promise<string | null>((resolve) => {
     naverLogin.getLoginStatus((status) => {
@@ -110,8 +113,13 @@ async function processNaverRedirect(): Promise<boolean> {
   });
   clearCallbackHash();
   if (!accessToken) {
-    return true;
+    return null;
   }
+
+  if (getOauthMode() === "connect") {
+    return connectWithToken("NAVER", accessToken, "WEB");
+  }
+
   const result = await signIn({ provider: "NAVER", token: accessToken, platform: "WEB" });
   if (result?.success && result.data) {
     useAuthStore.getState().authenticate({
@@ -119,16 +127,21 @@ async function processNaverRedirect(): Promise<boolean> {
       refreshToken: result.data.refreshToken,
     });
   }
-  return true;
+  return null;
+}
+
+async function startNaverOauth(): Promise<void> {
+  await loadNaverSdk();
+  ensureNaverLogin();
+  const anchor = document.querySelector<HTMLAnchorElement>(`#${NAVER_BUTTON_HOST_ID} a`);
+  anchor?.click();
 }
 
 function useNaverLogin() {
   const handleNaverLogin = React.useCallback(async () => {
     try {
-      await loadNaverSdk();
-      ensureNaverLogin();
-      const anchor = document.querySelector<HTMLAnchorElement>(`#${NAVER_BUTTON_HOST_ID} a`);
-      anchor?.click();
+      setOauthMode("login");
+      await startNaverOauth();
     } catch (error) {
       reportError(error, { area: "auth:naver-login" });
     }
@@ -137,4 +150,11 @@ function useNaverLogin() {
   return { handleNaverLogin };
 }
 
-export { processNaverRedirect, useNaverLogin };
+// Kick off the Naver redirect in "connect" mode. Completion happens on return
+// via processNaverRedirect.
+async function beginNaverConnect(): Promise<void> {
+  setOauthMode("connect");
+  await startNaverOauth();
+}
+
+export { beginNaverConnect, processNaverRedirect, useNaverLogin };

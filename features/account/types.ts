@@ -28,10 +28,16 @@ type UserAiSettings = {
   defaultModel: UserDefaultModel;
 };
 
+type ConnectedAuthProvider = {
+  id: number;
+  type: string;
+};
+
 type GetMySettingsResponseData = {
   display: UserDisplaySettings;
   behavior: UserBehaviorSettings;
   ai: UserAiSettings;
+  providers: ConnectedAuthProvider[];
 };
 
 type GetMySettingsResponse = ApiEnvelope<GetMySettingsResponseData>;
@@ -68,6 +74,7 @@ type UpdateMyProfileResponse = ApiEnvelope<GetMyProfileResponseData | null>;
 
 export type {
   AiProviderType,
+  ConnectedAuthProvider,
   GetMyProfileResponse,
   GetMyProfileResponseData,
   GetMySettingsResponse,

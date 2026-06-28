@@ -4,7 +4,13 @@
 
 type OauthProvider = "kakao" | "naver";
 
+// Whether the current OAuth round-trip is a fresh login or connecting an extra
+// provider to the already-signed-in account. Both share the same redirect URI,
+// so the intent rides along in sessionStorage and is read back on return.
+type OauthMode = "login" | "connect";
+
 const STATE_STORAGE_KEY = "qlink.oauth.state";
+const MODE_STORAGE_KEY = "qlink.oauth.mode";
 
 function randomToken(): string {
   const cryptoRef = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
@@ -42,5 +48,24 @@ function clearOauthState(): void {
   getSessionStorage()?.removeItem(STATE_STORAGE_KEY);
 }
 
-export { beginOauthState, clearOauthState, resolveOauthState };
-export type { OauthProvider };
+function setOauthMode(mode: OauthMode): void {
+  getSessionStorage()?.setItem(MODE_STORAGE_KEY, mode);
+}
+
+function getOauthMode(): OauthMode {
+  return getSessionStorage()?.getItem(MODE_STORAGE_KEY) === "connect" ? "connect" : "login";
+}
+
+function clearOauthMode(): void {
+  getSessionStorage()?.removeItem(MODE_STORAGE_KEY);
+}
+
+export {
+  beginOauthState,
+  clearOauthMode,
+  clearOauthState,
+  getOauthMode,
+  resolveOauthState,
+  setOauthMode,
+};
+export type { OauthMode, OauthProvider };

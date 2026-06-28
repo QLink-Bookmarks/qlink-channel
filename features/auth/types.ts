@@ -15,6 +15,14 @@ type AuthTokenResponseData = {
 
 type AuthTokenResponse = ApiEnvelope<AuthTokenResponseData>;
 
+type ConnectAuthProviderRequest = {
+  provider: string;
+  token: string;
+  platform: AuthPlatform;
+};
+
+type ConnectAuthProviderResponse = ApiEnvelope<{ id: number } | null>;
+
 type NativeRefreshTokenRequest = {
   refreshToken?: string | null;
 };
@@ -29,6 +37,8 @@ export type {
   AuthPlatform,
   AuthTokenResponse,
   AuthTokenResponseData,
+  ConnectAuthProviderRequest,
+  ConnectAuthProviderResponse,
   NativeRefreshTokenRequest,
   SignInRequest,
   SignOutRequest,
