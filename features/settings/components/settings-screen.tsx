@@ -295,12 +295,12 @@ function ProfileSection({
         open={logoutOpen}
         onOpenChange={setLogoutOpen}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="min-w-[20rem]">
           <AlertDialogHeader>
             <AlertDialogTitle>로그아웃 할까요?</AlertDialogTitle>
             <AlertDialogDescription>로그아웃하면 다시 로그인해야 해요.</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-row justify-end">
             <AlertDialogCancel disabled={signOutMutation.isPending}>
               <Text>취소</Text>
             </AlertDialogCancel>
