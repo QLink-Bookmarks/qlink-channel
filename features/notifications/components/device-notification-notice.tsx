@@ -18,7 +18,7 @@ function DeviceNotificationNotice() {
   }
 
   return (
-    <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3">
+    <View className="flex-row items-center gap-3">
       <Icon
         as={BellOff}
         size={20}
