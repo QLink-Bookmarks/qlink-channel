@@ -139,6 +139,8 @@ function AppStack() {
 
       <Stack.Screen name="(auth)" />
 
+      <Stack.Screen name="onboarding" />
+
       <Stack.Screen name="invite" />
 
       <Stack.Protected guard={isAuthenticated}>

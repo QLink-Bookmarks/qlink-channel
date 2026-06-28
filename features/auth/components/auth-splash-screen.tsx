@@ -5,6 +5,7 @@ import { Text } from "@/components/ui/text";
 import { getMyProfile } from "@/features/account/api";
 import { useAuthStore } from "@/stores/auth";
 import { useInviteStore } from "@/stores/invite";
+import { useOnboardingStore } from "@/stores/onboarding";
 import { useShareIntentStore } from "@/stores/share-intent";
 
 import { useOauthRedirect } from "../hooks/use-oauth-redirect";
@@ -20,10 +21,25 @@ function AuthSplashScreen() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const inviteHasHydrated = useInviteStore((state) => state.hasHydrated);
   const shareHasHydrated = useShareIntentStore((state) => state.hasHydrated);
+  const onboardingHasHydrated = useOnboardingStore((state) => state.hasHydrated);
+  const onboardingCompleted = useOnboardingStore((state) => state.completed);
   const [status, setStatus] = React.useState<AuthCheckStatus>("checking");
+
+  // Native-only first-launch onboarding, shown once right after the splash
+  // (before login). Web has no SecureStore, so it never onboards.
+  const isNative = process.env.EXPO_OS !== "web";
+  const shouldOnboard = isNative && onboardingHasHydrated && !onboardingCompleted;
 
   // Handles the web OAuth `?code=` redirect for any provider (Kakao/Naver).
   useOauthRedirect();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (shouldOnboard) {
+        router.replace("/onboarding" as Href);
+      }
+    }, [router, shouldOnboard]),
+  );
 
   React.useEffect(() => {
     if (!hasHydrated) return;
@@ -53,6 +69,9 @@ function AuthSplashScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
+      if (shouldOnboard) {
+        return;
+      }
       if (status !== "authenticated") {
         return;
       }
@@ -83,9 +102,17 @@ function AuthSplashScreen() {
       }
 
       router.replace("/home" as Href);
-    }, [inviteHasHydrated, router, shareHasHydrated, status]),
+    }, [inviteHasHydrated, router, shareHasHydrated, shouldOnboard, status]),
   );
 
+  // On native, hold the checking screen until we know the onboarding state so
+  // the login screen never flashes before redirecting to onboarding.
+  if (isNative && !onboardingHasHydrated) {
+    return <CheckingScreen />;
+  }
+  if (shouldOnboard) {
+    return <CheckingScreen />;
+  }
   if (status === "unauthenticated") {
     return <LoginPrompt />;
   }
