@@ -55,6 +55,7 @@ import { useUploadImageMutation } from "@/features/images/mutations";
 import type { ImageUploadInput } from "@/features/images/types";
 import { DeviceNotificationNotice } from "@/features/notifications/components/device-notification-notice";
 import { reportError } from "@/lib/error-reporting";
+import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth";
 import { useDisplaySettings } from "@/stores/display-settings";
 import { useToastStore } from "@/stores/toast-store";
@@ -79,6 +80,18 @@ import {
 
 type SettingsScreenMode = "wide" | "mobile";
 
+// Throwaway design exploration: 1 = current (boxed rows), 2 = divider list,
+// 3 = section title outside the card. Pick one, then drop the others.
+type SettingsDesign = 1 | 2 | 3;
+const SettingsDesignContext = React.createContext<SettingsDesign>(1);
+
+// Boxy rows opt into this so design 2/3 can drop the inner border (the section
+// card supplies the padding + dividers instead).
+function useRowChrome() {
+  const design = React.useContext(SettingsDesignContext);
+  return design === 1 ? "rounded-2xl border border-border bg-card px-4 py-3" : "";
+}
+
 type ProviderTypeOption = {
   type: AiProviderType;
   label: string;
@@ -91,7 +104,13 @@ const PROVIDER_TYPE_OPTIONS: ProviderTypeOption[] = [
   { type: "GEMINI", label: "Gemini", placeholder: "AIza..." },
 ];
 
-function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
+function SettingsScreen({
+  mode,
+  design = 1,
+}: {
+  mode: SettingsScreenMode;
+  design?: SettingsDesign;
+}) {
   const profileQuery = useMyProfileQuery();
   const settingsQuery = useMySettingsQuery();
   const profile = profileQuery.data;
@@ -109,42 +128,44 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
   const isLoading = profileQuery.isLoading || settingsQuery.isLoading;
 
   const body = (
-    <View className="mx-auto w-full gap-4 px-4 pb-12 pt-4 md:max-w-3xl md:px-6 md:pt-0">
-      {mode === "wide" ? (
-        <PageHeader
-          className="px-0"
-          title="설정"
-          icon={Settings}
-          meta="프로필, AI 제공자, 알림 설정을 관리해요."
-        />
-      ) : null}
-
-      {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          className="py-16"
-        />
-      ) : (
-        <View className="gap-4">
-          <ProfileSection
-            mode={mode}
-            nickname={profile?.nickname ?? "사용자"}
-            username={profile?.username ?? ""}
-            avatarUrl={profile?.avatarUrl ?? null}
-            avatarFromApi={profile?.avatarEmoji ?? null}
-            connectedProviders={settings?.providers ?? []}
+    <SettingsDesignContext.Provider value={design}>
+      <View className="mx-auto w-full gap-4 px-4 pb-12 pt-4 md:max-w-3xl md:px-6 md:pt-0">
+        {mode === "wide" ? (
+          <PageHeader
+            className="px-0"
+            title="설정"
+            icon={Settings}
+            meta="프로필, AI 제공자, 알림 설정을 관리해요."
           />
+        ) : null}
 
-          {mode === "mobile" ? <DisplaySection /> : null}
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            className="py-16"
+          />
+        ) : (
+          <View className="gap-4">
+            <ProfileSection
+              mode={mode}
+              nickname={profile?.nickname ?? "사용자"}
+              username={profile?.username ?? ""}
+              avatarUrl={profile?.avatarUrl ?? null}
+              avatarFromApi={profile?.avatarEmoji ?? null}
+              connectedProviders={settings?.providers ?? []}
+            />
 
-          <AiProviderSection mode={mode} />
+            {mode === "mobile" ? <DisplaySection /> : null}
 
-          <BehaviorSection />
+            <AiProviderSection mode={mode} />
 
-          <AppInfoSection />
-        </View>
-      )}
-    </View>
+            <BehaviorSection />
+
+            <AppInfoSection />
+          </View>
+        )}
+      </View>
+    </SettingsDesignContext.Provider>
   );
 
   if (mode === "wide") {
@@ -181,17 +202,58 @@ function SettingsSectionCard({
   description?: string;
   children: React.ReactNode;
 }) {
+  const design = React.useContext(SettingsDesignContext);
+
+  if (design === 1) {
+    return (
+      <Card
+        density="compact"
+        className="gap-3"
+      >
+        <View className="gap-1 px-5 pt-1">
+          <Text className="text-base font-semibold text-foreground">{title}</Text>
+          {description ? (
+            <Text className="text-xs text-muted-foreground">{description}</Text>
+          ) : null}
+        </View>
+        <View className="gap-3 px-5">{children}</View>
+      </Card>
+    );
+  }
+
+  const items = React.Children.toArray(children).filter(Boolean);
+  const dividerList = (
+    <View className="overflow-hidden">
+      {items.map((child, index) => (
+        <View key={index}>
+          {index > 0 ? <View className="h-px bg-border" /> : null}
+          <View className="px-5 py-3">{child}</View>
+        </View>
+      ))}
+    </View>
+  );
+
+  if (design === 2) {
+    return (
+      <Card className="gap-0 overflow-hidden py-0">
+        <View className="gap-1 px-5 pb-3 pt-4">
+          <Text className="text-base font-semibold text-foreground">{title}</Text>
+          {description ? (
+            <Text className="text-xs text-muted-foreground">{description}</Text>
+          ) : null}
+        </View>
+        <View className="border-t border-border">{dividerList}</View>
+      </Card>
+    );
+  }
+
   return (
-    <Card
-      density="compact"
-      className="gap-3"
-    >
-      <View className="gap-1 px-5 pt-1">
-        <Text className="text-base font-semibold text-foreground">{title}</Text>
-        {description ? <Text className="text-xs text-muted-foreground">{description}</Text> : null}
+    <View className="gap-2">
+      <View className="px-2">
+        <Text className="text-sm font-semibold text-muted-foreground">{title}</Text>
       </View>
-      <View className="gap-3 px-5">{children}</View>
-    </Card>
+      <Card className="gap-0 overflow-hidden py-0">{dividerList}</Card>
+    </View>
   );
 }
 
@@ -661,6 +723,7 @@ function DisplaySection() {
 function BehaviorSection() {
   const allowsReminder = useDisplaySettings((state) => state.behavior.allowsReminderNotification);
   const setAllowsReminder = useDisplaySettings((state) => state.setAllowsReminderNotification);
+  const rowChrome = useRowChrome();
 
   return (
     <SettingsSectionCard
@@ -668,7 +731,7 @@ function BehaviorSection() {
       description="할 일 알림을 받을지 선택해요."
     >
       <DeviceNotificationNotice />
-      <View className="flex-row items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
+      <View className={cn("flex-row items-center justify-between gap-3", rowChrome)}>
         <View className="min-w-0 flex-1 gap-1">
           <Text className="text-sm font-semibold text-foreground">리마인더 알림</Text>
           <Text className="text-xs text-muted-foreground">할 일이 다가오면 알림을 보내요.</Text>
@@ -719,6 +782,8 @@ function AppInfoSection() {
     }
   }, [deleteAccountMutation, queryClient, router, setAvatarEmoji, showToast, signOutStore]);
 
+  const rowChrome = useRowChrome();
+
   return (
     <>
       <SettingsSectionCard
@@ -726,7 +791,10 @@ function AppInfoSection() {
         description="개인정보처리방침과 앱 버전을 확인해요."
       >
         <Pressable
-          className="flex-row items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 active:bg-accent web:hover:bg-accent"
+          className={cn(
+            "flex-row items-center justify-between gap-3 active:bg-accent web:hover:bg-accent",
+            rowChrome,
+          )}
           onPress={() => router.push("/privacy" as Href)}
         >
           <View className="flex-row items-center gap-2">
@@ -744,7 +812,7 @@ function AppInfoSection() {
           />
         </Pressable>
 
-        <View className="flex-row items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
+        <View className={cn("flex-row items-center justify-between gap-3", rowChrome)}>
           <View className="flex-row items-center gap-2">
             <Icon
               as={Info}
@@ -811,6 +879,7 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
 
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [addKeyOpen, setAddKeyOpen] = React.useState(false);
+  const rowChrome = useRowChrome();
 
   const selectedModelId = defaultModel.id;
   const selectedProvider = providers.find((provider) => provider.providerId === defaultProvider.id);
@@ -835,54 +904,59 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
   );
 
   return (
-    <SettingsSectionCard
-      title="AI 제공자"
-      description="기본 AI 모델을 선택하고 API 키를 등록해요."
-    >
-      <Pressable
-        className="flex-row items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 active:bg-accent web:hover:bg-accent"
-        onPress={() => setPickerOpen(true)}
+    <>
+      <SettingsSectionCard
+        title="AI 제공자"
+        description="기본 AI 모델을 선택하고 API 키를 등록해요."
       >
-        <View className="min-w-0 flex-1 gap-1">
-          <View className="flex-row items-center gap-2">
-            <Icon
-              as={Sparkles}
-              size={14}
-              className="text-primary"
-            />
+        <Pressable
+          className={cn(
+            "flex-row items-center justify-between gap-3 active:bg-accent web:hover:bg-accent",
+            rowChrome,
+          )}
+          onPress={() => setPickerOpen(true)}
+        >
+          <View className="min-w-0 flex-1 gap-1">
+            <View className="flex-row items-center gap-2">
+              <Icon
+                as={Sparkles}
+                size={14}
+                className="text-primary"
+              />
+              <Text
+                numberOfLines={1}
+                className="text-xs font-semibold uppercase text-muted-foreground"
+              >
+                {providerNameLabel ?? "제공자 미선택"}
+              </Text>
+            </View>
             <Text
               numberOfLines={1}
-              className="text-xs font-semibold uppercase text-muted-foreground"
+              className="text-lg font-semibold text-foreground"
             >
-              {providerNameLabel ?? "제공자 미선택"}
+              {modelNameLabel ?? "기본 모델 사용"}
             </Text>
           </View>
-          <Text
-            numberOfLines={1}
-            className="text-lg font-semibold text-foreground"
-          >
-            {modelNameLabel ?? "기본 모델 사용"}
-          </Text>
-        </View>
-        <Icon
-          as={ChevronRight}
-          size={18}
-          className="text-muted-foreground"
-        />
-      </Pressable>
+          <Icon
+            as={ChevronRight}
+            size={18}
+            className="text-muted-foreground"
+          />
+        </Pressable>
 
-      <Button
-        variant="outline"
-        className="flex-row items-center gap-2"
-        onPress={() => setAddKeyOpen(true)}
-      >
-        <Icon
-          as={KeyRound}
-          size={16}
-          className="text-foreground"
-        />
-        <Text>API 키 등록</Text>
-      </Button>
+        <Button
+          variant="outline"
+          className="flex-row items-center gap-2"
+          onPress={() => setAddKeyOpen(true)}
+        >
+          <Icon
+            as={KeyRound}
+            size={16}
+            className="text-foreground"
+          />
+          <Text>API 키 등록</Text>
+        </Button>
+      </SettingsSectionCard>
 
       <AiPickerOverlay
         mode={mode}
@@ -902,7 +976,7 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
         open={addKeyOpen}
         onOpenChange={setAddKeyOpen}
       />
-    </SettingsSectionCard>
+    </>
   );
 }
 
@@ -1152,9 +1226,20 @@ function AddProviderKeyOverlay({
   );
 }
 
-function SettingsScreenWithAutosave({ mode }: { mode: SettingsScreenMode }) {
+function SettingsScreenWithAutosave({
+  mode,
+  design,
+}: {
+  mode: SettingsScreenMode;
+  design?: SettingsDesign;
+}) {
   useSettingsAutosave();
-  return <SettingsScreen mode={mode} />;
+  return (
+    <SettingsScreen
+      mode={mode}
+      design={design}
+    />
+  );
 }
 
 export { SettingsScreenWithAutosave as SettingsScreen };
