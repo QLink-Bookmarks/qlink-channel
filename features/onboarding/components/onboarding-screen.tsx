@@ -44,7 +44,7 @@ function SourceChip({
   return (
     <View
       className={cn(
-        "flex-row items-center gap-2 self-start rounded-2xl border border-border-soft bg-card px-3 py-2 shadow-qlink-card",
+        "flex-row items-center gap-2 self-start rounded-2xl border border-border-soft bg-card px-3 py-2 shadow-qlink-md",
         className,
       )}
     >
@@ -73,28 +73,40 @@ function ScatterSlide() {
   return (
     <View className="gap-6">
       <View className="h-72 justify-center">
-        <View className="absolute left-1 top-0">
+        <View
+          className="absolute left-1 top-0"
+          style={{ transform: [{ rotate: "-5deg" }] }}
+        >
           <SourceChip
             label="Safari"
             fallback="S"
             tint="bg-[#1E90FF]"
           />
         </View>
-        <View className="absolute right-1 top-4">
+        <View
+          className="absolute right-1 top-4"
+          style={{ transform: [{ rotate: "4deg" }] }}
+        >
           <SourceChip
             label="Chrome"
             fallback="C"
             tint="bg-[#F4B400]"
           />
         </View>
-        <View className="absolute -left-1 bottom-6">
+        <View
+          className="absolute -left-1 bottom-6"
+          style={{ transform: [{ rotate: "3deg" }] }}
+        >
           <SourceChip
             label="네이버"
             fallback="N"
             tint="bg-[#03C75A]"
           />
         </View>
-        <View className="absolute -right-1 bottom-2">
+        <View
+          className="absolute -right-1 bottom-2"
+          style={{ transform: [{ rotate: "-4deg" }] }}
+        >
           <SourceChip
             label="회사 PC"
             fallback="PC"
@@ -103,6 +115,7 @@ function ScatterSlide() {
         </View>
         <View className="px-6">
           <LinkCard
+            className="shadow-qlink-md"
             domain="naver.com"
             faviconUrl={faviconFor("naver.com")}
             title="네이버 (NAVER) 포털"
@@ -123,6 +136,7 @@ function AiSummarySlide() {
         </View>
       </View>
       <LinkCard
+        className="shadow-qlink-md"
         domain="wanted.co.kr"
         faviconUrl={faviconFor("wanted.co.kr")}
         title="네이버페이 프론트엔드 개발자 채용"
@@ -185,7 +199,7 @@ function ChecklistRow({
 function TaskSlide() {
   return (
     <View className="px-2">
-      <View className="gap-4 rounded-[28px] border border-border bg-card p-5 shadow-qlink-card">
+      <View className="gap-4 rounded-[28px] border border-border bg-card p-5 shadow-qlink-md">
         <View className="flex-row items-start gap-3">
           <Favicon
             url={faviconFor("careers.lg.com")}
@@ -300,7 +314,7 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
   return (
     <View
       className="flex-1 bg-background"
-      style={vars(getNativeThemeVars(mode, "pink"))}
+      style={vars(getNativeThemeVars(mode, "gray"))}
     >
       <View
         className="flex-row items-center justify-between px-5"
