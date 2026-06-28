@@ -3,6 +3,7 @@ import { View } from "react-native";
 
 import { Text } from "@/components/ui/text";
 import { getMyProfile } from "@/features/account/api";
+import { OnboardingGate } from "@/features/onboarding/components/onboarding-gate";
 import { useAuthStore } from "@/stores/auth";
 import { useInviteStore } from "@/stores/invite";
 import { useOnboardingStore } from "@/stores/onboarding";
@@ -23,23 +24,17 @@ function AuthSplashScreen() {
   const shareHasHydrated = useShareIntentStore((state) => state.hasHydrated);
   const onboardingHasHydrated = useOnboardingStore((state) => state.hasHydrated);
   const onboardingCompleted = useOnboardingStore((state) => state.completed);
+  const completeOnboarding = useOnboardingStore((state) => state.complete);
   const [status, setStatus] = React.useState<AuthCheckStatus>("checking");
 
   // Native-only first-launch onboarding, shown once right after the splash
-  // (before login). Web has no SecureStore, so it never onboards.
+  // (before login). Rendered inline (no route) so web ships no onboarding code
+  // at all — OnboardingGate is a no-op on web and never reached anyway.
   const isNative = process.env.EXPO_OS !== "web";
   const shouldOnboard = isNative && onboardingHasHydrated && !onboardingCompleted;
 
   // Handles the web OAuth `?code=` redirect for any provider (Kakao/Naver).
   useOauthRedirect();
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (shouldOnboard) {
-        router.replace("/onboarding" as Href);
-      }
-    }, [router, shouldOnboard]),
-  );
 
   React.useEffect(() => {
     if (!hasHydrated) return;
@@ -106,12 +101,12 @@ function AuthSplashScreen() {
   );
 
   // On native, hold the checking screen until we know the onboarding state so
-  // the login screen never flashes before redirecting to onboarding.
+  // the login screen never flashes before onboarding shows.
   if (isNative && !onboardingHasHydrated) {
     return <CheckingScreen />;
   }
   if (shouldOnboard) {
-    return <CheckingScreen />;
+    return <OnboardingGate onDone={completeOnboarding} />;
   }
   if (status === "unauthenticated") {
     return <LoginPrompt />;
