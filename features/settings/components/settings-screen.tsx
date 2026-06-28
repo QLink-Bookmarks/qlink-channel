@@ -31,7 +31,10 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
-import { useUpdateMyProfileMutation } from "@/features/account/mutations";
+import {
+  useDeleteMyAccountMutation,
+  useUpdateMyProfileMutation,
+} from "@/features/account/mutations";
 import {
   accountQueryKeys,
   useMyProfileQuery,
@@ -59,9 +62,20 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useSettingsAutosave } from "../hooks/use-settings-autosave";
 
+import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { type Href, useRouter } from "expo-router";
-import { Camera, ChevronRight, KeyRound, Settings, Sparkles, X } from "lucide-react-native/icons";
+import {
+  Camera,
+  ChevronRight,
+  Info,
+  KeyRound,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  UserRoundX,
+  X,
+} from "lucide-react-native/icons";
 
 type SettingsScreenMode = "wide" | "mobile";
 
@@ -126,6 +140,8 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
           <AiProviderSection mode={mode} />
 
           <BehaviorSection />
+
+          <AppInfoSection />
         </View>
       )}
     </View>
@@ -663,6 +679,125 @@ function BehaviorSection() {
         />
       </View>
     </SettingsSectionCard>
+  );
+}
+
+function AppInfoSection() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const signOutStore = useAuthStore((state) => state.signOut);
+  const setAvatarEmoji = useDisplaySettings((state) => state.setAvatarEmoji);
+  const showToast = useToastStore((state) => state.showToast);
+  const [withdrawOpen, setWithdrawOpen] = React.useState(false);
+  const deleteAccountMutation = useDeleteMyAccountMutation();
+
+  const appVersion = Constants.expoConfig?.version ?? "—";
+
+  const handleConfirmWithdraw = React.useCallback(async () => {
+    try {
+      await deleteAccountMutation.mutateAsync();
+      signOutStore();
+      queryClient.clear();
+      setAvatarEmoji(null);
+      setWithdrawOpen(false);
+      router.replace("/" as Href);
+      showToast({
+        title: "회원 탈퇴가 완료됐어요",
+        variant: "success",
+        sourceKey: "settings-withdraw",
+        dismissible: true,
+      });
+    } catch (error) {
+      reportError(error, { area: "settings:withdraw" });
+      showToast({
+        title: "회원 탈퇴에 실패했어요",
+        description: "잠시 후 다시 시도해주세요.",
+        variant: "error",
+        sourceKey: "settings-withdraw",
+        dismissible: true,
+      });
+    }
+  }, [deleteAccountMutation, queryClient, router, setAvatarEmoji, showToast, signOutStore]);
+
+  return (
+    <>
+      <SettingsSectionCard
+        title="앱 정보"
+        description="개인정보처리방침과 앱 버전을 확인해요."
+      >
+        <Pressable
+          className="flex-row items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 active:bg-accent web:hover:bg-accent"
+          onPress={() => router.push("/privacy" as Href)}
+        >
+          <View className="flex-row items-center gap-2">
+            <Icon
+              as={ShieldCheck}
+              size={16}
+              className="text-muted-foreground"
+            />
+            <Text className="text-sm font-semibold text-foreground">개인정보처리방침</Text>
+          </View>
+          <Icon
+            as={ChevronRight}
+            size={18}
+            className="text-muted-foreground"
+          />
+        </Pressable>
+
+        <View className="flex-row items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
+          <View className="flex-row items-center gap-2">
+            <Icon
+              as={Info}
+              size={16}
+              className="text-muted-foreground"
+            />
+            <Text className="text-sm font-semibold text-foreground">앱 버전</Text>
+          </View>
+          <Text className="text-sm text-muted-foreground">{appVersion}</Text>
+        </View>
+
+        <Button
+          variant="ghost"
+          className="flex-row items-center justify-center gap-2"
+          onPress={() => setWithdrawOpen(true)}
+        >
+          <Icon
+            as={UserRoundX}
+            size={16}
+            className="text-destructive"
+          />
+          <Text className="text-sm font-semibold text-destructive">회원 탈퇴</Text>
+        </Button>
+      </SettingsSectionCard>
+
+      <AlertDialog
+        open={withdrawOpen}
+        onOpenChange={setWithdrawOpen}
+      >
+        <AlertDialogContent className="min-w-[20rem]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>회원 탈퇴할까요?</AlertDialogTitle>
+            <AlertDialogDescription>
+              탈퇴하면 저장한 링크와 폴더, 할 일이 모두 삭제되며 되돌릴 수 없어요.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row justify-end">
+            <AlertDialogCancel disabled={deleteAccountMutation.isPending}>
+              <Text>취소</Text>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={deleteAccountMutation.isPending}
+              onPress={handleConfirmWithdraw}
+            >
+              <Text className="text-white">
+                {deleteAccountMutation.isPending ? "처리 중..." : "탈퇴"}
+              </Text>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 

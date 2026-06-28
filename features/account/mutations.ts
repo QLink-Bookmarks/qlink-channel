@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { updateMyProfile, updateMySettings } from "./api";
+import { deleteMyAccount, updateMyProfile, updateMySettings } from "./api";
 import { accountQueryKeys } from "./queries";
 import type {
+  DeleteMyAccountResponse,
   GetMyProfileResponseData,
   GetMySettingsResponseData,
   UpdateMyProfileRequest,
@@ -41,4 +42,10 @@ function useUpdateMyProfileMutation() {
   });
 }
 
-export { useUpdateMyProfileMutation, useUpdateMySettingsMutation };
+function useDeleteMyAccountMutation() {
+  return useMutation<DeleteMyAccountResponse, unknown, void>({
+    mutationFn: () => deleteMyAccount(),
+  });
+}
+
+export { useDeleteMyAccountMutation, useUpdateMyProfileMutation, useUpdateMySettingsMutation };

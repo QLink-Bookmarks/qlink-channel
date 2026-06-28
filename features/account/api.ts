@@ -1,6 +1,7 @@
 import { api } from "@/lib/api-client";
 
 import type {
+  DeleteMyAccountResponse,
   GetMyProfileResponse,
   GetMySettingsResponse,
   UpdateMyProfileRequest,
@@ -28,4 +29,8 @@ async function updateMyProfile(payload: UpdateMyProfileRequest) {
   return api.put<UpdateMyProfileResponse, UpdateMyProfileRequest>("/api/users/me", payload);
 }
 
-export { getMyProfile, getMySettings, updateMyProfile, updateMySettings };
+async function deleteMyAccount() {
+  return api.delete<DeleteMyAccountResponse>("/api/users/me");
+}
+
+export { deleteMyAccount, getMyProfile, getMySettings, updateMyProfile, updateMySettings };

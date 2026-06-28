@@ -72,9 +72,12 @@ type UpdateMyProfileRequest = {
 
 type UpdateMyProfileResponse = ApiEnvelope<GetMyProfileResponseData | null>;
 
+type DeleteMyAccountResponse = ApiEnvelope<null>;
+
 export type {
   AiProviderType,
   ConnectedAuthProvider,
+  DeleteMyAccountResponse,
   GetMyProfileResponse,
   GetMyProfileResponseData,
   GetMySettingsResponse,

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { View, type ViewProps } from "react-native";
 
-import { buttonTextVariants, buttonVariants } from "@/components/ui/button";
+import { type ButtonProps, buttonTextVariants, buttonVariants } from "@/components/ui/button";
 import { TextClassContext } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 import * as DialogPrimitive from "@rn-primitives/dialog";
@@ -113,12 +113,15 @@ function AlertDialogDescription({
 
 function AlertDialogAction({
   className,
+  variant = "default",
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Close>) {
+}: React.ComponentProps<typeof DialogPrimitive.Close> & {
+  variant?: ButtonProps["variant"];
+}) {
   return (
-    <TextClassContext.Provider value={buttonTextVariants({ className })}>
+    <TextClassContext.Provider value={buttonTextVariants({ className, variant })}>
       <DialogPrimitive.Close
-        className={cn(buttonVariants(), className)}
+        className={cn(buttonVariants({ variant }), className)}
         {...props}
       />
     </TextClassContext.Provider>
