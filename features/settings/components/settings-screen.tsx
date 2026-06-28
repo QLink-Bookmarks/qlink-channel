@@ -172,24 +172,13 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
   );
 }
 
-// Section title + description sit outside the card as a quiet group label
-// (iOS grouped-list style). The card holds borderless rows separated by spacing
-// only — no inner boxes, no dividers.
-function SettingsSectionCard({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description?: string;
-  children: React.ReactNode;
-}) {
+// Section title sits outside the card as a quiet group label (iOS grouped-list
+// style). The card holds borderless rows separated by spacing only — no inner
+// boxes, no dividers.
+function SettingsSectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View className="gap-2">
-      <View className="gap-0.5 px-2">
-        <Text className="text-sm font-semibold text-muted-foreground">{title}</Text>
-        {description ? <Text className="text-xs text-muted-foreground">{description}</Text> : null}
-      </View>
+      <Text className="px-2 text-sm font-semibold text-muted-foreground">{title}</Text>
       <Card
         density="compact"
         className="px-5"
@@ -250,10 +239,7 @@ function ProfileSection({
 
   return (
     <>
-      <SettingsSectionCard
-        title="프로필"
-        description="대표 아이콘과 닉네임을 확인해요."
-      >
+      <SettingsSectionCard title="프로필">
         <View className="flex-row items-center gap-4">
           <Pressable
             className="min-w-0 flex-1 flex-row items-center gap-4 rounded-xl px-2 py-2 active:bg-accent web:hover:bg-accent"
@@ -648,10 +634,7 @@ function DisplaySection() {
   const setTheme = useDisplaySettings((state) => state.setTheme);
 
   return (
-    <SettingsSectionCard
-      title="화면 표시"
-      description="다크 모드와 강조 색상을 선택해요."
-    >
+    <SettingsSectionCard title="화면 표시">
       <ThemeSwitcher
         accent={accent}
         mode={theme}
@@ -669,10 +652,7 @@ function BehaviorSection() {
   const setAllowsReminder = useDisplaySettings((state) => state.setAllowsReminderNotification);
 
   return (
-    <SettingsSectionCard
-      title="알림"
-      description="할 일 알림을 받을지 선택해요."
-    >
+    <SettingsSectionCard title="알림">
       <DeviceNotificationNotice />
       <View className="flex-row items-center justify-between gap-3">
         <View className="min-w-0 flex-1 gap-1">
@@ -727,10 +707,7 @@ function AppInfoSection() {
 
   return (
     <>
-      <SettingsSectionCard
-        title="앱 정보"
-        description="개인정보처리방침과 앱 버전을 확인해요."
-      >
+      <SettingsSectionCard title="앱 정보">
         <Pressable
           className="-mx-2 flex-row items-center justify-between gap-3 rounded-xl px-2 py-1.5 active:bg-accent web:hover:bg-accent"
           onPress={() => router.push("/privacy" as Href)}
@@ -762,18 +739,17 @@ function AppInfoSection() {
           <Text className="text-sm text-muted-foreground">{appVersion}</Text>
         </View>
 
-        <Button
-          variant="ghost"
-          className="flex-row items-center justify-center gap-2"
+        <Pressable
+          className="-mx-2 flex-row items-center gap-2 self-start rounded-xl px-2 py-1.5 active:bg-accent web:hover:bg-accent"
           onPress={() => setWithdrawOpen(true)}
         >
           <Icon
             as={UserRoundX}
-            size={16}
+            size={14}
             className="text-destructive"
           />
-          <Text className="text-sm font-semibold text-destructive">회원 탈퇴</Text>
-        </Button>
+          <Text className="text-xs font-semibold text-destructive">회원 탈퇴</Text>
+        </Pressable>
       </SettingsSectionCard>
 
       <AlertDialog
@@ -842,10 +818,7 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
 
   return (
     <>
-      <SettingsSectionCard
-        title="AI 제공자"
-        description="기본 AI 모델을 선택하고 API 키를 등록해요."
-      >
+      <SettingsSectionCard title="AI 제공자">
         <Pressable
           className="-mx-2 flex-row items-center justify-between gap-3 rounded-xl px-2 py-1.5 active:bg-accent web:hover:bg-accent"
           onPress={() => setPickerOpen(true)}
