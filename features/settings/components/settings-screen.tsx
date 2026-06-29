@@ -68,6 +68,8 @@ import { type Href, useRouter } from "expo-router";
 import {
   Camera,
   ChevronRight,
+  Eye,
+  EyeOff,
   Info,
   KeyRound,
   Settings,
@@ -969,6 +971,7 @@ function AddProviderKeyOverlay({
 }) {
   const [providerType, setProviderType] = React.useState<AiProviderType>("OPENAI");
   const [apiKey, setApiKey] = React.useState("");
+  const [isApiKeyVisible, setIsApiKeyVisible] = React.useState(false);
   const mutation = usePutAiUserProviderMutation();
   const resetMutation = mutation.reset;
   const showToast = useToastStore((state) => state.showToast);
@@ -977,6 +980,7 @@ function AddProviderKeyOverlay({
     if (!open) {
       setApiKey("");
       setProviderType("OPENAI");
+      setIsApiKeyVisible(false);
       resetMutation();
     }
   }, [open, resetMutation]);
@@ -1069,15 +1073,29 @@ function AddProviderKeyOverlay({
 
       <View className="gap-2">
         <Text className="text-sm font-semibold text-muted-foreground">API 키</Text>
-        <Input
-          className="h-10 rounded-xl px-4 text-base"
-          autoCapitalize="none"
-          autoCorrect={false}
-          secureTextEntry
-          placeholder={providerOption?.placeholder ?? "sk-..."}
-          value={apiKey}
-          onChangeText={setApiKey}
-        />
+        <View className="relative justify-center">
+          <Input
+            className="h-10 rounded-xl pl-4 pr-11 text-base"
+            autoCapitalize="none"
+            autoCorrect={false}
+            secureTextEntry={!isApiKeyVisible}
+            placeholder={providerOption?.placeholder ?? "sk-..."}
+            value={apiKey}
+            onChangeText={setApiKey}
+          />
+          <Pressable
+            accessibilityLabel={isApiKeyVisible ? "API 키 숨기기" : "API 키 표시"}
+            className="absolute right-1 size-9 items-center justify-center rounded-lg active:bg-accent web:hover:bg-accent"
+            hitSlop={6}
+            onPress={() => setIsApiKeyVisible((prev) => !prev)}
+          >
+            <Icon
+              as={isApiKeyVisible ? EyeOff : Eye}
+              size={18}
+              className="text-muted-foreground"
+            />
+          </Pressable>
+        </View>
         <Text className="text-xs text-muted-foreground">
           저장하면 새 키로 등록돼요. 기존 키는 표시되지 않아요.
         </Text>
