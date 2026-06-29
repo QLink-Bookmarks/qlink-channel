@@ -57,7 +57,10 @@ function Input({
       value={inputValue}
       defaultValue={inputDefaultValue}
       style={[
-        isFocused
+        // The "inline" variant is borderless and lives inside a styled wrapper
+        // (e.g. the search field), so drawing a focus border/ring on the inner
+        // input would render a stray square inside the wrapper. Skip it there.
+        isFocused && variant !== "inline"
           ? {
               borderColor: tokens.ring,
               borderWidth: 1.5,

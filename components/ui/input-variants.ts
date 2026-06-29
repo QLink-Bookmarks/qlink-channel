@@ -5,7 +5,7 @@ const inputVariants = cva(
   {
     variants: {
       variant: {
-        default: "rounded-md bg-background",
+        default: "rounded-md bg-card dark:bg-card",
         search: "rounded-full bg-card",
         pill: "rounded-full bg-surface-elevated",
         inline: "rounded-none border-0 bg-transparent shadow-none",
