@@ -13,6 +13,7 @@ import { useGoogleLogin } from "../hooks/use-google-login";
 import { useKakaoLogin } from "../hooks/use-kakao-login";
 import { useNaverLogin } from "../hooks/use-naver-login";
 import { PROVIDER_BRANDS, type SocialProvider } from "../lib/provider-brand";
+import { ReplayOnboardingButton } from "./replay-onboarding-button";
 
 type LoginButtonProps = {
   onPress?: () => void;
@@ -145,6 +146,7 @@ function LoginButtonsStack() {
       <NaverLoginButton onPress={handleNaverLogin} />
       <GoogleLoginButton onPress={handleGoogleLogin} />
       {isDevLoginEnabled ? <DevLoginButton /> : null}
+      {isDevLoginEnabled ? <ReplayOnboardingButton /> : null}
     </View>
   );
 }
