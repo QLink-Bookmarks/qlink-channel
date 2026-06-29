@@ -9,7 +9,7 @@ const folderQueryKeys = {
   members: (id: number) => ["folders", "members", id] as const,
 };
 
-function useFoldersQuery(params: GetFoldersParams = {}) {
+function useFoldersQuery(params: GetFoldersParams = {}, options?: { enabled?: boolean }) {
   const resolvedParams: GetFoldersParams = {
     order: "latest",
     size: 15,
@@ -17,6 +17,7 @@ function useFoldersQuery(params: GetFoldersParams = {}) {
   };
 
   return useQuery({
+    enabled: options?.enabled ?? true,
     queryFn: async () => {
       const response = await getFolders(resolvedParams);
       return response.data;

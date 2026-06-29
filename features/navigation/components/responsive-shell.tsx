@@ -23,7 +23,7 @@ import { FolderHeaderActions } from "@/features/folders/components/folder-header
 import { useFoldersQuery } from "@/features/folders/queries";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
 import { LinkCreateForm } from "@/features/links/components/link-create-form";
-import { useLinksQuery } from "@/features/links/queries";
+import { useLinkDetailQuery, useLinksQuery } from "@/features/links/queries";
 import { SearchDialog } from "@/features/search/components/search-dialog";
 import { useCreateFolderSheet } from "@/stores/create-folder-sheet";
 import { useDisplaySettings } from "@/stores/display-settings";
@@ -106,6 +106,9 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const profileUsername = myProfileQuery.data?.username ?? "";
   const profileAvatarUrl = myProfileQuery.data?.avatarUrl ?? null;
   const uncategorizedLinksQuery = useLinksQuery({ folderId: UNCATEGORIZED_FOLDER_ID, size: 100 });
+  // Link title for the mobile detail header (enabled only on /links/[id]).
+  const mobileLinkDetailId = /^\/links\/([^/]+)$/.exec(routeState.pathname)?.[1];
+  const mobileLinkDetailQuery = useLinkDetailQuery(mobileLinkDetailId);
   const { detail, error, handleOpenChange, isLoading, isOpen } = useLinkOverlayState({
     isWideView: routeState.isWideView,
     overlayBaseHref: routeState.overlayBaseHref,
@@ -570,9 +573,12 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
     Number.isFinite(mobileFolderId) && mobileFolderId !== UNCATEGORIZED_FOLDER_ID
       ? allMobileFolders.find((folder) => folder.id === mobileFolderId)
       : undefined;
+  const mobileLinkTitle = mobileLinkDetailId
+    ? mobileLinkDetailQuery.data?.title?.trim()
+    : undefined;
   const mobileHeaderTitle = mobileFolder
     ? `${mobileFolder.emoji ? `${mobileFolder.emoji} ` : ""}${mobileFolder.name}`
-    : routeState.routeTitle;
+    : mobileLinkTitle || routeState.routeTitle;
   const showMobileFab =
     routeState.pathname === "/home" ||
     routeState.pathname === "/folders" ||
