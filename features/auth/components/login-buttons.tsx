@@ -2,6 +2,7 @@ import * as React from "react";
 import { Pressable, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
+import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { Text } from "@/components/ui/text";
 import { DEV_AUTH_TOKEN } from "@/constants/auth";
 import { isDevLoginEnabled } from "@/lib/app-variant";
@@ -17,6 +18,11 @@ import { ReplayOnboardingButton } from "./replay-onboarding-button";
 
 type LoginButtonProps = {
   onPress?: () => void;
+};
+
+type ProviderButtonProps = LoginButtonProps & {
+  loading?: boolean;
+  disabled?: boolean;
 };
 
 function LoginButton({
@@ -61,21 +67,24 @@ function DevLogo() {
 function ProviderLoginButton({
   provider,
   onPress,
-}: LoginButtonProps & { provider: SocialProvider }) {
+  loading,
+  disabled,
+}: ProviderButtonProps & { provider: SocialProvider }) {
   const brand = PROVIDER_BRANDS[provider];
   const Logo = brand.Logo;
   return (
     <LoginButton
       containerClassName={brand.containerClassName}
+      disabled={disabled}
       onPress={onPress}
     >
-      <Logo size={brand.logoSize} />
+      {loading ? <ActivityIndicator size="small" /> : <Logo size={brand.logoSize} />}
       <Text className={cn("text-base", brand.textClassName)}>{brand.loginLabel}</Text>
     </LoginButton>
   );
 }
 
-function AppleLoginButton(props: LoginButtonProps) {
+function AppleLoginButton(props: ProviderButtonProps) {
   return (
     <ProviderLoginButton
       provider="APPLE"
@@ -84,7 +93,7 @@ function AppleLoginButton(props: LoginButtonProps) {
   );
 }
 
-function NaverLoginButton(props: LoginButtonProps) {
+function NaverLoginButton(props: ProviderButtonProps) {
   return (
     <ProviderLoginButton
       provider="NAVER"
@@ -93,7 +102,7 @@ function NaverLoginButton(props: LoginButtonProps) {
   );
 }
 
-function KakaoLoginButton(props: LoginButtonProps) {
+function KakaoLoginButton(props: ProviderButtonProps) {
   return (
     <ProviderLoginButton
       provider="KAKAO"
@@ -102,7 +111,7 @@ function KakaoLoginButton(props: LoginButtonProps) {
   );
 }
 
-function GoogleLoginButton(props: LoginButtonProps) {
+function GoogleLoginButton(props: ProviderButtonProps) {
   return (
     <ProviderLoginButton
       provider="GOOGLE"
@@ -135,16 +144,35 @@ function DevLoginButton({ onPress }: LoginButtonProps) {
 }
 
 function LoginButtonsStack() {
-  const { handleAppleLogin } = useAppleLogin();
-  const { handleKakaoLogin } = useKakaoLogin();
-  const { handleGoogleLogin } = useGoogleLogin();
-  const { handleNaverLogin } = useNaverLogin();
+  const { handleAppleLogin, isLoading: appleLoading } = useAppleLogin();
+  const { handleKakaoLogin, isLoading: kakaoLoading } = useKakaoLogin();
+  const { handleGoogleLogin, isLoading: googleLoading } = useGoogleLogin();
+  const { handleNaverLogin, isLoading: naverLoading } = useNaverLogin();
+  // Disable every button while any login is in flight; show the spinner on the
+  // one that was tapped so the user can see a request is in progress.
+  const anyLoading = Boolean(appleLoading || kakaoLoading || googleLoading || naverLoading);
   return (
     <View className="w-full max-w-sm gap-3">
-      <AppleLoginButton onPress={handleAppleLogin} />
-      <KakaoLoginButton onPress={handleKakaoLogin} />
-      <NaverLoginButton onPress={handleNaverLogin} />
-      <GoogleLoginButton onPress={handleGoogleLogin} />
+      <AppleLoginButton
+        onPress={handleAppleLogin}
+        loading={appleLoading}
+        disabled={anyLoading}
+      />
+      <KakaoLoginButton
+        onPress={handleKakaoLogin}
+        loading={kakaoLoading}
+        disabled={anyLoading}
+      />
+      <NaverLoginButton
+        onPress={handleNaverLogin}
+        loading={naverLoading}
+        disabled={anyLoading}
+      />
+      <GoogleLoginButton
+        onPress={handleGoogleLogin}
+        loading={googleLoading}
+        disabled={anyLoading}
+      />
       {isDevLoginEnabled ? <DevLoginButton /> : null}
       {isDevLoginEnabled ? <ReplayOnboardingButton /> : null}
     </View>

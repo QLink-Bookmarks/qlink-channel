@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/auth";
 import { GoogleSignin, isSuccessResponse } from "@react-native-google-signin/google-signin";
 
 import { signIn } from "../api";
+import { notifyLoginFailed } from "../lib/notify-login-failed";
 
 let configured = false;
 
@@ -47,9 +48,12 @@ function useGoogleLogin() {
           accessToken: result.data.accessToken,
           refreshToken: result.data.refreshToken,
         });
+      } else {
+        notifyLoginFailed();
       }
     } catch (error) {
       reportError(error, { area: "auth:google-login" });
+      notifyLoginFailed();
     } finally {
       setIsLoading(false);
     }

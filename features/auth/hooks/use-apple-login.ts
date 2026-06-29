@@ -4,6 +4,7 @@ import { reportError } from "@/lib/error-reporting";
 import { useAuthStore } from "@/stores/auth";
 
 import { signIn } from "../api";
+import { notifyLoginFailed } from "../lib/notify-login-failed";
 
 import * as AppleAuthentication from "expo-apple-authentication";
 
@@ -30,12 +31,15 @@ function useAppleLogin() {
           accessToken: result.data.accessToken,
           refreshToken: result.data.refreshToken,
         });
+      } else {
+        notifyLoginFailed();
       }
     } catch (error) {
       if ((error as { code?: string })?.code === "ERR_REQUEST_CANCELED") {
         return;
       }
       reportError(error, { area: "auth:apple-login" });
+      notifyLoginFailed();
     } finally {
       setIsLoading(false);
     }

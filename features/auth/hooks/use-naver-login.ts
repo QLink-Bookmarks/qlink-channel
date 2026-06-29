@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/auth";
 import NaverLogin from "@react-native-seoul/naver-login";
 
 import { signIn } from "../api";
+import { notifyLoginFailed } from "../lib/notify-login-failed";
 
 let initialized = false;
 
@@ -41,9 +42,12 @@ function useNaverLogin() {
           accessToken: result.data.accessToken,
           refreshToken: result.data.refreshToken,
         });
+      } else {
+        notifyLoginFailed();
       }
     } catch (error) {
       reportError(error, { area: "auth:naver-login" });
+      notifyLoginFailed();
     } finally {
       setIsLoading(false);
     }

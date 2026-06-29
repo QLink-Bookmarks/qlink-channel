@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/auth";
 import { login as kakaoLogin } from "@react-native-kakao/user";
 
 import { signIn } from "../api";
+import { notifyLoginFailed } from "../lib/notify-login-failed";
 
 function useKakaoLogin() {
   const authenticate = useAuthStore((state) => state.authenticate);
@@ -27,7 +28,12 @@ function useKakaoLogin() {
           accessToken: response.data.accessToken,
           refreshToken: response.data.refreshToken,
         });
+      } else {
+        notifyLoginFailed();
       }
+      // Kakao's native cancel error isn't reliably distinguishable, so we don't
+      // toast in catch (would fire on user cancellation); only the server
+      // rejection above surfaces a toast.
     } catch (error) {
       reportError(error, { area: "auth:kakao-login" });
     } finally {
