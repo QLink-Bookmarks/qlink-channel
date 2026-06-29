@@ -54,6 +54,44 @@ function getSharedUrl(url: string | undefined, text: string | undefined, pre: un
   return "";
 }
 
+const HTML_ENTITIES: Record<string, string> = {
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&apos;": "'",
+  "&nbsp;": " ",
+};
+
+function decodeHtmlEntities(value: string): string {
+  return value.replace(
+    /&(?:amp|lt|gt|quot|#39|apos|nbsp);/g,
+    (entity) => HTML_ENTITIES[entity] ?? entity,
+  );
+}
+
+// Fallback when the share preprocessing didn't surface a title (e.g. a bare URL
+// shared from a non-browser app): fetch the page and read its <title>. Bounded
+// and best-effort — returns null on any failure.
+async function fetchPageTitle(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { Accept: "text/html" },
+    });
+    clearTimeout(timer);
+    const html = await response.text();
+    const match = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
+    const title = match ? decodeHtmlEntities(match[1]).replace(/\s+/g, " ").trim() : "";
+    return title || null;
+  } catch {
+    return null;
+  }
+}
+
 function toModelOptions(providers: AiProviderWithModels[]): ModelOption[] {
   return providers.flatMap((provider) =>
     provider.models.map((model) => ({
@@ -67,7 +105,26 @@ function toModelOptions(providers: AiProviderWithModels[]): ModelOption[] {
 
 function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
   const sharedUrl = getSharedUrl(url, text, preprocessingResults);
-  const title = getSharedTitle(preprocessingResults, sharedUrl);
+  // Title from the in-page preprocessing if present; otherwise fetch the page
+  // <title>. URL is only the last-resort fallback.
+  const preprocessedTitle = getSharedTitle(preprocessingResults, "");
+  const [fetchedTitle, setFetchedTitle] = React.useState<string | null>(null);
+  const title = preprocessedTitle || fetchedTitle || sharedUrl;
+
+  React.useEffect(() => {
+    if (preprocessedTitle || !isHttpUrl(sharedUrl)) {
+      return;
+    }
+    let active = true;
+    void fetchPageTitle(sharedUrl).then((resolved) => {
+      if (active && resolved) {
+        setFetchedTitle(resolved);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [preprocessedTitle, sharedUrl]);
 
   const [phase, setPhase] = React.useState<Phase>("loading");
   const [folders, setFolders] = React.useState<Folder[]>([]);
