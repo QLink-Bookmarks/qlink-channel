@@ -51,6 +51,7 @@ import { useAiProviderModelsQuery } from "@/features/ai/queries";
 import type { AiProviderWithModels } from "@/features/ai/types";
 import { signOut as signOutApi } from "@/features/auth/api";
 import { ConnectedProvidersRow } from "@/features/auth/components/connect-providers";
+import { logoutNaver } from "@/features/auth/lib/native-naver-logout";
 import { useUploadImageMutation } from "@/features/images/mutations";
 import type { ImageUploadInput } from "@/features/images/types";
 import { DeviceNotificationNotice } from "@/features/notifications/components/device-notification-notice";
@@ -225,6 +226,7 @@ function ProfileSection({
     } catch (error) {
       reportError(error, { area: "settings:sign-out" });
     } finally {
+      await logoutNaver(connectedProviders);
       signOutStore();
       queryClient.clear();
       setAvatarEmoji(null);
@@ -237,7 +239,15 @@ function ProfileSection({
         dismissible: true,
       });
     }
-  }, [queryClient, router, setAvatarEmoji, showToast, signOutMutation, signOutStore]);
+  }, [
+    connectedProviders,
+    queryClient,
+    router,
+    setAvatarEmoji,
+    showToast,
+    signOutMutation,
+    signOutStore,
+  ]);
 
   return (
     <>
@@ -676,6 +686,11 @@ function AppInfoSection() {
   const signOutStore = useAuthStore((state) => state.signOut);
   const setAvatarEmoji = useDisplaySettings((state) => state.setAvatarEmoji);
   const showToast = useToastStore((state) => state.showToast);
+  const settingsQuery = useMySettingsQuery();
+  const connectedProviders = React.useMemo(
+    () => settingsQuery.data?.providers ?? [],
+    [settingsQuery.data?.providers],
+  );
   const [withdrawOpen, setWithdrawOpen] = React.useState(false);
   const deleteAccountMutation = useDeleteMyAccountMutation();
 
@@ -684,6 +699,7 @@ function AppInfoSection() {
   const handleConfirmWithdraw = React.useCallback(async () => {
     try {
       await deleteAccountMutation.mutateAsync();
+      await logoutNaver(connectedProviders);
       signOutStore();
       queryClient.clear();
       setAvatarEmoji(null);
@@ -705,7 +721,15 @@ function AppInfoSection() {
         dismissible: true,
       });
     }
-  }, [deleteAccountMutation, queryClient, router, setAvatarEmoji, showToast, signOutStore]);
+  }, [
+    connectedProviders,
+    deleteAccountMutation,
+    queryClient,
+    router,
+    setAvatarEmoji,
+    showToast,
+    signOutStore,
+  ]);
 
   return (
     <>
