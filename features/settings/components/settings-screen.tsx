@@ -226,12 +226,13 @@ function ProfileSection({
     } catch (error) {
       reportError(error, { area: "settings:sign-out" });
     } finally {
-      await logoutNaver(connectedProviders);
       signOutStore();
       queryClient.clear();
       setAvatarEmoji(null);
       setLogoutOpen(false);
       router.replace("/" as Href);
+      // Background cleanup — must never block or revert the sign-out above.
+      void logoutNaver(connectedProviders);
       showToast({
         title: "로그아웃 되었어요",
         variant: "success",
@@ -699,12 +700,13 @@ function AppInfoSection() {
   const handleConfirmWithdraw = React.useCallback(async () => {
     try {
       await deleteAccountMutation.mutateAsync();
-      await logoutNaver(connectedProviders);
       signOutStore();
       queryClient.clear();
       setAvatarEmoji(null);
       setWithdrawOpen(false);
       router.replace("/" as Href);
+      // Background cleanup — the account is already gone; don't block the UI on it.
+      void logoutNaver(connectedProviders);
       showToast({
         title: "회원 탈퇴가 완료됐어요",
         variant: "success",

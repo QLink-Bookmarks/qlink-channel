@@ -15,9 +15,28 @@ function ensureInitialized() {
   initialized = true;
 }
 
+// deleteToken hits Naver's servers to revoke and can hang on a flaky network, so
+// cap each native call. Resolves (never rejects) when the cap is hit.
+function withTimeout(promise: Promise<unknown>, ms: number): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    promise.then(
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+    );
+  });
+}
+
 // Only Naver silently reuses its cached session, so it's the lone provider we
 // clear on logout / withdrawal. No-op when the account has no Naver connection.
-// Best-effort: never throws, so it can't block sign-out.
+// Best-effort and bounded: callers should NOT await this in a way that blocks the
+// actual sign-out (see settings handlers — fire-and-forget).
 async function logoutNaver(connectedProviders: ConnectedAuthProvider[]) {
   const hasNaver = connectedProviders.some(
     (provider) => normalizeSocialProvider(provider.type) === "NAVER",
@@ -25,8 +44,8 @@ async function logoutNaver(connectedProviders: ConnectedAuthProvider[]) {
   if (!hasNaver) return;
   try {
     ensureInitialized();
-    await NaverLogin.logout();
-    await NaverLogin.deleteToken();
+    await withTimeout(NaverLogin.logout(), 4000);
+    await withTimeout(NaverLogin.deleteToken(), 4000);
   } catch {
     // ignore — clearing the native session must not break logout/withdrawal
   }
