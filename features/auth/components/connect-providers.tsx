@@ -80,7 +80,14 @@ function ConnectProviderOverlay({
   const handleConnect = React.useCallback(
     async (provider: SocialProvider) => {
       const outcome = await connect(provider);
-      if (outcome?.kind === "connected") {
+      // Close on success, or on a definitive conflict (retrying won't help) — so
+      // the result toast isn't left hidden behind this sheet. Keep it open for
+      // unknown/transient errors so the user can retry.
+      const isDefinitive =
+        outcome?.kind === "connected" ||
+        outcome?.reason === "already-connected" ||
+        outcome?.reason === "linked-to-other-user";
+      if (isDefinitive) {
         onOpenChange(false);
       }
     },

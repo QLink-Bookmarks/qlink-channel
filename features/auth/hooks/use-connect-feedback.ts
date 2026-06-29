@@ -27,12 +27,18 @@ function useConnectFeedback() {
         return;
       }
 
-      showToast({
-        title: outcome.alreadyConnected
+      const isKnown =
+        outcome.reason === "already-connected" || outcome.reason === "linked-to-other-user";
+      const title =
+        outcome.reason === "linked-to-other-user"
           ? "이미 다른 사용자에 연결된 계정이에요."
-          : "연결에 실패했어요.",
-        description: outcome.alreadyConnected ? undefined : "잠시 후 다시 시도해주세요.",
-        variant: outcome.alreadyConnected ? "warning" : "error",
+          : outcome.reason === "already-connected"
+            ? "이미 연결된 계정이에요."
+            : "연결에 실패했어요.";
+      showToast({
+        title,
+        description: isKnown ? undefined : "잠시 후 다시 시도해주세요.",
+        variant: isKnown ? "warning" : "error",
         sourceKey: "auth-connect",
         dismissible: true,
         durationMs: 3000,
