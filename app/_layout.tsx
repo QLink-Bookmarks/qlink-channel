@@ -8,6 +8,7 @@ import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-c
 import { AppErrorBoundary } from "@/components/error/app-error-boundary";
 import { ToastViewport } from "@/components/ui/toast-viewport";
 import { useMySettingsQuery } from "@/features/account/queries";
+import { useAgreementStatus } from "@/features/agreements/hooks/use-agreement-status";
 import { useScreenTracking } from "@/features/analytics";
 import { useSocialSdks } from "@/features/auth/hooks/use-social-sdks";
 import { useDocumentTitle } from "@/features/navigation/hooks/use-document-title";
@@ -127,9 +128,7 @@ function ShareIntentBridge() {
 }
 
 function AppStack() {
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const hasHydrated = useAuthStore((state) => state.hasHydrated);
-  const isAuthenticated = hasHydrated && Boolean(accessToken);
+  const { isAuthenticated, needsAgreement } = useAgreementStatus();
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -144,16 +143,25 @@ function AppStack() {
       <Stack.Screen name="privacy" />
 
       <Stack.Protected guard={isAuthenticated}>
-        <Stack.Screen name="(pages)" />
-        <Stack.Screen
-          name="qr-scan"
-          options={{
-            headerShown: true,
-            title: "QR 스캔",
-            headerBackTitle: " ",
-            headerBackButtonDisplayMode: "minimal",
-          }}
-        />
+        <Stack.Protected guard={needsAgreement}>
+          <Stack.Screen
+            name="agreements"
+            options={{ gestureEnabled: false }}
+          />
+        </Stack.Protected>
+
+        <Stack.Protected guard={!needsAgreement}>
+          <Stack.Screen name="(pages)" />
+          <Stack.Screen
+            name="qr-scan"
+            options={{
+              headerShown: true,
+              title: "QR 스캔",
+              headerBackTitle: " ",
+              headerBackButtonDisplayMode: "minimal",
+            }}
+          />
+        </Stack.Protected>
       </Stack.Protected>
     </Stack>
   );

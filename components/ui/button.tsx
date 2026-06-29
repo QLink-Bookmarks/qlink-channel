@@ -2,6 +2,7 @@ import { Platform, Pressable, type PressableStateCallbackType } from "react-nati
 
 import { LinearGradient } from "@/components/ui/linear-gradient";
 import { TextClassContext } from "@/components/ui/text";
+import type { AccentName } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 import { type VariantProps, cva } from "class-variance-authority";
@@ -136,13 +137,18 @@ const buttonTextVariants = cva(
 
 type ButtonProps = React.ComponentProps<typeof Pressable> &
   React.RefAttributes<typeof Pressable> &
-  VariantProps<typeof buttonVariants>;
+  VariantProps<typeof buttonVariants> & {
+    // For variant="gradient": pin the gradient to a specific accent instead of
+    // the user's current accent (e.g. always-pink CTA).
+    gradientAccent?: AccentName;
+  };
 
-function Button({ children, className, variant, size, ...props }: ButtonProps) {
+function Button({ children, className, variant, size, gradientAccent, ...props }: ButtonProps) {
   const renderChildren = (state: PressableStateCallbackType) => (
     <>
       {variant === "gradient" ? (
         <LinearGradient
+          accent={gradientAccent}
           style={{
             bottom: 0,
             left: 0,

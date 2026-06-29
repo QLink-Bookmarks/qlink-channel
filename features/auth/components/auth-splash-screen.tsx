@@ -26,6 +26,7 @@ function AuthSplashScreen() {
   const onboardingCompleted = useOnboardingStore((state) => state.completed);
   const completeOnboarding = useOnboardingStore((state) => state.complete);
   const [status, setStatus] = React.useState<AuthCheckStatus>("checking");
+  const [needsAgreement, setNeedsAgreement] = React.useState(false);
 
   // Native-only first-launch onboarding, shown once right after the splash
   // (before login). Rendered inline (no route) so web ships no onboarding code
@@ -48,6 +49,9 @@ function AuthSplashScreen() {
       .then((response) => {
         if (cancelled) return;
         if (response?.success && response.data) {
+          setNeedsAgreement(
+            response.data.allowsPrivacy === false || response.data.allowsAiUsage === false,
+          );
           setStatus("authenticated");
         } else {
           setStatus("unauthenticated");
@@ -68,6 +72,12 @@ function AuthSplashScreen() {
         return;
       }
       if (status !== "authenticated") {
+        return;
+      }
+
+      // Required-consent gate takes priority over every other destination.
+      if (needsAgreement) {
+        router.replace("/agreements" as Href);
         return;
       }
 
@@ -97,7 +107,7 @@ function AuthSplashScreen() {
       }
 
       router.replace("/home" as Href);
-    }, [inviteHasHydrated, router, shareHasHydrated, shouldOnboard, status]),
+    }, [inviteHasHydrated, needsAgreement, router, shareHasHydrated, shouldOnboard, status]),
   );
 
   // On native, hold the checking screen until we know the onboarding state so

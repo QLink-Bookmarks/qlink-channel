@@ -59,6 +59,10 @@ type GetMyProfileResponseData = {
   role: UserRole;
   avatarUrl?: string | null;
   avatarEmoji?: string | null;
+  // Required-consent flags. Server includes them on /api/users/me so the gate can
+  // run on relaunch; treated as agreed when absent (older payloads).
+  allowsPrivacy?: boolean;
+  allowsAiUsage?: boolean;
 };
 
 type GetMyProfileResponse = ApiEnvelope<GetMyProfileResponseData>;
