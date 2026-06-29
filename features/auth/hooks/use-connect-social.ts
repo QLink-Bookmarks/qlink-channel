@@ -34,6 +34,24 @@ function ensureNaverInitialized() {
   naverInitialized = true;
 }
 
+// Bound a native Naver call so a stalled SDK promise can't hang the connect
+// flow. Resolves (never rejects) after the cap or on settle.
+function withNaverTimeout(promise: Promise<unknown>, ms = 4000): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    promise.then(
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+    );
+  });
+}
+
 async function acquireNativeToken(provider: SocialProvider): Promise<string | null> {
   switch (provider) {
     case "GOOGLE": {
@@ -59,13 +77,11 @@ async function acquireNativeToken(provider: SocialProvider): Promise<string | nu
     case "NAVER": {
       ensureNaverInitialized();
       // Naver reuses its cached session and silently re-links the previous
-      // account. Clear it first so the user actually gets to pick an account.
-      try {
-        await NaverLogin.logout();
-        await NaverLogin.deleteToken();
-      } catch {
-        // best-effort — proceed to login even if clearing fails
-      }
+      // account. Clear the local token so the user gets to pick an account.
+      // Bounded so a stalled native call can't hang the connect button — and we
+      // skip deleteToken() (a server revoke that can hang and isn't needed to
+      // re-prompt).
+      await withNaverTimeout(NaverLogin.logout());
       const response = await NaverLogin.login();
       return response.isSuccess ? (response.successResponse?.accessToken ?? null) : null;
     }
