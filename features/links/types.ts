@@ -40,12 +40,20 @@ type SetLinkFavoriteRequest = {
 
 type CopyLinkRequest = {
   fromFolderId: number;
-  toFolderId: number;
+  // null = "없음" (uncategorized / AI auto-classify), mirroring link creation.
+  toFolderId: number | null;
 };
 
 type CopyLinkResponse = ApiEnvelope<{
   id: number;
 }>;
+
+type PatchLinkRequest = {
+  // null = "없음" (remove from folder / AI auto-classify).
+  folderId?: number | null;
+  memo?: string | null;
+  tags?: string[] | null;
+};
 
 type SetLinkFavoriteResponse = ApiEnvelope<null>;
 
@@ -159,6 +167,7 @@ export type {
   LinkDetail,
   LinkDetailResponse,
   LinkListItem,
+  PatchLinkRequest,
   LinkListTodo,
   LinkOrder,
   LinkScrollResponse,

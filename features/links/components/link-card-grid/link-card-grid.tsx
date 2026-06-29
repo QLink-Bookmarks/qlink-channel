@@ -24,7 +24,7 @@ import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
 import { mapLinkListItem } from "@/features/home/lib/link-card-mapper";
-import { deleteLink } from "@/features/links/api";
+import { deleteLink, patchLink } from "@/features/links/api";
 import { LinkCard } from "@/features/links/components/link-card/link-card";
 import { useSetLinkFavoriteMutation } from "@/features/links/mutations";
 import type { LinkListItem } from "@/features/links/types";
@@ -117,6 +117,10 @@ function LinkCardGrid({
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteLink(id),
   });
+  const folderMoveMutation = useMutation({
+    mutationFn: ({ id, folderId }: { id: number; folderId: number | null }) =>
+      patchLink(id, { folderId }),
+  });
   const favoriteMutation = useSetLinkFavoriteMutation();
   const isWebWide = Platform.OS === "web";
 
@@ -158,10 +162,28 @@ function LinkCardGrid({
     }
   }, [deleteMutation, deleteTargetLink, queryClient]);
 
-  const handleFolderMoveSelect = React.useCallback(() => {
-    // TODO: Persist folder move once a folder-only update endpoint is exposed.
-    setFolderMoveLink(null);
-  }, []);
+  const handleFolderMoveSelect = React.useCallback(
+    async (selection: { id: number | null }) => {
+      const target = folderMoveLink;
+      setFolderMoveLink(null);
+      if (!target || selection.id === (target.folderId ?? null)) {
+        return;
+      }
+      try {
+        await folderMoveMutation.mutateAsync({ id: target.id, folderId: selection.id });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["links", "list"] }),
+          queryClient.invalidateQueries({ queryKey: ["folders"] }),
+        ]);
+      } catch (error: unknown) {
+        reportError(error, {
+          area: "link-card-grid:folder-move",
+          extra: { folderId: selection.id, linkId: target.id },
+        });
+      }
+    },
+    [folderMoveLink, folderMoveMutation, queryClient],
+  );
 
   return (
     <>
@@ -241,7 +263,6 @@ function LinkCardGrid({
               showsVerticalScrollIndicator={false}
             >
               <FolderPickerList
-                noneOption={null}
                 selectedFolderId={folderMoveLink?.folderId ?? null}
                 onSelect={handleFolderMoveSelect}
               />
@@ -259,7 +280,6 @@ function LinkCardGrid({
           <View className="gap-3">
             <Text className="text-lg font-semibold text-foreground">폴더 이동</Text>
             <FolderPickerList
-              noneOption={null}
               selectedFolderId={folderMoveLink?.folderId ?? null}
               onSelect={handleFolderMoveSelect}
             />

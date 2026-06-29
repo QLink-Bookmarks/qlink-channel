@@ -1,9 +1,17 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { copySharedFolderLink, createLink, deleteLink, setLinkFavorite, updateLink } from "./api";
+import {
+  copySharedFolderLink,
+  createLink,
+  deleteLink,
+  patchLink,
+  setLinkFavorite,
+  updateLink,
+} from "./api";
 import type {
   CopyLinkRequest,
   CreateLinkRequest,
+  PatchLinkRequest,
   SetLinkFavoriteRequest,
   UpdateLinkRequest,
 } from "./types";
@@ -17,6 +25,12 @@ function useCreateLinkMutation() {
 function useUpdateLinkMutation(linkId: string | number) {
   return useMutation({
     mutationFn: (payload: UpdateLinkRequest) => updateLink(linkId, payload),
+  });
+}
+
+function usePatchLinkMutation(linkId: string | number) {
+  return useMutation({
+    mutationFn: (payload: PatchLinkRequest) => patchLink(linkId, payload),
   });
 }
 
@@ -48,6 +62,7 @@ export {
   useCopyLinkMutation,
   useCreateLinkMutation,
   useDeleteLinkMutation,
+  usePatchLinkMutation,
   useSetLinkFavoriteMutation,
   useUpdateLinkMutation,
 };

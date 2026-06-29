@@ -38,6 +38,7 @@ import { shareLink } from "@/features/links/lib/share-link";
 import {
   useCopyLinkMutation,
   useDeleteLinkMutation,
+  usePatchLinkMutation,
   useSetLinkFavoriteMutation,
   useUpdateLinkMutation,
 } from "@/features/links/mutations";
@@ -249,6 +250,7 @@ function LinkDetailView({
   const myProfileQuery = useMyProfileQuery();
   const foldersQuery = useFoldersQuery({ size: 15 });
   const copyLinkMutation = useCopyLinkMutation(detail.id);
+  const patchLinkMutation = usePatchLinkMutation(detail.id);
   const showToast = useToastStore((state) => state.showToast);
   const deleteLinkMutation = useDeleteLinkMutation(detail.id);
   const createTodoMutation = useCreateTodoMutation();
@@ -339,6 +341,47 @@ function LinkDetailView({
       queryKey: getLinkDetailQueryKey(detail.id),
     });
   }, [detail.id, queryClient]);
+
+  const handleFolderMoveSelect = React.useCallback(
+    async (selection: { id: number | null; label: string; emoji?: string | null }) => {
+      setIsFolderMoveOpen(false);
+
+      if (selection.id === (detail.folderId ?? null)) {
+        return;
+      }
+
+      try {
+        const response = await patchLinkMutation.mutateAsync({ folderId: selection.id });
+        handleDetailUpdated(response);
+      } catch (error: unknown) {
+        showToast({
+          description: "잠시 후 다시 시도해주세요.",
+          dismissible: true,
+          durationMs: 4000,
+          sourceKey: "link-detail-folder-move",
+          title: "폴더 이동에 실패했어요.",
+          variant: "error",
+        });
+        reportError(error, {
+          area: "link-detail-view:folder-move",
+          extra: { folderId: selection.id, linkId: detail.id },
+        });
+        return;
+      }
+
+      showToast({
+        dismissible: true,
+        durationMs: 4000,
+        sourceKey: "link-detail-folder-move",
+        title: selection.id == null ? "폴더에서 꺼냈어요." : `'${selection.label}'(으)로 옮겼어요.`,
+        variant: "success",
+      });
+
+      void queryClient.invalidateQueries({ queryKey: ["links", "list"] });
+      void queryClient.invalidateQueries({ queryKey: ["folders"] });
+    },
+    [detail.folderId, detail.id, handleDetailUpdated, patchLinkMutation, queryClient, showToast],
+  );
 
   const handleTodoCompletedChange = React.useCallback(
     async (todoId: number | string, checked: boolean) => {
@@ -554,7 +597,8 @@ function LinkDetailView({
     async (folderId: number | null) => {
       setIsCopyFolderOpen(false);
 
-      if (folderId == null || detail.folderId == null) {
+      // folderId null = "없음" (uncategorized / AI auto-classify), mirroring link creation.
+      if (detail.folderId == null) {
         return;
       }
 
@@ -1210,11 +1254,8 @@ function LinkDetailView({
               showsVerticalScrollIndicator={false}
             >
               <FolderPickerList
-                noneOption={null}
                 selectedFolderId={detail.folderId ?? null}
-                onSelect={() => {
-                  setIsFolderMoveOpen(false);
-                }}
+                onSelect={handleFolderMoveSelect}
               />
             </ScrollView>
           </DialogContent>
@@ -1228,11 +1269,8 @@ function LinkDetailView({
           <View className="gap-3">
             <Text className="text-lg font-semibold text-foreground">폴더 이동</Text>
             <FolderPickerList
-              noneOption={null}
               selectedFolderId={detail.folderId ?? null}
-              onSelect={() => {
-                setIsFolderMoveOpen(false);
-              }}
+              onSelect={handleFolderMoveSelect}
             />
             <Button
               className="h-10 self-stretch"
@@ -1261,7 +1299,6 @@ function LinkDetailView({
               showsVerticalScrollIndicator={false}
             >
               <FolderPickerList
-                noneOption={null}
                 filterFolder={(folder) => !folder.isShared}
                 selectedFolderId={null}
                 onSelect={(selection) => handleCopyToPersonalSelect(selection.id)}
@@ -1278,7 +1315,6 @@ function LinkDetailView({
           <View className="gap-3">
             <Text className="text-lg font-semibold text-foreground">개인 폴더로 추가</Text>
             <FolderPickerList
-              noneOption={null}
               filterFolder={(folder) => !folder.isShared}
               selectedFolderId={null}
               onSelect={(selection) => handleCopyToPersonalSelect(selection.id)}

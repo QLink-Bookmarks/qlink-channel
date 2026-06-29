@@ -9,6 +9,7 @@ import type {
   GetLinksParams,
   GetLinksResponse,
   LinkDetailResponse,
+  PatchLinkRequest,
   SetLinkFavoriteRequest,
   SetLinkFavoriteResponse,
   UpdateLinkRequest,
@@ -28,6 +29,10 @@ async function getLinks(params: GetLinksParams = {}) {
 
 async function updateLink(linkId: string | number, payload: UpdateLinkRequest) {
   return api.put<LinkDetailResponse, UpdateLinkRequest>(`/api/links/${linkId}`, payload);
+}
+
+async function patchLink(linkId: string | number, payload: PatchLinkRequest) {
+  return api.patch<LinkDetailResponse, PatchLinkRequest>(`/api/links/${linkId}`, payload);
 }
 
 async function deleteLink(linkId: string | number) {
@@ -51,6 +56,7 @@ export {
   deleteLink,
   getLinkDetail,
   getLinks,
+  patchLink,
   setLinkFavorite,
   updateLink,
 };
