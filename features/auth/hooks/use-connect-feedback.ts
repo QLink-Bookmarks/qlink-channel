@@ -28,7 +28,9 @@ function useConnectFeedback() {
       }
 
       showToast({
-        title: outcome.alreadyConnected ? "이미 연결된 계정이에요." : "연결에 실패했어요.",
+        title: outcome.alreadyConnected
+          ? "이미 다른 사용자에 연결된 계정이에요."
+          : "연결에 실패했어요.",
         description: outcome.alreadyConnected ? undefined : "잠시 후 다시 시도해주세요.",
         variant: outcome.alreadyConnected ? "warning" : "error",
         sourceKey: "auth-connect",

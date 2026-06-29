@@ -3,10 +3,17 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   Pressable,
-  ScrollView,
   View,
   useWindowDimensions,
 } from "react-native";
+import Animated, {
+  Extrapolation,
+  type SharedValue,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Badge } from "@/components/ui/badge";
@@ -276,23 +283,55 @@ const SLIDES: Slide[] = [
   },
 ];
 
+// Pagination dot driven continuously by scroll position: width/opacity grow as
+// its page comes into view, so it tracks the swipe instead of snapping.
+function OnboardingDot({
+  index,
+  scrollX,
+  width,
+}: {
+  index: number;
+  scrollX: SharedValue<number>;
+  width: number;
+}) {
+  const animatedStyle = useAnimatedStyle(() => {
+    const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
+    return {
+      width: interpolate(scrollX.value, inputRange, [6, 20, 6], Extrapolation.CLAMP),
+      opacity: interpolate(scrollX.value, inputRange, [0.35, 1, 0.35], Extrapolation.CLAMP),
+    };
+  });
+
+  return (
+    <Animated.View
+      className="bg-primary"
+      style={[{ height: 6, borderRadius: 999 }, animatedStyle]}
+    />
+  );
+}
+
 function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const mode = useDisplaySettings((state) => state.display.theme);
-  const scrollRef = React.useRef<ScrollView>(null);
+  const scrollRef = React.useRef<Animated.ScrollView>(null);
+  const scrollX = useSharedValue(0);
   const [page, setPage] = React.useState(0);
 
   const isLast = page === SLIDES.length - 1;
 
-  const handleScroll = React.useCallback(
+  const scrollHandler = useAnimatedScrollHandler((event) => {
+    scrollX.value = event.contentOffset.x;
+  });
+
+  // Settle `page` only when the scroll finishes, so the optimistic setPage in
+  // goToPage doesn't fight Math.round mid-animation (which made the dots jump).
+  const handleMomentumEnd = React.useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const next = Math.round(event.nativeEvent.contentOffset.x / width);
-      if (next !== page) {
-        setPage(next);
-      }
+      setPage((prev) => (prev === next ? prev : next));
     },
-    [page, width],
+    [width],
   );
 
   const goToPage = React.useCallback(
@@ -338,13 +377,14 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
         </Pressable>
       </View>
 
-      <ScrollView
+      <Animated.ScrollView
         ref={scrollRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
-        onScroll={handleScroll}
+        onScroll={scrollHandler}
+        onMomentumScrollEnd={handleMomentumEnd}
         className="flex-1"
       >
         {SLIDES.map((slide) => (
@@ -366,7 +406,7 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
             </View>
           </View>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
 
       <View
         className="gap-6 px-6"
@@ -374,12 +414,11 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
       >
         <View className="flex-row items-center justify-center gap-2">
           {SLIDES.map((slide, index) => (
-            <View
+            <OnboardingDot
               key={slide.key}
-              className={cn(
-                "h-1.5 rounded-full",
-                index === page ? "w-5 bg-primary" : "w-1.5 bg-border",
-              )}
+              index={index}
+              scrollX={scrollX}
+              width={width}
             />
           ))}
         </View>

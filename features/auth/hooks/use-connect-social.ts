@@ -58,6 +58,14 @@ async function acquireNativeToken(provider: SocialProvider): Promise<string | nu
     }
     case "NAVER": {
       ensureNaverInitialized();
+      // Naver reuses its cached session and silently re-links the previous
+      // account. Clear it first so the user actually gets to pick an account.
+      try {
+        await NaverLogin.logout();
+        await NaverLogin.deleteToken();
+      } catch {
+        // best-effort — proceed to login even if clearing fails
+      }
       const response = await NaverLogin.login();
       return response.isSuccess ? (response.successResponse?.accessToken ?? null) : null;
     }
