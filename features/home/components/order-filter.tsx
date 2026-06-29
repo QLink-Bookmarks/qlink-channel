@@ -71,17 +71,6 @@ function OrderFilter({
           </Text>
         </Pressable>
       ) : null}
-      <Pressable
-        className={cn(
-          "min-h-8 flex-row items-center justify-center border border-border bg-card px-2.5",
-          isBadge ? "rounded-full" : "rounded-xl",
-        )}
-        onPress={() => {
-          console.log("home:filter:select");
-        }}
-      >
-        <Text className="text-sm font-medium text-muted-foreground">선택</Text>
-      </Pressable>
     </View>
   );
 }
