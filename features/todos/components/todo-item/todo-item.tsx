@@ -88,7 +88,7 @@ function TodoItem({
     return (
       <Pressable
         className={cn(
-          "gap-3 rounded-2xl border border-border bg-card px-4 py-3.5",
+          "gap-3 rounded-xl border border-border bg-card px-4 py-3.5",
           overdue && !done && "border-destructive/40 bg-destructive/5",
           className,
         )}

@@ -79,7 +79,7 @@ function LinkCard({
   return (
     <Pressable
       className={cn(
-        "group relative gap-4 overflow-visible rounded-[28px] border border-border bg-card p-5 shadow-qlink-card active:border-primary",
+        "group relative gap-4 overflow-visible rounded-[22px] border border-border bg-card p-5 shadow-qlink-card active:border-primary",
         active && "border-primary shadow-qlink-md",
         pinned && "bg-warning/10",
         "web:hover:border-primary web:hover:shadow-qlink-md",
