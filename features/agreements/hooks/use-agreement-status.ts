@@ -6,6 +6,12 @@ import { useQuery } from "@tanstack/react-query";
 type AgreementStatus = {
   isAuthenticated: boolean;
   needsAgreement: boolean;
+  // Profile load state, exposed so the auth splash can drive its
+  // checking/authenticated screen off the SAME query — no duplicate fetch and no
+  // race between the splash redirect and this routing guard.
+  isResolving: boolean;
+  hasResolved: boolean;
+  isError: boolean;
 };
 
 // Drives the routing guard. Reads the required-consent flags from the profile
@@ -16,7 +22,7 @@ function useAgreementStatus(): AgreementStatus {
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const isAuthenticated = hasHydrated && Boolean(accessToken);
 
-  const { data } = useQuery({
+  const query = useQuery({
     queryKey: accountQueryKeys.myProfile(),
     queryFn: async () => {
       const response = await getMyProfile();
@@ -26,9 +32,17 @@ function useAgreementStatus(): AgreementStatus {
   });
 
   const needsAgreement =
-    isAuthenticated && !!data && (data.allowsPrivacy === false || data.allowsAiUsage === false);
+    isAuthenticated &&
+    !!query.data &&
+    (query.data.allowsPrivacy === false || query.data.allowsAiUsage === false);
 
-  return { isAuthenticated, needsAgreement };
+  return {
+    isAuthenticated,
+    needsAgreement,
+    isResolving: isAuthenticated && query.isPending,
+    hasResolved: isAuthenticated && query.isSuccess && !!query.data,
+    isError: isAuthenticated && query.isError,
+  };
 }
 
 export { useAgreementStatus };

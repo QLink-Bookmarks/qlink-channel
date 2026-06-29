@@ -2,7 +2,7 @@ import * as React from "react";
 import { View } from "react-native";
 
 import { Text } from "@/components/ui/text";
-import { getMyProfile } from "@/features/account/api";
+import { useAgreementStatus } from "@/features/agreements/hooks/use-agreement-status";
 import { OnboardingGate } from "@/features/onboarding/components/onboarding-gate";
 import { useAuthStore } from "@/stores/auth";
 import { useInviteStore } from "@/stores/invite";
@@ -25,8 +25,10 @@ function AuthSplashScreen() {
   const onboardingHasHydrated = useOnboardingStore((state) => state.hasHydrated);
   const onboardingCompleted = useOnboardingStore((state) => state.completed);
   const completeOnboarding = useOnboardingStore((state) => state.complete);
-  const [status, setStatus] = React.useState<AuthCheckStatus>("checking");
-  const [needsAgreement, setNeedsAgreement] = React.useState(false);
+
+  // Single source for both the redirect below and the route guard in _layout, so
+  // /agreements is always available exactly when we navigate to it (no race).
+  const { needsAgreement, hasResolved, isError } = useAgreementStatus();
 
   // Native-only first-launch onboarding, shown once right after the splash
   // (before login). Rendered inline (no route) so web ships no onboarding code
@@ -37,34 +39,15 @@ function AuthSplashScreen() {
   // Handles the web OAuth `?code=` redirect for any provider (Kakao/Naver).
   useOauthRedirect();
 
-  React.useEffect(() => {
-    if (!hasHydrated) return;
-    if (!accessToken) {
-      setStatus("unauthenticated");
-      return;
-    }
-    let cancelled = false;
-    setStatus("checking");
-    getMyProfile()
-      .then((response) => {
-        if (cancelled) return;
-        if (response?.success && response.data) {
-          setNeedsAgreement(
-            response.data.allowsPrivacy === false || response.data.allowsAiUsage === false,
-          );
-          setStatus("authenticated");
-        } else {
-          setStatus("unauthenticated");
-        }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setStatus("unauthenticated");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [accessToken, hasHydrated]);
+  const status: AuthCheckStatus = !hasHydrated
+    ? "checking"
+    : !accessToken
+      ? "unauthenticated"
+      : hasResolved
+        ? "authenticated"
+        : isError
+          ? "unauthenticated"
+          : "checking";
 
   useFocusEffect(
     React.useCallback(() => {
