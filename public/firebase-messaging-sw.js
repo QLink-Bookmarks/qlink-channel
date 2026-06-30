@@ -19,6 +19,18 @@ if (!configParam) {
 
     messaging.onBackgroundMessage((payload) => {
       console.log("[firebase-messaging-sw.js] Background message received:", payload);
+      // FCM auto-displays "notification"-type messages; only build one ourselves
+      // for data-only payloads so we never show a duplicate.
+      if (payload.notification) return;
+      const data = payload.data || {};
+      const title = data.title || "큐링크";
+      const body = data.message || data.body || "";
+      if (!data.title && !body) return;
+      self.registration.showNotification(title, {
+        body,
+        icon: "/web_favicon.png",
+        data,
+      });
     });
   } catch (error) {
     console.error("[firebase-messaging-sw.js] Failed to initialize Firebase:", error);
