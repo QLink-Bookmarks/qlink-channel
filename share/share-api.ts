@@ -152,6 +152,7 @@ async function requestSharedAiSummary(input: {
   folderId: number | null;
   userProviderId: number;
   modelId: number;
+  generateTodo: boolean;
 }): Promise<AiSummaryResponse> {
   const body: AiSummaryRequest = {
     url: input.url,
@@ -159,6 +160,7 @@ async function requestSharedAiSummary(input: {
     folderId: input.folderId,
     userProviderId: input.userProviderId,
     modelId: input.modelId,
+    generateTodo: input.generateTodo,
   };
   return authed<AiSummaryResponse>({ method: "put", url: "/api/links/ai", data: body });
 }

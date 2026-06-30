@@ -2,6 +2,7 @@ import * as React from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import type { AiProviderWithModels } from "@/features/ai/types";
 import type { Folder } from "@/features/folders/types";
@@ -131,6 +132,7 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
   const [models, setModels] = React.useState<ModelOption[]>([]);
   const [folderId, setFolderId] = React.useState<number | null>(null);
   const [model, setModel] = React.useState<ModelOption | null>(null);
+  const [generateTodo, setGenerateTodo] = React.useState(false);
   const [submitting, setSubmitting] = React.useState<null | "save" | "ai">(null);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
@@ -187,13 +189,14 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
         folderId,
         userProviderId: model.userProviderId,
         modelId: model.modelId,
+        generateTodo,
       });
       close();
     } catch (error) {
       setErrorMessage(extractErrorMessage(error));
       setSubmitting(null);
     }
-  }, [folderId, model, sharedUrl, title]);
+  }, [folderId, generateTodo, model, sharedUrl, title]);
 
   const handleGoToLogin = React.useCallback(() => {
     // Open the host app at root ("" -> qlinkchannel:///), which lands on the
@@ -295,6 +298,21 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
               />
             ))}
           </ChipSection>
+        ) : null}
+
+        {models.length > 0 ? (
+          <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3">
+            <View className="min-w-0 flex-1 gap-0.5">
+              <Text className="text-sm font-semibold text-foreground">할 일 생성</Text>
+              <Text className="text-xs leading-4 text-muted-foreground">
+                AI 요약 시 링크에 데드라인이 있으면 할 일을 자동으로 생성해줘요
+              </Text>
+            </View>
+            <Switch
+              checked={generateTodo}
+              onCheckedChange={setGenerateTodo}
+            />
+          </View>
         ) : null}
 
         {errorMessage ? (
