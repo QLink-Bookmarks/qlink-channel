@@ -27,37 +27,40 @@ import { getNativeThemeVars } from "@/lib/theme-vars";
 import { cn } from "@/lib/utils";
 import { useDisplaySettings } from "@/stores/display-settings";
 
-import { AlarmClock } from "lucide-react-native/icons";
+import { AlarmClock, Search } from "lucide-react-native/icons";
 import { vars } from "nativewind";
 
 function faviconFor(domain: string) {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 }
 
-// Small browser/source chip used in the first slide's scattered illustration.
-function SourceChip({
+// A single scattered bookmark, tilted at a random-ish angle.
+function MessyCard({
   className,
-  label,
-  fallback,
+  rotate,
   faviconUrl,
+  fallback,
   tint,
+  title,
 }: {
   className?: string;
-  label: string;
-  fallback: string;
+  rotate: string;
   faviconUrl?: string;
+  fallback: string;
   tint?: string;
+  title: string;
 }) {
   return (
     <View
       className={cn(
-        "flex-row items-center gap-2 self-start rounded-2xl border border-border-soft bg-card px-3 py-2 shadow-qlink-md",
+        "absolute w-48 flex-row items-center gap-2.5 rounded-2xl border border-border-soft bg-card px-3 py-2.5 shadow-qlink-md",
         className,
       )}
+      style={{ transform: [{ rotate }] }}
     >
       <View
         className={cn(
-          "size-6 items-center justify-center overflow-hidden rounded-lg border border-border-soft bg-muted",
+          "size-7 items-center justify-center overflow-hidden rounded-lg bg-muted",
           tint,
         )}
       >
@@ -68,88 +71,104 @@ function SourceChip({
             size="sm"
           />
         ) : (
-          <Text className="text-xs font-semibold text-primary-foreground">{fallback}</Text>
+          <Text className="text-sm">{fallback}</Text>
         )}
       </View>
-      <Text className="text-sm font-semibold text-foreground">{label}</Text>
+      <Text
+        className="flex-1 text-xs font-semibold text-foreground"
+        numberOfLines={1}
+      >
+        {title}
+      </Text>
+    </View>
+  );
+}
+
+// A scattered browser icon dot, hinting at "saved all over the place".
+function BrowserDot({
+  className,
+  rotate,
+  fallback,
+  tint,
+}: {
+  className?: string;
+  rotate: string;
+  fallback: string;
+  tint: string;
+}) {
+  return (
+    <View
+      className={cn(
+        "absolute size-8 items-center justify-center rounded-full shadow-qlink-sm",
+        tint,
+        className,
+      )}
+      style={{ transform: [{ rotate }] }}
+    >
+      <Text className="text-xs font-bold text-white">{fallback}</Text>
     </View>
   );
 }
 
 function ScatterSlide() {
   return (
-    <View className="gap-6">
-      <View className="h-72 justify-center">
-        <View
-          className="absolute left-1 top-0"
-          style={{ transform: [{ rotate: "-5deg" }] }}
-        >
-          <SourceChip
-            label="Safari"
-            fallback="S"
-            tint="bg-[#1E90FF]"
-          />
-        </View>
-        <View
-          className="absolute right-1 top-4"
-          style={{ transform: [{ rotate: "4deg" }] }}
-        >
-          <SourceChip
-            label="Chrome"
-            fallback="C"
-            tint="bg-[#F4B400]"
-          />
-        </View>
-        <View
-          className="absolute -left-1 bottom-6"
-          style={{ transform: [{ rotate: "3deg" }] }}
-        >
-          <SourceChip
-            label="네이버"
-            fallback="N"
-            tint="bg-[#03C75A]"
-          />
-        </View>
-        <View
-          className="absolute -right-1 bottom-2"
-          style={{ transform: [{ rotate: "-4deg" }] }}
-        >
-          <SourceChip
-            label="회사 PC"
-            fallback="PC"
-            tint="bg-muted-foreground"
-          />
-        </View>
-        <View className="px-6">
-          <LinkCard
-            className="shadow-qlink-md"
-            domain="naver.com"
-            faviconUrl={faviconFor("naver.com")}
-            title="네이버 (NAVER) 포털"
-            tags={["검색", "뉴스"]}
-          />
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function AiSummarySlide() {
-  return (
-    <View className="gap-4">
-      <View className="items-center">
-        <View className="flex-row items-center gap-1.5 self-center rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5">
-          <Text className="text-sm font-semibold text-primary">✦ AI가 자동 정리했어요</Text>
-        </View>
-      </View>
-      <LinkCard
-        className="shadow-qlink-md"
-        domain="wanted.co.kr"
-        faviconUrl={faviconFor("wanted.co.kr")}
-        title="네이버페이 프론트엔드 개발자 채용"
-        summaryModelLabel="✦ 요약 모델 · gemini-3.5-flash"
-        summary="한 줄 요약 · React·Next.js 경험자 상시 채용, 성능 개선 직무 중심의 프론트엔드 포지션."
-        tags={["#프론트엔드", "#React", "#채용", "#Next.js"]}
+    <View className="h-80">
+      <MessyCard
+        className="left-0 top-1"
+        rotate="-7deg"
+        fallback="📁"
+        title="Mobile Bookmarks"
+      />
+      <MessyCard
+        className="right-0 top-16"
+        rotate="6deg"
+        faviconUrl={faviconFor("brunch.co.kr")}
+        fallback="B"
+        title="일잘러 되는 법"
+      />
+      <MessyCard
+        className="left-0 top-32"
+        rotate="3deg"
+        faviconUrl={faviconFor("youtube.com")}
+        fallback="Y"
+        title="공부할 때 듣기 좋은 플리"
+      />
+      <MessyCard
+        className="right-0 top-48"
+        rotate="-5deg"
+        faviconUrl={faviconFor("google.com")}
+        fallback="G"
+        title="제주 3박4일 코스"
+      />
+      <MessyCard
+        className="left-3 top-64"
+        rotate="7deg"
+        fallback="🔥"
+        title="갖고 싶은 신발"
+      />
+      <BrowserDot
+        className="right-8 top-1"
+        rotate="-10deg"
+        fallback="S"
+        tint="bg-[#1E90FF]"
+      />
+      <BrowserDot
+        className="left-36 top-24"
+        rotate="8deg"
+        fallback="C"
+        tint="bg-[#F4B400]"
+      />
+      <BrowserDot
+        className="left-2 top-52"
+        rotate="-6deg"
+        fallback="N"
+        tint="bg-[#03C75A]"
+      />
+      <BrowserDot
+        className="right-10 top-72"
+        rotate="9deg"
+        fallback="W"
+        tint="bg-[#4B5563]"
       />
     </View>
   );
@@ -253,33 +272,262 @@ function TaskSlide() {
   );
 }
 
+function FolderChip({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <View
+      className={cn(
+        "rounded-full border px-3.5 py-1.5",
+        active ? "border-primary bg-primary" : "border-border bg-card",
+      )}
+    >
+      <Text
+        className={cn(
+          "text-sm font-semibold",
+          active ? "text-primary-foreground" : "text-muted-foreground",
+        )}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function OrganizeSlide() {
+  return (
+    <View className="gap-3.5">
+      <View className="flex-row items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 shadow-qlink-sm">
+        <Icon
+          as={Search}
+          className="size-4 text-muted-foreground"
+        />
+        <Text className="text-sm text-muted-foreground">제주</Text>
+      </View>
+      <View className="flex-row flex-wrap gap-2">
+        <FolderChip label="전체" />
+        <FolderChip label="🍜 맛집" />
+        <FolderChip label="🎧 플리" />
+        <FolderChip
+          label="✈️ 여행"
+          active
+        />
+      </View>
+      <LinkCard
+        className="shadow-qlink-md"
+        domain="google.com"
+        faviconUrl={faviconFor("google.com")}
+        title="제주 맛집 지도 — 저장한 장소"
+        tags={["#제주", "#맛집"]}
+      />
+      <LinkCard
+        className="shadow-qlink-md"
+        domain="tistory.com"
+        faviconUrl={faviconFor("tistory.com")}
+        title="제주 3박4일 여행 코스 총정리"
+        tags={["#여행코스", "#뚜벅이"]}
+      />
+    </View>
+  );
+}
+
+function SheetChip({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <View
+      className={cn(
+        "rounded-full border px-3 py-1.5",
+        active ? "border-foreground bg-foreground" : "border-border bg-background",
+      )}
+    >
+      <Text
+        className={cn(
+          "text-xs font-semibold",
+          active ? "text-background" : "text-muted-foreground",
+        )}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+// Recreates the QLink iOS share-extension sheet — the moment a page is shared in.
+function ShareSlide() {
+  return (
+    <View className="gap-3">
+      <View className="flex-row items-center gap-2 self-center rounded-full border border-border bg-card px-3.5 py-2 shadow-qlink-sm">
+        <Text className="text-base">🌐</Text>
+        <Text className="text-xs font-medium text-foreground">news.hada.io</Text>
+        <Text className="text-xs font-semibold text-muted-foreground">공유</Text>
+        <Text className="text-sm">⬆️</Text>
+      </View>
+      <View className="gap-3.5 rounded-[28px] border border-border bg-card p-5 shadow-qlink-md">
+        <View className="h-1 w-10 self-center rounded-full bg-muted" />
+        <View className="gap-0.5">
+          <Text
+            className="text-sm font-bold text-foreground"
+            numberOfLines={1}
+          >
+            news.hada.io/topic?id=42
+          </Text>
+          <Text
+            className="text-xs text-muted-foreground"
+            numberOfLines={1}
+          >
+            아이디어부터 앱스토어까지 — 1인 개발 회고
+          </Text>
+        </View>
+        <View className="gap-2">
+          <Text className="text-xs font-medium text-muted-foreground">폴더</Text>
+          <View className="flex-row flex-wrap gap-2">
+            <SheetChip
+              label="✨ AI 자동 분류"
+              active
+            />
+            <SheetChip label="💻 개발" />
+            <SheetChip label="📰 읽을거리" />
+          </View>
+        </View>
+        <View className="gap-2">
+          <Text className="text-xs font-medium text-muted-foreground">AI 모델</Text>
+          <View className="flex-row gap-2">
+            <SheetChip
+              label="Gemini · 기본"
+              active
+            />
+            <SheetChip label="OpenAI" />
+          </View>
+        </View>
+        <View className="flex-row gap-3 pt-1">
+          <View className="h-11 flex-1 items-center justify-center rounded-2xl border border-border bg-background">
+            <Text className="text-sm font-semibold text-foreground">저장</Text>
+          </View>
+          <View className="relative h-11 flex-1 items-center justify-center overflow-hidden rounded-2xl">
+            <LinearGradient
+              accent="pink"
+              style={{ bottom: 0, left: 0, position: "absolute", right: 0, top: 0 }}
+              pointerEvents="none"
+            />
+            <Text className="text-sm font-semibold text-primary-foreground">AI 요약 저장</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function MemberAvatar({
+  emoji,
+  tint,
+  overlap,
+}: {
+  emoji: string;
+  tint: string;
+  overlap?: boolean;
+}) {
+  return (
+    <View
+      className={cn(
+        "size-10 items-center justify-center rounded-full border-2 border-card",
+        tint,
+        overlap && "-ml-3",
+      )}
+    >
+      <Text className="text-lg">{emoji}</Text>
+    </View>
+  );
+}
+
+function SharedFolderSlide() {
+  return (
+    <View className="gap-4">
+      <View className="items-center gap-2">
+        <View className="flex-row">
+          <MemberAvatar
+            emoji="🧑🏻‍💻"
+            tint="bg-[#7B61FF]"
+          />
+          <MemberAvatar
+            emoji="👩🏻"
+            tint="bg-[#EC4899]"
+            overlap
+          />
+          <MemberAvatar
+            emoji="🧑🏻‍🦱"
+            tint="bg-[#F59E0B]"
+            overlap
+          />
+          <View className="-ml-3 size-10 items-center justify-center rounded-full border-2 border-card bg-muted">
+            <Text className="text-xs font-bold text-muted-foreground">+2</Text>
+          </View>
+        </View>
+        <Text className="text-xs font-medium text-muted-foreground">친구 5명과 함께 채우는 중</Text>
+      </View>
+      <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-qlink-sm">
+        <View className="size-9 items-center justify-center rounded-xl bg-muted">
+          <Text className="text-lg">✈️</Text>
+        </View>
+        <View className="min-w-0 flex-1">
+          <Text className="text-base font-bold text-foreground">제주 여행 같이 가자</Text>
+          <Text className="text-xs text-muted-foreground">공유 폴더</Text>
+        </View>
+      </View>
+      <LinkCard
+        className="shadow-qlink-md"
+        domain="google.com"
+        faviconUrl={faviconFor("google.com")}
+        title="제주 맛집 지도 저장 목록"
+        tags={["#맛집", "#같이가요"]}
+      />
+      <LinkCard
+        className="shadow-qlink-md"
+        domain="airbnb.co.kr"
+        faviconUrl={faviconFor("airbnb.co.kr")}
+        title="애월 감성 숙소 모음"
+        tags={["#숙소", "#애월"]}
+      />
+    </View>
+  );
+}
+
 type Slide = {
   key: string;
   title: string;
   description: string;
+  footnote?: string;
   render: () => React.ReactNode;
 };
 
 const SLIDES: Slide[] = [
   {
     key: "scatter",
-    title: "즐겨찾기,\n여기저기 흩어져 있죠?",
-    description:
-      "Safari, Chrome, 네이버앱, 회사 PC, 집 PC.\n브라우저마다 따로 노는 즐겨찾기를\nQLINK 하나로 전부 한곳에.",
+    title: "이게 여기 있었나?",
+    description: "각종 브라우저에, 폰에, 회사 PC에…\n저장만 하고 잊어버리게 되는 북마크.",
     render: () => <ScatterSlide />,
   },
   {
-    key: "ai",
-    title: "저장하면,\nAI가 알아서 정리해요",
-    description: "1초 저장이면 끝.\n한 줄 요약·태그·폴더 분류까지\nAI가 자동으로 마무리합니다.",
-    render: () => <AiSummarySlide />,
+    key: "organize",
+    title: "흩어진 링크,\n큐링크에서 하나로",
+    description: "이제 기억하는 것도, 헤매는 것도 그만.\n폴더로 모으고, 검색으로 찾고.",
+    render: () => <OrganizeSlide />,
+  },
+  {
+    key: "share",
+    title: "브라우저에서\n간편하게, 스마트하게",
+    description:
+      "보던 페이지를 큐링크로 공유하면 바로 저장,\nAI 요약 저장으로 제목·요약·할 일까지 한 번에.",
+    footnote: "AI 요약 저장 시 페이지의 서비스 정책에 따라 접근·내용 추출이 제한될 수 있어요.",
+    render: () => <ShareSlide />,
   },
   {
     key: "task",
-    title: "할 일·일정·메모까지,\n링크에서 바로 관리해요",
-    description:
-      "링크마다 할 일과 메모를 더하고\n반복 알림으로 일정을 챙기면\n중요한 건 다시는 놓치지 않아요.",
+    title: "저장하고, 행동까지.",
+    description: "북마크에 할 일과 알림을 더해\n저장을 넘어 행동까지.",
     render: () => <TaskSlide />,
+  },
+  {
+    key: "shared",
+    title: "같이 모으면\n더 좋으니까",
+    description: "친구·팀과 폴더를 공유하고\n링크를 함께 채워가요.",
+    render: () => <SharedFolderSlide />,
   },
 ];
 
@@ -402,6 +650,11 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
                 <Text className="text-center text-sm leading-6 text-muted-foreground">
                   {slide.description}
                 </Text>
+                {slide.footnote ? (
+                  <Text className="mt-1 px-2 text-center text-[11px] leading-4 text-muted-foreground/70">
+                    {slide.footnote}
+                  </Text>
+                ) : null}
               </View>
             </View>
           </View>
