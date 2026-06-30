@@ -7,7 +7,7 @@ import { useDisplaySettings } from "@/stores/display-settings";
 import { useCycledBrandColors } from "../hooks/use-cycled-brand-colors";
 import { LoginButtonsStack } from "./login-buttons";
 
-const DEFAULT_SUBTITLE = "링크와 QR을 AI가 정리해주는 스마트 북마크 ✨";
+const DEFAULT_SUBTITLE = "북마크마저 간편하게, 스마트하게 ✨";
 
 function LoginPrompt({ subtitle = DEFAULT_SUBTITLE }: { subtitle?: string }) {
   const theme = useDisplaySettings((state) => state.display.theme);

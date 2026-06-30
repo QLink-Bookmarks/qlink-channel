@@ -53,7 +53,7 @@ const config: ExpoConfig = {
   owner: "qlink1004",
   scheme: "qlinkchannel",
   version: "1.0.0",
-  description: "링크와 QR을 AI가 정리해주는 스마트 북마크",
+  description: "북마크마저 간편하게, 스마트하게",
   orientation: "portrait",
   icon: "./assets/app_icon.png",
   userInterfaceStyle: "automatic",
@@ -103,7 +103,7 @@ const config: ExpoConfig = {
     display: "standalone",
     themeColor: "#6B7280",
     backgroundColor: "#FFFFFF",
-    description: "링크와 QR을 AI가 정리해주는 스마트 북마크",
+    description: "북마크마저 간편하게, 스마트하게",
   },
   plugins: [
     // Must stay first: expo-build-properties' forceStaticLinking array is dropped from

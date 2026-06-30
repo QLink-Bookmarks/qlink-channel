@@ -10,7 +10,7 @@ import type { RouteParams } from "../types";
 import { useGlobalSearchParams, usePathname } from "expo-router";
 
 const APP_NAME = "QLink";
-const BRAND_TITLE = "큐링크 QLink — 링크와 QR을 AI가 정리하는 스마트 북마크";
+const BRAND_TITLE = "큐링크 QLink — 북마크마저 간편하게, 스마트하게";
 const NOT_FOUND_TITLE = "페이지를 찾을 수 없음";
 
 function useDocumentTitle() {
