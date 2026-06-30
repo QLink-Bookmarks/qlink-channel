@@ -55,6 +55,7 @@ import { logoutNaver } from "@/features/auth/lib/native-naver-logout";
 import { useUploadImageMutation } from "@/features/images/mutations";
 import type { ImageUploadInput } from "@/features/images/types";
 import { DeviceNotificationNotice } from "@/features/notifications/components/device-notification-notice";
+import { unregisterDevice } from "@/features/notifications/lib/unregister-device";
 import { reportError } from "@/lib/error-reporting";
 import { useAuthStore } from "@/stores/auth";
 import { useDisplaySettings } from "@/stores/display-settings";
@@ -221,6 +222,12 @@ function ProfileSection({
     mutationFn: () => signOutApi({ refreshToken: useAuthStore.getState().refreshToken }),
   });
   const handleConfirmLogout = React.useCallback(async () => {
+    // Capture the auth token before sign-out clears it, then detach this device
+    // from the account (best-effort, fire-and-forget).
+    const authToken = useAuthStore.getState().accessToken;
+    if (authToken) {
+      void unregisterDevice(authToken);
+    }
     try {
       await signOutMutation.mutateAsync();
     } catch (error) {
@@ -698,6 +705,11 @@ function AppInfoSection() {
   const appVersion = Constants.expoConfig?.version ?? "—";
 
   const handleConfirmWithdraw = React.useCallback(async () => {
+    // Detach this device while still authenticated, before the account is gone.
+    const authToken = useAuthStore.getState().accessToken;
+    if (authToken) {
+      void unregisterDevice(authToken);
+    }
     try {
       await deleteAccountMutation.mutateAsync();
       signOutStore();

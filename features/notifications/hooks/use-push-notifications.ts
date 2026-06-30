@@ -3,10 +3,10 @@ import { Platform } from "react-native";
 
 import { useQueryClient } from "@tanstack/react-query";
 
+import { resolveProjectId } from "../lib/resolve-project-id";
 import { useRegisterDeviceMutation } from "../mutations";
 import { notificationQueryKeys } from "../queries";
 
-import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 
@@ -26,13 +26,6 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-
-function resolveProjectId(): string | undefined {
-  return (
-    Constants.expoConfig?.extra?.eas?.projectId ??
-    (Constants.easConfig as { projectId?: string } | undefined)?.projectId
-  );
-}
 
 function usePushNotifications(): PushNotificationsState {
   const { mutate: registerDevice } = useRegisterDeviceMutation();

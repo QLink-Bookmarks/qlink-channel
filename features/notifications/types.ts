@@ -15,6 +15,8 @@ type PutDeviceResponseData = {
 
 type PutDeviceResponse = ApiEnvelope<PutDeviceResponseData>;
 
+type DeleteDeviceResponse = ApiEnvelope<null>;
+
 type NotificationListItem = {
   id: number;
   title: string;
@@ -49,6 +51,7 @@ type UnreadNotificationCount = {
 type GetUnreadNotificationCountResponse = ApiEnvelope<UnreadNotificationCount>;
 
 export type {
+  DeleteDeviceResponse,
   DevicePlatform,
   GetNotificationsParams,
   GetNotificationsResponse,
