@@ -27,7 +27,7 @@ import { getNativeThemeVars } from "@/lib/theme-vars";
 import { cn } from "@/lib/utils";
 import { useDisplaySettings } from "@/stores/display-settings";
 
-import { AlarmClock, Search } from "lucide-react-native/icons";
+import { AlarmClock, Search, Share, Sparkles } from "lucide-react-native/icons";
 import { vars } from "nativewind";
 
 function faviconFor(domain: string) {
@@ -353,11 +353,21 @@ function SheetChip({ label, active }: { label: string; active?: boolean }) {
 function ShareSlide() {
   return (
     <View className="gap-3">
-      <View className="flex-row items-center gap-2 self-center rounded-full border border-border bg-card px-3.5 py-2 shadow-qlink-sm">
-        <Text className="text-base">🌐</Text>
-        <Text className="text-xs font-medium text-foreground">news.hada.io</Text>
-        <Text className="text-xs font-semibold text-muted-foreground">공유</Text>
-        <Text className="text-sm">⬆️</Text>
+      <View className="w-full flex-row items-center gap-2.5 rounded-full bg-[#48484A] px-4 py-3">
+        <Icon
+          as={Sparkles}
+          className="size-4 text-white"
+        />
+        <Text
+          className="flex-1 text-center text-sm font-semibold text-white"
+          numberOfLines={1}
+        >
+          news.hada.io
+        </Text>
+        <Icon
+          as={Share}
+          className="size-4 text-white"
+        />
       </View>
       <View className="gap-3.5 rounded-[28px] border border-border bg-card p-5 shadow-qlink-md">
         <View className="h-1 w-10 self-center rounded-full bg-muted" />
