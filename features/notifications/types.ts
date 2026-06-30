@@ -42,10 +42,18 @@ type GetNotificationsParams = {
 type GetNotificationsResponse = ApiEnvelope<NotificationScrollResponse>;
 type ReadNotificationResponse = ApiEnvelope<null>;
 
+type UnreadNotificationCount = {
+  unreadCount: number;
+};
+
+type GetUnreadNotificationCountResponse = ApiEnvelope<UnreadNotificationCount>;
+
 export type {
   DevicePlatform,
   GetNotificationsParams,
   GetNotificationsResponse,
+  GetUnreadNotificationCountResponse,
+  UnreadNotificationCount,
   NotificationContext,
   NotificationListItem,
   NotificationOrder,

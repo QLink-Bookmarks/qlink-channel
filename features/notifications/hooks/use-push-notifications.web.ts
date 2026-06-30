@@ -1,8 +1,10 @@
 import * as React from "react";
 
 import { FIREBASE_CONFIG, FIREBASE_VAPID_KEY, getFirebaseApp } from "@/lib/firebase";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useRegisterDeviceMutation } from "../mutations";
+import { notificationQueryKeys } from "../queries";
 
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
@@ -23,6 +25,7 @@ function isSupported() {
 
 function usePushNotifications(): PushNotificationsState {
   const { mutate: registerDevice } = useRegisterDeviceMutation();
+  const queryClient = useQueryClient();
   const registeredTokenRef = React.useRef<string | null>(null);
   const unsubscribeRef = React.useRef<(() => void) | null>(null);
   const cancelledRef = React.useRef(false);
@@ -60,12 +63,14 @@ function usePushNotifications(): PushNotificationsState {
 
       const off = onMessage(messaging, (payload) => {
         console.log("[push] foreground message:", payload);
+        // Keep the bell badge in sync with foreground arrivals.
+        void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
       });
       unsubscribeRef.current = off;
     } catch (error) {
       console.error("[push] setup failed:", error);
     }
-  }, [registerDevice]);
+  }, [queryClient, registerDevice]);
 
   React.useEffect(() => {
     cancelledRef.current = false;

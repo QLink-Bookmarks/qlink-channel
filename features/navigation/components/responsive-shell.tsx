@@ -24,6 +24,7 @@ import { useFoldersQuery } from "@/features/folders/queries";
 import { DetailPanel } from "@/features/links/components/detail-panel/detail-panel";
 import { LinkCreateForm } from "@/features/links/components/link-create-form";
 import { useLinkDetailQuery, useLinksQuery } from "@/features/links/queries";
+import { NotificationBellButton } from "@/features/notifications/components/notification-bell-button";
 import { SearchDialog } from "@/features/search/components/search-dialog";
 import { useCreateFolderSheet } from "@/stores/create-folder-sheet";
 import { useDisplaySettings } from "@/stores/display-settings";
@@ -39,7 +40,6 @@ import { WideKbdHelper } from "./wide-kbd-helper";
 
 import { type Href, Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import {
-  Bell,
   BookCopyIcon,
   CheckSquare,
   Folder,
@@ -471,8 +471,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
             onSearchPress={handleWideSearchPress}
             actions={
               <>
-                <IconButton
-                  icon={Bell}
+                <NotificationBellButton
                   size="sm"
                   onPress={handleNotificationsPress}
                 />
@@ -599,8 +598,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                 size="sm"
                 onPress={handleMobileSearchPress}
               />
-              <IconButton
-                icon={Bell}
+              <NotificationBellButton
                 size="sm"
                 onPress={handleNotificationsPress}
               />

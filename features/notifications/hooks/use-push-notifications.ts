@@ -1,7 +1,10 @@
 import * as React from "react";
 import { Platform } from "react-native";
 
+import { useQueryClient } from "@tanstack/react-query";
+
 import { useRegisterDeviceMutation } from "../mutations";
+import { notificationQueryKeys } from "../queries";
 
 import Constants from "expo-constants";
 import * as Device from "expo-device";
@@ -33,6 +36,7 @@ function resolveProjectId(): string | undefined {
 
 function usePushNotifications(): PushNotificationsState {
   const { mutate: registerDevice } = useRegisterDeviceMutation();
+  const queryClient = useQueryClient();
   const registeredTokenRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
@@ -85,6 +89,8 @@ function usePushNotifications(): PushNotificationsState {
 
     const receivedSub = Notifications.addNotificationReceivedListener((notification) => {
       console.log("[push] notification received:", notification);
+      // Keep the bell badge in sync with foreground arrivals.
+      void queryClient.invalidateQueries({ queryKey: notificationQueryKeys.all });
     });
     const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {
       console.log("[push] notification response:", response);
@@ -95,7 +101,7 @@ function usePushNotifications(): PushNotificationsState {
       receivedSub.remove();
       responseSub.remove();
     };
-  }, [registerDevice]);
+  }, [queryClient, registerDevice]);
 
   // Native doesn't need a permission primer; the OS dialog itself is the prompt
   // and we defer it to onboarding. Shape-matches the web hook.
