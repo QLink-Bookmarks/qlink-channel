@@ -18,6 +18,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { type TimeValue } from "@/components/ui/time-picker";
@@ -125,6 +126,7 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
   const [folder, setFolder] = React.useState<FolderDraft>(defaultFolder);
   const [aiModel, setAiModel] = React.useState<AiModelSelection | null>(null);
   const [todos, setTodos] = React.useState<TodoDraftEditorItem[]>(createInitialTodos);
+  const [generateTodo, setGenerateTodo] = React.useState(false);
   const [errors, setErrors] = React.useState<{ url?: string; title?: string }>({});
   const [mobileSheetStep, setMobileSheetStep] = React.useState<MobileSheetStep>("form");
 
@@ -180,6 +182,7 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
     setFolder(defaultFolder);
     setAiModel(null);
     setTodos(createInitialTodos());
+    setGenerateTodo(false);
     setErrors({});
     setMobileSheetStep("form");
     resetMutation();
@@ -323,6 +326,7 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
     try {
       const response = await requestAiSummaryMutation.mutateAsync({
         folderId: folder.id ? Number(folder.id) : null,
+        generateTodo,
         modelId: aiModel.modelId,
         title: trimmedTitle ? trimmedTitle : null,
         url: trimmedUrl,
@@ -369,6 +373,7 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
   }, [
     aiModel,
     folder.id,
+    generateTodo,
     invalidateLinkQueries,
     mode,
     onCancel,
@@ -558,6 +563,10 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
               label={folder.id ? folder.label : "AI 자동 분류"}
               onPress={() => setMobileSheetStep("folder-picker")}
             />
+            <GenerateTodoRow
+              value={generateTodo}
+              onValueChange={setGenerateTodo}
+            />
             <MobileOptionCard
               eyebrow="AI 제공자 모델"
               icon="🤖"
@@ -697,6 +706,11 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
         </View>
       </View>
 
+      <GenerateTodoRow
+        value={generateTodo}
+        onValueChange={setGenerateTodo}
+      />
+
       {/* TODO: AI 요약 제공자 API와 실제 옵션이 정리되면 와이드 전용 선택 UI 복구 */}
 
       <View className="gap-3">
@@ -801,6 +815,29 @@ function FieldError({ children, error }: { children: React.ReactNode; error?: st
     <View className="gap-1">
       {children}
       {error ? <Text className="text-sm font-medium text-destructive">{error}</Text> : null}
+    </View>
+  );
+}
+
+function GenerateTodoRow({
+  value,
+  onValueChange,
+}: {
+  value: boolean;
+  onValueChange: (next: boolean) => void;
+}) {
+  return (
+    <View className="flex-row items-center gap-3 rounded-2xl border border-primary/30 bg-background px-4 py-3">
+      <View className="min-w-0 flex-1 gap-1">
+        <Text className="text-sm font-semibold text-foreground">할 일 생성</Text>
+        <Text className="text-xs leading-4 text-muted-foreground">
+          AI 요약 시 링크에 데드라인이 있으면 할 일을 자동으로 생성해줘요
+        </Text>
+      </View>
+      <Switch
+        checked={value}
+        onCheckedChange={onValueChange}
+      />
     </View>
   );
 }

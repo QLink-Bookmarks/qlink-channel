@@ -34,6 +34,7 @@ type AiSummaryRequest = {
   modelId: number;
   url: string;
   title?: string | null;
+  generateTodo?: boolean;
 };
 
 type AiSummaryResponseData = {
