@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { isLinkNotFound } from "@/features/links/lib/is-link-not-found";
 import { useLinkDetailQuery } from "@/features/links/queries";
 
 import { type Href, useRouter } from "expo-router";
@@ -33,6 +34,7 @@ function useLinkOverlayState({
     handleOpenChange,
     isLoading: linkDetailQuery.isLoading,
     isOpen: isWideView && Boolean(overlayLinkId),
+    notFound: linkDetailQuery.isError && isLinkNotFound(linkDetailQuery.error),
   };
 }
 

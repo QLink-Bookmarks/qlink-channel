@@ -1,12 +1,14 @@
 import { View } from "react-native";
 
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Text } from "@/components/ui/text";
+import { isLinkNotFound } from "@/features/links/lib/is-link-not-found";
 import { useLinkDetailQuery } from "@/features/links/queries";
 
 import { LinkDetailView } from "./link-detail-view";
 
-import { useRouter } from "expo-router";
+import { type Href, useRouter } from "expo-router";
 
 function LinkDetailScreen({ linkId }: { linkId?: string }) {
   const router = useRouter();
@@ -35,6 +37,26 @@ function LinkDetailScreen({ linkId }: { linkId?: string }) {
   }
 
   if (linkDetailQuery.isError || !linkDetailQuery.data) {
+    if (isLinkNotFound(linkDetailQuery.error)) {
+      return (
+        <View className="flex-1 bg-background">
+          <EmptyState
+            className="flex-1"
+            emoji="🔍"
+            title="찾으시는 링크가 없어요"
+            description="이미 삭제됐거나 잘못된 주소일 수 있어요."
+            actions={
+              <Button
+                variant="outline"
+                onPress={() => router.replace("/home" as Href)}
+              >
+                <Text>홈으로</Text>
+              </Button>
+            }
+          />
+        </View>
+      );
+    }
     return (
       <View className="flex-1 bg-background px-4 py-6">
         <View className="rounded-[24px] border border-border bg-card px-5 py-6">

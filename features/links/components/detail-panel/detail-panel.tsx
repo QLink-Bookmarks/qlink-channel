@@ -17,6 +17,7 @@ function DetailPanelBody({
   className,
   detail,
   error,
+  notFound,
   isLoading,
   onDeleted,
   onOpenChange,
@@ -24,6 +25,7 @@ function DetailPanelBody({
   className?: string;
   detail?: LinkDetail;
   error?: boolean;
+  notFound?: boolean;
   isLoading?: boolean;
   onDeleted?: () => void;
   onOpenChange?: (open: boolean) => void;
@@ -35,6 +37,13 @@ function DetailPanelBody({
           className="h-full"
           description="링크 상세 정보를 불러오는 중이다."
           title="불러오는 중"
+        />
+      ) : notFound ? (
+        <EmptyState
+          className="h-full"
+          emoji="🔍"
+          description="이미 삭제됐거나 잘못된 주소일 수 있어요."
+          title="찾으시는 링크가 없어요"
         />
       ) : error ? (
         <EmptyState
@@ -65,6 +74,7 @@ function DetailPanel({
   open,
   detail,
   error,
+  notFound,
   isLoading,
   mode = "inline",
   onDeleted,
@@ -74,6 +84,7 @@ function DetailPanel({
   open: boolean;
   detail?: LinkDetail;
   error?: boolean;
+  notFound?: boolean;
   isLoading?: boolean;
   mode?: "inline" | "overlay";
   onDeleted?: () => void;
@@ -111,6 +122,7 @@ function DetailPanel({
                 className={cn("shadow-qlink-lg", className)}
                 detail={detail}
                 error={error}
+                notFound={notFound}
                 isLoading={isLoading}
                 onDeleted={onDeleted}
                 onOpenChange={onOpenChange}
@@ -131,6 +143,7 @@ function DetailPanel({
         className={className}
         detail={detail}
         error={error}
+        notFound={notFound}
         isLoading={isLoading}
         onDeleted={onDeleted}
         onOpenChange={onOpenChange}

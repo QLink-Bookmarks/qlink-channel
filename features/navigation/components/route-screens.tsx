@@ -18,7 +18,7 @@ import { useShellRouteState } from "../hooks/use-shell-route-state";
 import { readParamValue } from "../routes";
 import { DummyRouteScreen } from "./dummy-route-screen";
 
-import { useLocalSearchParams } from "expo-router";
+import { type Href, Redirect, useLocalSearchParams } from "expo-router";
 import { BookCopyIcon } from "lucide-react-native";
 
 function WidePlaceholderScreen({
@@ -188,14 +188,10 @@ function LinkDetailRouteScreen() {
     return <LinkDetailScreen linkId={linkId} />;
   }
 
-  return (
-    <DummyRouteScreen
-      title="링크"
-      routePath="/links/[id]"
-      viewMode="wide"
-      description="와이드에서는 링크 목록 문맥을 유지하고 상세 패널만 오버레이로 띄운다."
-    />
-  );
+  // Wide view shows the detail as an overlay over the list, so a direct
+  // /links/[id] hit redirects to the canonical overlay URL (which renders the
+  // link, or a "찾으시는 링크가 없어요" state if it doesn't exist).
+  return <Redirect href={(linkId ? `/links?linkId=${linkId}` : "/links") as Href} />;
 }
 
 function SettingsRouteScreen() {

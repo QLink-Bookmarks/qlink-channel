@@ -109,7 +109,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   // Link title for the mobile detail header (enabled only on /links/[id]).
   const mobileLinkDetailId = /^\/links\/([^/]+)$/.exec(routeState.pathname)?.[1];
   const mobileLinkDetailQuery = useLinkDetailQuery(mobileLinkDetailId);
-  const { detail, error, handleOpenChange, isLoading, isOpen } = useLinkOverlayState({
+  const { detail, error, handleOpenChange, isLoading, isOpen, notFound } = useLinkOverlayState({
     isWideView: routeState.isWideView,
     overlayBaseHref: routeState.overlayBaseHref,
     overlayLinkId: routeState.overlayLinkId,
@@ -503,6 +503,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
         ) : isOpen ? (
           <DetailPanel
             error={error}
+            notFound={notFound}
             isLoading={isLoading}
             mode="overlay"
             open={isOpen}
