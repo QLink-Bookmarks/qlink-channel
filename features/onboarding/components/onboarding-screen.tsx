@@ -660,13 +660,13 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
                 <Text className="text-center text-sm leading-6 text-muted-foreground">
                   {slide.description}
                 </Text>
-                {slide.footnote ? (
-                  <Text className="mt-1 px-2 text-center text-[11px] leading-4 text-muted-foreground/70">
-                    {slide.footnote}
-                  </Text>
-                ) : null}
               </View>
             </View>
+            {slide.footnote ? (
+              <Text className="absolute inset-x-0 bottom-1 px-8 text-center text-[10px] leading-4 text-muted-foreground/60">
+                {slide.footnote}
+              </Text>
+            ) : null}
           </View>
         ))}
       </Animated.ScrollView>
