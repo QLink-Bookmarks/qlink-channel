@@ -91,13 +91,15 @@ function Toast({
             <Button
               className={cn(
                 "mt-2 h-8 min-h-0 self-start rounded-full px-3",
-                isSolidVariant || variant === "gradient" ? "border-white/30" : "border-border",
+                isSolidVariant || variant === "gradient"
+                  ? "border-white/60 bg-transparent"
+                  : "border-border",
               )}
               size="xs"
               variant="outline"
               onPress={onAction}
             >
-              <Text className={titleClassName}>{actionLabel}</Text>
+              <Text className={cn("font-semibold", titleClassName)}>{actionLabel}</Text>
             </Button>
           ) : null}
         </View>

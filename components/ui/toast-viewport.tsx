@@ -71,7 +71,8 @@ function ToastViewport() {
       pointerEvents="box-none"
     >
       <View
-        className={cn("pointer-events-none", isWideView ? "w-full max-w-sm pr-6" : "w-full px-4")}
+        className={cn(isWideView ? "w-full max-w-sm pr-6" : "w-full px-4")}
+        pointerEvents="box-none"
         style={{
           paddingBottom: isWideView
             ? Math.max(insets.bottom, 24)
