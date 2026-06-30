@@ -161,7 +161,7 @@ function DetailPlaceholder({ label }: { label: string }) {
 
 function buildUpdateLinkPayload(
   detail: LinkDetail,
-  overrides: Partial<Pick<UpdateLinkRequest, "memo" | "summary" | "tags">> = {},
+  overrides: Partial<Pick<UpdateLinkRequest, "memo" | "summary" | "tags" | "title">> = {},
 ): UpdateLinkRequest {
   // TODO: Switch link detail field updates to PATCH /api/links/{id} when the server exposes partial update support.
   return {
@@ -169,9 +169,70 @@ function buildUpdateLinkPayload(
     sourceType: detail.sourceType,
     summary: overrides.summary ?? detail.summary,
     tags: overrides.tags ?? detail.tags,
-    title: detail.title,
+    title: overrides.title ?? detail.title,
     url: detail.url,
   };
+}
+
+function LinkEditFields({
+  title,
+  summary,
+  onChangeTitle,
+  onChangeSummary,
+  onCancel,
+  onSave,
+  saving,
+  canSave,
+}: {
+  title: string;
+  summary: string;
+  onChangeTitle: (value: string) => void;
+  onChangeSummary: (value: string) => void;
+  onCancel: () => void;
+  onSave: () => void;
+  saving: boolean;
+  canSave: boolean;
+}) {
+  return (
+    <View className="gap-4">
+      <View className="gap-2">
+        <Text className="text-sm font-semibold text-muted-foreground">제목</Text>
+        <Input
+          className="h-11 rounded-xl px-4 text-base"
+          value={title}
+          maxLength={300}
+          placeholder="링크 제목"
+          onChangeText={onChangeTitle}
+        />
+      </View>
+      <View className="gap-2">
+        <Text className="text-sm font-semibold text-muted-foreground">한 줄 요약</Text>
+        <Textarea
+          className="min-h-24 rounded-xl px-4 py-3 text-base"
+          value={summary}
+          placeholder="한 줄 요약을 입력해주세요"
+          onChangeText={onChangeSummary}
+        />
+      </View>
+      <View className="flex-row gap-3 pt-1">
+        <Button
+          className="h-11 flex-1"
+          variant="outline"
+          disabled={saving}
+          onPress={onCancel}
+        >
+          <Text>취소</Text>
+        </Button>
+        <Button
+          className="h-11 flex-1"
+          disabled={saving || !canSave}
+          onPress={onSave}
+        >
+          {saving ? <ActivityIndicator /> : <Text>저장</Text>}
+        </Button>
+      </View>
+    </View>
+  );
 }
 
 function mergeLinkDetail(base: LinkDetail, incoming: Partial<LinkDetail>): LinkDetail {
@@ -266,7 +327,10 @@ function LinkDetailView({
   const [pendingTagName, setPendingTagName] = React.useState<string | null>(null);
   const [isFolderMoveOpen, setIsFolderMoveOpen] = React.useState(false);
   const [isCopyFolderOpen, setIsCopyFolderOpen] = React.useState(false);
-  const [isEditUnavailableOpen, setIsEditUnavailableOpen] = React.useState(false);
+  const [isEditOpen, setIsEditOpen] = React.useState(false);
+  const [titleDraft, setTitleDraft] = React.useState("");
+  const [summaryDraft, setSummaryDraft] = React.useState("");
+  const [isUnsavedEditOpen, setIsUnsavedEditOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isMemoEditing, setIsMemoEditing] = React.useState(false);
   const [memoDraft, setMemoDraft] = React.useState(detail.memo ?? "");
@@ -641,6 +705,73 @@ function LinkDetailView({
     },
     [copyLinkMutation, detail.folderId, detail.id, navigateToLink, queryClient, showToast],
   );
+
+  const openEditSheet = React.useCallback(() => {
+    setTitleDraft(detail.title);
+    setSummaryDraft(detail.summary ?? "");
+    setIsEditOpen(true);
+  }, [detail.summary, detail.title]);
+
+  const isEditDirty =
+    titleDraft.trim() !== detail.title.trim() ||
+    summaryDraft.trim() !== (detail.summary ?? "").trim();
+
+  const handleSaveEdit = React.useCallback(async () => {
+    const nextTitle = titleDraft.trim();
+    if (!nextTitle) {
+      showToast({
+        title: "제목을 입력해주세요.",
+        variant: "warning",
+        dismissible: true,
+        durationMs: 3000,
+        sourceKey: "link-detail-edit",
+      });
+      return;
+    }
+    try {
+      const response = await updateLinkMutation.mutateAsync(
+        buildUpdateLinkPayload(detail, {
+          summary: summaryDraft.trim() ? summaryDraft.trim() : null,
+          title: nextTitle,
+        }),
+      );
+      handleDetailUpdated(response);
+      setIsUnsavedEditOpen(false);
+      setIsEditOpen(false);
+      showToast({
+        title: "수정했어요.",
+        variant: "success",
+        dismissible: true,
+        durationMs: 3000,
+        sourceKey: "link-detail-edit",
+      });
+    } catch (error: unknown) {
+      reportError(error, { area: "link-detail-view:edit", extra: { linkId: detail.id } });
+      showToast({
+        title: "수정에 실패했어요.",
+        description: "잠시 후 다시 시도해주세요.",
+        variant: "error",
+        dismissible: true,
+        durationMs: 3000,
+        sourceKey: "link-detail-edit",
+      });
+    }
+  }, [detail, handleDetailUpdated, showToast, summaryDraft, titleDraft, updateLinkMutation]);
+
+  // Edits live in a modal, so the user can't scroll away and lose the save
+  // action. If they try to dismiss with unsaved changes, confirm first.
+  const handleRequestCloseEdit = React.useCallback(() => {
+    if (isEditDirty) {
+      setIsUnsavedEditOpen(true);
+      return;
+    }
+    setIsEditOpen(false);
+  }, [isEditDirty]);
+
+  const handleDiscardEdit = React.useCallback(() => {
+    setIsUnsavedEditOpen(false);
+    setIsEditOpen(false);
+  }, []);
 
   const handleDeleteLink = React.useCallback(async () => {
     if (deleteLinkMutation.isPending) {
@@ -1218,7 +1349,7 @@ function LinkDetailView({
                 <ActionButton
                   icon={Pencil}
                   label="수정하기"
-                  onPress={() => setIsEditUnavailableOpen(true)}
+                  onPress={openEditSheet}
                 />
               ) : (
                 <ActionButton
@@ -1299,6 +1430,7 @@ function LinkDetailView({
               showsVerticalScrollIndicator={false}
             >
               <FolderPickerList
+                noneOption={null}
                 filterFolder={(folder) => !folder.isShared}
                 selectedFolderId={null}
                 onSelect={(selection) => handleCopyToPersonalSelect(selection.id)}
@@ -1315,6 +1447,7 @@ function LinkDetailView({
           <View className="gap-3">
             <Text className="text-lg font-semibold text-foreground">개인 폴더로 추가</Text>
             <FolderPickerList
+              noneOption={null}
               filterFolder={(folder) => !folder.isShared}
               selectedFolderId={null}
               onSelect={(selection) => handleCopyToPersonalSelect(selection.id)}
@@ -1407,22 +1540,73 @@ function LinkDetailView({
         </AlertDialogContent>
       </AlertDialog>
 
+      {mode === "panel" ? (
+        <Dialog
+          open={isEditOpen}
+          onOpenChange={(next) => (next ? setIsEditOpen(true) : handleRequestCloseEdit())}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>수정하기</DialogTitle>
+              <DialogDescription>제목과 한 줄 요약을 수정해요.</DialogDescription>
+            </DialogHeader>
+            <LinkEditFields
+              title={titleDraft}
+              summary={summaryDraft}
+              saving={updateLinkMutation.isPending}
+              canSave={isEditDirty}
+              onChangeTitle={setTitleDraft}
+              onChangeSummary={setSummaryDraft}
+              onCancel={handleRequestCloseEdit}
+              onSave={handleSaveEdit}
+            />
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Sheet
+          open={isEditOpen}
+          fitContent
+          onOpenChange={(next) => (next ? setIsEditOpen(true) : handleRequestCloseEdit())}
+        >
+          <View className="gap-3">
+            <Text className="text-lg font-semibold text-foreground">수정하기</Text>
+            <LinkEditFields
+              title={titleDraft}
+              summary={summaryDraft}
+              saving={updateLinkMutation.isPending}
+              canSave={isEditDirty}
+              onChangeTitle={setTitleDraft}
+              onChangeSummary={setSummaryDraft}
+              onCancel={handleRequestCloseEdit}
+              onSave={handleSaveEdit}
+            />
+          </View>
+        </Sheet>
+      )}
+
       <AlertDialog
-        open={isEditUnavailableOpen}
-        onOpenChange={setIsEditUnavailableOpen}
+        open={isUnsavedEditOpen}
+        onOpenChange={setIsUnsavedEditOpen}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>수정하기</AlertDialogTitle>
-            <AlertDialogDescription>UX 추가 예정이에요</AlertDialogDescription>
+            <AlertDialogTitle>저장하지 않은 변경사항이 있어요</AlertDialogTitle>
+            <AlertDialogDescription>변경사항을 저장할까요?</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row justify-center">
-            <AlertDialogAction
-              className="native:px-3 flex-1 justify-center sm:flex-none"
-              onPress={() => setIsEditUnavailableOpen(false)}
+          <AlertDialogFooter className="flex-row justify-end gap-2">
+            <Button
+              variant="outline"
+              disabled={updateLinkMutation.isPending}
+              onPress={handleDiscardEdit}
             >
-              <Text className="text-center">확인</Text>
-            </AlertDialogAction>
+              <Text>저장 안 함</Text>
+            </Button>
+            <Button
+              disabled={updateLinkMutation.isPending}
+              onPress={handleSaveEdit}
+            >
+              {updateLinkMutation.isPending ? <ActivityIndicator /> : <Text>저장</Text>}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
