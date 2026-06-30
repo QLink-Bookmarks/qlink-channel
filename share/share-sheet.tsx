@@ -196,7 +196,10 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
   }, [folderId, model, sharedUrl, title]);
 
   const handleGoToLogin = React.useCallback(() => {
-    openHostApp("login");
+    // Open the host app at root ("" -> qlinkchannel:///), which lands on the
+    // auth splash and shows the login screen when signed out. There is no
+    // "/login" route, so passing "login" would deep-link to a not-found page.
+    openHostApp("");
     close();
   }, []);
 
@@ -215,7 +218,7 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
           북마크 가능한 웹페이지 url이 아니에요
         </Text>
         <Button
-          className="mt-5 h-11 px-6"
+          className="mt-5 h-11 self-center px-6"
           variant="outline"
           onPress={() => close()}
         >
@@ -232,7 +235,7 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
           로그인을 먼저 해주세요
         </Text>
         <Button
-          className="mt-5 h-11 px-6"
+          className="mt-5 h-11 self-center px-6"
           onPress={handleGoToLogin}
         >
           <Text>로그인 하러가기</Text>
