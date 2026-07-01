@@ -1,5 +1,12 @@
 import * as React from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import {
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  View,
+  useWindowDimensions,
+} from "react-native";
 
 import { BrandHeader } from "@/components/layout/brand-header";
 import { LinearGradient } from "@/components/ui/linear-gradient";
@@ -13,17 +20,29 @@ import { useDisplaySettings } from "@/stores/display-settings";
 import { type Href, useRouter } from "expo-router";
 import { vars } from "nativewind";
 
-// Scroll-reveal wrapper (web): fades + slides its children up the first time
-// they enter the viewport. Uses IntersectionObserver directly since this file
-// is web-only.
+type RevealFrom = "up" | "left" | "right" | "scale";
+
+// On mobile every reveal comes from below (no horizontal overflow on narrow
+// screens); the left/right slide only kicks in at md, matching the 2-col layout.
+const HIDDEN_BY: Record<RevealFrom, string> = {
+  up: "translate-y-12",
+  left: "translate-y-8 md:translate-y-0 md:-translate-x-16",
+  right: "translate-y-8 md:translate-y-0 md:translate-x-16",
+  scale: "scale-90",
+};
+
+// Scroll-reveal (web-only): the first time it enters the viewport it eases in
+// from `from` with a snappy expo curve. `delay` staggers siblings.
 function Reveal({
   children,
-  className,
+  from = "up",
   delay = 0,
+  className,
 }: {
   children: React.ReactNode;
-  className?: string;
+  from?: RevealFrom;
   delay?: number;
+  className?: string;
 }) {
   const ref = React.useRef<View>(null);
   const [shown, setShown] = React.useState(false);
@@ -41,7 +60,7 @@ function Reveal({
           observer.disconnect();
         }
       },
-      { threshold: 0.12 },
+      { threshold: 0.25 },
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -51,11 +70,19 @@ function Reveal({
     <View
       ref={ref}
       className={cn(
-        "transition-all duration-700 ease-out",
-        shown ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
+        shown
+          ? "translate-x-0 translate-y-0 scale-100 opacity-100"
+          : `${HIDDEN_BY[from]} opacity-0`,
         className,
       )}
-      style={{ transitionDelay: `${delay}ms` } as object}
+      style={
+        {
+          transitionProperty: "opacity, transform",
+          transitionDuration: "900ms",
+          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+          transitionDelay: `${delay}ms`,
+        } as object
+      }
     >
       {children}
     </View>
@@ -65,7 +92,7 @@ function Reveal({
 function StartButton({ onPress, label }: { onPress: () => void; label: string }) {
   return (
     <Pressable
-      className="relative h-12 items-center justify-center overflow-hidden rounded-2xl px-8 shadow-qlink-sm active:opacity-95 web:hover:opacity-90"
+      className="relative h-12 items-center justify-center overflow-hidden rounded-2xl px-8 shadow-qlink-md active:opacity-95 web:transition-transform web:hover:scale-105"
       onPress={onPress}
     >
       <LinearGradient
@@ -78,96 +105,187 @@ function StartButton({ onPress, label }: { onPress: () => void; label: string })
   );
 }
 
+const SECTION_EYEBROWS: Record<string, string> = {
+  scatter: "문제",
+  organize: "정리",
+  share: "공유",
+  task: "할 일",
+  shared: "함께",
+};
+
+// Vertical progress rail (desktop): a dot per page, the active one stretches.
+function ProgressRail({ total, active }: { total: number; active: number }) {
+  return (
+    <View className="absolute right-6 top-1/2 hidden -translate-y-1/2 gap-2.5 md:flex">
+      {Array.from({ length: total }).map((_, index) => (
+        <View
+          key={index}
+          className={cn(
+            "w-1 rounded-full",
+            index === active ? "h-6 bg-primary" : "bg-border-strong h-1.5",
+          )}
+          style={
+            {
+              transitionProperty: "height, background-color",
+              transitionDuration: "350ms",
+              transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+            } as object
+          }
+        />
+      ))}
+    </View>
+  );
+}
+
 function WebLanding() {
   const router = useRouter();
   const mode = useDisplaySettings((state) => state.display.theme);
   const brandColors = useCycledBrandColors(mode);
+  const { height } = useWindowDimensions();
+  const [active, setActive] = React.useState(0);
   const goLogin = React.useCallback(() => router.push("/login" as Href), [router]);
 
+  const handleScroll = React.useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (height <= 0) return;
+      const next = Math.round(event.nativeEvent.contentOffset.y / height);
+      setActive((prev) => (prev === next ? prev : next));
+    },
+    [height],
+  );
+
   return (
-    <ScrollView
+    <View
       className="flex-1 bg-background"
       style={vars(getNativeThemeVars(mode, "gray"))}
-      contentContainerStyle={{ paddingBottom: 0 }}
-      showsVerticalScrollIndicator={false}
     >
-      <View className="relative items-center gap-6 px-6 pb-20 pt-24 md:pb-28 md:pt-36">
-        <LinearGradient
-          accent="pink"
-          style={{ height: 260, left: 0, opacity: 0.08, position: "absolute", right: 0, top: 0 }}
-          pointerEvents="none"
-        />
-        <Reveal className="w-full items-center gap-5">
-          <View className="rounded-full border border-border bg-card px-3.5 py-1.5">
-            <Text className="font-mono text-xs text-muted-foreground">✦ AI 스마트 북마크</Text>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={handleScroll}
+      >
+        <View className="relative min-h-screen w-full items-center justify-center gap-6 px-6">
+          <LinearGradient
+            accent="pink"
+            style={{
+              height: 360,
+              left: 0,
+              opacity: 0.1,
+              position: "absolute",
+              right: 0,
+              top: 0,
+            }}
+            pointerEvents="none"
+          />
+          <Reveal
+            from="scale"
+            className="w-full items-center gap-6"
+          >
+            <View className="rounded-full border border-border bg-card px-3.5 py-1.5">
+              <Text className="font-mono text-xs text-muted-foreground">✦ AI 스마트 북마크</Text>
+            </View>
+            <BrandHeader
+              size="xl"
+              align="center"
+              colors={brandColors}
+            />
+            <Text className="max-w-md text-center text-lg leading-8 text-muted-foreground md:text-2xl">
+              북마크마저 간편하게, 스마트하게.
+            </Text>
+            <StartButton
+              onPress={goLogin}
+              label="웹으로 시작하기"
+            />
+          </Reveal>
+          <View className="absolute bottom-10 items-center gap-1">
+            <Text className="font-mono text-[11px] text-muted-foreground">scroll</Text>
+            <Text className="text-muted-foreground">↓</Text>
           </View>
-          <BrandHeader
-            size="xl"
-            align="center"
-            colors={brandColors}
-          />
-          <Text className="max-w-md text-center text-lg leading-8 text-muted-foreground md:text-2xl">
-            북마크마저 간편하게, 스마트하게.
-          </Text>
-          <StartButton
-            onPress={goLogin}
-            label="웹으로 시작하기"
-          />
-        </Reveal>
-      </View>
+        </View>
 
-      {SLIDES.map((slide, index) => (
-        <View
-          key={slide.key}
-          className={cn("w-full px-6 py-14 md:py-24", index % 2 === 1 && "bg-card/40")}
-        >
-          <Reveal className="mx-auto w-full max-w-4xl">
+        {SLIDES.map((slide, index) => {
+          const reversed = index % 2 === 1;
+          return (
             <View
+              key={slide.key}
               className={cn(
-                "flex-col items-center gap-10 md:flex-row md:gap-16",
-                index % 2 === 1 && "md:flex-row-reverse",
+                "min-h-screen w-full justify-center overflow-hidden px-6 py-16",
+                reversed && "bg-card/40",
               )}
             >
-              <View className="w-full max-w-sm md:flex-1">{slide.render()}</View>
-              <View className="w-full gap-4 md:flex-1">
-                <Text className="text-center text-2xl font-bold leading-snug text-foreground md:text-left md:text-4xl">
-                  {slide.title}
-                </Text>
-                <Text className="text-center text-base leading-7 text-muted-foreground md:text-left md:text-lg">
-                  {slide.description}
-                </Text>
-                {slide.footnote ? (
-                  <Text className="text-center text-xs leading-4 text-muted-foreground/60 md:text-left">
-                    {slide.footnote}
+              <View
+                className={cn(
+                  "mx-auto w-full max-w-4xl flex-col items-center gap-10 md:flex-row md:gap-16",
+                  reversed && "md:flex-row-reverse",
+                )}
+              >
+                <Reveal
+                  from={reversed ? "right" : "left"}
+                  className="w-full max-w-sm md:flex-1"
+                >
+                  {slide.render()}
+                </Reveal>
+                <Reveal
+                  from={reversed ? "left" : "right"}
+                  delay={140}
+                  className="w-full gap-4 md:flex-1"
+                >
+                  <View className="flex-row items-center justify-center gap-2 md:justify-start">
+                    <Text className="font-mono text-sm font-semibold text-primary">
+                      {String(index + 1).padStart(2, "0")}
+                    </Text>
+                    <View className="bg-border-strong h-px w-6" />
+                    <Text className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                      {SECTION_EYEBROWS[slide.key]}
+                    </Text>
+                  </View>
+                  <Text className="text-center text-2xl font-bold leading-snug text-foreground md:text-left md:text-4xl">
+                    {slide.title}
                   </Text>
-                ) : null}
+                  <Text className="text-center text-base leading-7 text-muted-foreground md:text-left md:text-lg">
+                    {slide.description}
+                  </Text>
+                  {slide.footnote ? (
+                    <Text className="text-center text-xs leading-4 text-muted-foreground/60 md:text-left">
+                      {slide.footnote}
+                    </Text>
+                  ) : null}
+                </Reveal>
               </View>
             </View>
+          );
+        })}
+
+        <View className="min-h-screen w-full items-center justify-center gap-6 px-6">
+          <Reveal
+            from="up"
+            className="w-full items-center gap-6"
+          >
+            <Text className="text-center text-3xl font-extrabold leading-tight text-foreground md:text-5xl">
+              흩어진 북마크,{"\n"}지금 하나로 모아요
+            </Text>
+            <StartButton
+              onPress={goLogin}
+              label="웹으로 시작하기"
+            />
           </Reveal>
+          <View className="absolute inset-x-0 bottom-0 items-center gap-2 border-t border-border px-6 py-10">
+            <Text className="font-mono text-sm text-muted-foreground">큐링크 QLink</Text>
+            <Pressable onPress={() => router.push("/privacy" as Href)}>
+              <Text className="text-xs text-muted-foreground underline web:hover:text-foreground">
+                개인정보처리방침
+              </Text>
+            </Pressable>
+          </View>
         </View>
-      ))}
+      </ScrollView>
 
-      <View className="items-center gap-6 px-6 py-24">
-        <Reveal className="w-full items-center gap-5">
-          <Text className="text-center text-3xl font-extrabold leading-tight text-foreground md:text-5xl">
-            흩어진 북마크,{"\n"}지금 하나로 모아요
-          </Text>
-          <StartButton
-            onPress={goLogin}
-            label="웹으로 시작하기"
-          />
-        </Reveal>
-      </View>
-
-      <View className="items-center gap-2 border-t border-border px-6 py-10">
-        <Text className="font-mono text-sm text-muted-foreground">큐링크 QLink</Text>
-        <Pressable onPress={() => router.push("/privacy" as Href)}>
-          <Text className="text-xs text-muted-foreground underline web:hover:text-foreground">
-            개인정보처리방침
-          </Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+      <ProgressRail
+        total={SLIDES.length + 2}
+        active={active}
+      />
+    </View>
   );
 }
 
