@@ -117,6 +117,31 @@ const SECTION_EYEBROWS: Record<string, string> = {
 const HERO_BG = "bg-[#EFE9FB]";
 const SECTION_BG = ["bg-[#E9ECF3]", "bg-[#E1EDFC]", "bg-[#EEE6FB]", "bg-[#FCEFDE]", "bg-[#DFF3E7]"];
 const FINAL_BG = "bg-[#FBE4EF]";
+const SECTION_BLOB = ["#AEB8D4", "#9CC4F2", "#C4A9EE", "#F2C889", "#8FD9AF"];
+
+// Ambient section backdrop: a big faded number watermark + two soft color
+// blobs. Sits behind the content (overflow-hidden on the section clips it).
+function SectionBackdrop({ index }: { index: number }) {
+  const color = SECTION_BLOB[index % SECTION_BLOB.length];
+  return (
+    <View
+      pointerEvents="none"
+      className="absolute inset-0"
+    >
+      <View
+        className="absolute -left-24 top-12 h-72 w-72 rounded-full"
+        style={{ backgroundColor: color, opacity: 0.16 }}
+      />
+      <View
+        className="absolute -right-24 bottom-8 h-96 w-96 rounded-full"
+        style={{ backgroundColor: color, opacity: 0.12 }}
+      />
+      <Text className="absolute right-4 top-6 font-mono text-[150px] font-bold leading-none text-foreground/[0.045] md:text-[260px]">
+        {String(index + 1).padStart(2, "0")}
+      </Text>
+    </View>
+  );
+}
 
 // Vertical progress rail (desktop): a dot per page, the active one stretches.
 function ProgressRail({ total, active }: { total: number; active: number }) {
@@ -171,7 +196,25 @@ function WebLanding() {
         scrollEventThrottle={16}
         onScroll={handleScroll}
       >
-        <View className={cn("min-h-screen w-full items-center justify-center gap-6 px-6", HERO_BG)}>
+        <View
+          className={cn(
+            "min-h-screen w-full items-center justify-center gap-6 overflow-hidden px-6",
+            HERO_BG,
+          )}
+        >
+          <View
+            pointerEvents="none"
+            className="absolute inset-0"
+          >
+            <View
+              className="absolute -left-20 top-24 h-80 w-80 rounded-full"
+              style={{ backgroundColor: "#C9B8F0", opacity: 0.25 }}
+            />
+            <View
+              className="absolute -right-16 bottom-24 h-96 w-96 rounded-full"
+              style={{ backgroundColor: "#F1C7DE", opacity: 0.22 }}
+            />
+          </View>
           <Reveal
             from="scale"
             className="w-full items-center gap-6"
@@ -208,6 +251,7 @@ function WebLanding() {
                 SECTION_BG[index % SECTION_BG.length],
               )}
             >
+              <SectionBackdrop index={index} />
               <View
                 className={cn(
                   "mx-auto w-full max-w-4xl flex-col items-center gap-10 md:flex-row md:gap-16",
