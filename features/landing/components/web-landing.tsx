@@ -21,12 +21,12 @@ import { vars } from "nativewind";
 
 type RevealFrom = "up" | "left" | "right" | "scale";
 
-// On mobile every reveal comes from below (no horizontal overflow on narrow
-// screens); the left/right slide only kicks in at md, matching the 2-col layout.
+// Everything pops in with a slight scale. On mobile the slide is vertical (no
+// horizontal overflow on narrow screens); the left/right slide kicks in at md.
 const HIDDEN_BY: Record<RevealFrom, string> = {
-  up: "translate-y-12",
-  left: "translate-y-8 md:translate-y-0 md:-translate-x-16",
-  right: "translate-y-8 md:translate-y-0 md:translate-x-16",
+  up: "translate-y-16 scale-95",
+  left: "translate-y-14 scale-95 md:translate-y-0 md:-translate-x-20",
+  right: "translate-y-14 scale-95 md:translate-y-0 md:translate-x-20",
   scale: "scale-90",
 };
 
@@ -77,8 +77,8 @@ function Reveal({
       style={
         {
           transitionProperty: "opacity, transform",
-          transitionDuration: "900ms",
-          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+          transitionDuration: "750ms",
+          transitionTimingFunction: "cubic-bezier(0.34, 1.4, 0.5, 1)",
           transitionDelay: `${delay}ms`,
         } as object
       }
@@ -222,7 +222,7 @@ function WebLanding() {
                 </Reveal>
                 <Reveal
                   from={reversed ? "left" : "right"}
-                  delay={140}
+                  delay={220}
                   className="w-full gap-4 md:flex-1"
                 >
                   <View className="flex-row items-center justify-center gap-2 md:justify-start">
@@ -266,7 +266,7 @@ function WebLanding() {
               label="웹으로 시작하기"
             />
           </Reveal>
-          <View className="absolute inset-x-0 bottom-0 items-center gap-2 border-t border-border px-6 py-10">
+          <View className="absolute inset-x-0 bottom-0 items-center gap-2 border-t border-border bg-background px-6 py-10">
             <Text className="font-mono text-sm text-muted-foreground">큐링크 QLink</Text>
             <Pressable onPress={() => router.push("/privacy" as Href)}>
               <Text className="text-xs text-muted-foreground underline web:hover:text-foreground">
