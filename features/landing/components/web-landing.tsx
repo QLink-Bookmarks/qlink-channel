@@ -112,9 +112,11 @@ const SECTION_EYEBROWS: Record<string, string> = {
   shared: "함께",
 };
 
-// Subtle per-section wash so scrolling reads as moving between distinct pages.
-// Landing is pinned to light mode, so these fixed light tints stay consistent.
-const SECTION_BG = ["bg-[#F5F6F8]", "bg-[#F1F5FC]", "bg-[#F6F2FB]", "bg-[#FBF6EF]", "bg-[#EEF8F2]"];
+// Clear pastel wash per section so scrolling reads as moving between distinct
+// pages. Landing is pinned to light mode, so these fixed tints stay consistent.
+const HERO_BG = "bg-[#EFE9FB]";
+const SECTION_BG = ["bg-[#E9ECF3]", "bg-[#E1EDFC]", "bg-[#EEE6FB]", "bg-[#FCEFDE]", "bg-[#DFF3E7]"];
+const FINAL_BG = "bg-[#FBE4EF]";
 
 // Vertical progress rail (desktop): a dot per page, the active one stretches.
 function ProgressRail({ total, active }: { total: number; active: number }) {
@@ -169,19 +171,7 @@ function WebLanding() {
         scrollEventThrottle={16}
         onScroll={handleScroll}
       >
-        <View className="relative min-h-screen w-full items-center justify-center gap-6 px-6">
-          <LinearGradient
-            accent="pink"
-            style={{
-              height: 360,
-              left: 0,
-              opacity: 0.1,
-              position: "absolute",
-              right: 0,
-              top: 0,
-            }}
-            pointerEvents="none"
-          />
+        <View className={cn("min-h-screen w-full items-center justify-center gap-6 px-6", HERO_BG)}>
           <Reveal
             from="scale"
             className="w-full items-center gap-6"
@@ -261,7 +251,9 @@ function WebLanding() {
           );
         })}
 
-        <View className="min-h-screen w-full items-center justify-center gap-6 bg-[#FBF1F6] px-6">
+        <View
+          className={cn("min-h-screen w-full items-center justify-center gap-6 px-6", FINAL_BG)}
+        >
           <Reveal
             from="up"
             className="w-full items-center gap-6"
