@@ -522,8 +522,7 @@ const SLIDES: Slide[] = [
   {
     key: "share",
     title: "브라우저에서\n간편하게, 스마트하게",
-    description:
-      "보던 페이지를 큐링크로 공유하면 바로 저장,\nAI 요약 저장으로 제목·요약·할 일까지 한 번에.",
+    description: "보던 페이지를 큐링크로 공유하면 바로 저장,\nAI 요약 저장으로 정리까지 한 번에.",
     footnote: "AI 요약 저장 시 페이지의 서비스 정책에 따라 접근·내용 추출이 제한될 수 있어요.",
     render: () => <ShareSlide />,
   },
