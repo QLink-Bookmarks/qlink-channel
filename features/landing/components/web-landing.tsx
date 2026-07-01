@@ -15,7 +15,6 @@ import { useCycledBrandColors } from "@/features/auth/hooks/use-cycled-brand-col
 import { SLIDES } from "@/features/onboarding/components/onboarding-screen";
 import { getNativeThemeVars } from "@/lib/theme-vars";
 import { cn } from "@/lib/utils";
-import { useDisplaySettings } from "@/stores/display-settings";
 
 import { type Href, useRouter } from "expo-router";
 import { vars } from "nativewind";
@@ -113,6 +112,10 @@ const SECTION_EYEBROWS: Record<string, string> = {
   shared: "함께",
 };
 
+// Subtle per-section wash so scrolling reads as moving between distinct pages.
+// Landing is pinned to light mode, so these fixed light tints stay consistent.
+const SECTION_BG = ["bg-[#F5F6F8]", "bg-[#F1F5FC]", "bg-[#F6F2FB]", "bg-[#FBF6EF]", "bg-[#EEF8F2]"];
+
 // Vertical progress rail (desktop): a dot per page, the active one stretches.
 function ProgressRail({ total, active }: { total: number; active: number }) {
   return (
@@ -139,8 +142,9 @@ function ProgressRail({ total, active }: { total: number; active: number }) {
 
 function WebLanding() {
   const router = useRouter();
-  const mode = useDisplaySettings((state) => state.display.theme);
-  const brandColors = useCycledBrandColors(mode);
+  // Landing is always light — it's a marketing surface and keeps the tinted
+  // section backgrounds consistent regardless of the app's theme.
+  const brandColors = useCycledBrandColors("light");
   const { height } = useWindowDimensions();
   const [active, setActive] = React.useState(0);
   const goLogin = React.useCallback(() => router.push("/login" as Href), [router]);
@@ -157,7 +161,7 @@ function WebLanding() {
   return (
     <View
       className="flex-1 bg-background"
-      style={vars(getNativeThemeVars(mode, "gray"))}
+      style={vars(getNativeThemeVars("light", "gray"))}
     >
       <ScrollView
         className="flex-1"
@@ -211,7 +215,7 @@ function WebLanding() {
               key={slide.key}
               className={cn(
                 "min-h-screen w-full justify-center overflow-hidden px-6 py-16",
-                reversed && "bg-card/40",
+                SECTION_BG[index % SECTION_BG.length],
               )}
             >
               <View
@@ -257,7 +261,7 @@ function WebLanding() {
           );
         })}
 
-        <View className="min-h-screen w-full items-center justify-center gap-6 px-6">
+        <View className="min-h-screen w-full items-center justify-center gap-6 bg-[#FBF1F6] px-6">
           <Reveal
             from="up"
             className="w-full items-center gap-6"
