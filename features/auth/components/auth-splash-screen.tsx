@@ -3,6 +3,7 @@ import { View } from "react-native";
 
 import { Text } from "@/components/ui/text";
 import { useAgreementStatus } from "@/features/agreements/hooks/use-agreement-status";
+import { WebLanding } from "@/features/landing/components/web-landing";
 import { OnboardingGate } from "@/features/onboarding/components/onboarding-gate";
 import { useAuthStore } from "@/stores/auth";
 import { useInviteStore } from "@/stores/invite";
@@ -37,7 +38,9 @@ function AuthSplashScreen() {
   const shouldOnboard = isNative && onboardingHasHydrated && !onboardingCompleted;
 
   // Handles the web OAuth `?code=` redirect for any provider (Kakao/Naver).
-  useOauthRedirect();
+  // isProcessing is true mid-exchange, so we hold the checking screen instead of
+  // flashing the landing/login while a token is being minted.
+  const { isProcessing } = useOauthRedirect();
 
   const status: AuthCheckStatus = !hasHydrated
     ? "checking"
@@ -101,8 +104,10 @@ function AuthSplashScreen() {
   if (shouldOnboard) {
     return <OnboardingGate onDone={completeOnboarding} />;
   }
-  if (status === "unauthenticated") {
-    return <LoginPrompt />;
+  if (status === "unauthenticated" && !isProcessing) {
+    // Web logged-out visitors get the marketing landing; native gets the login
+    // screen directly (no landing shipped to the app).
+    return isNative ? <LoginPrompt /> : <WebLanding />;
   }
   return <CheckingScreen />;
 }

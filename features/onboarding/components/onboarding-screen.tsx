@@ -702,4 +702,5 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-export { OnboardingScreen };
+export { OnboardingScreen, SLIDES };
+export type { Slide };
