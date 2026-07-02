@@ -464,15 +464,15 @@ function ShareVisual() {
           >
             news.hada.io
           </Text>
-          <View className="relative size-7 items-center justify-center">
+          <View className="relative size-10 items-center justify-center">
             <Reveal
               from="scale"
               delay={480}
-              className="absolute inset-0 rounded-full bg-white/25"
+              className="absolute inset-0 rounded-full bg-white/30"
             />
             <Icon
               as={Share}
-              className="size-4 text-white"
+              className="size-5 text-white"
             />
           </View>
         </View>
@@ -537,80 +537,57 @@ function ShareVisual() {
   );
 }
 
+// Slide 4 reveals as one card (no per-element stagger).
 function TaskVisual() {
   return (
-    <View className="px-2">
+    <Reveal
+      from="up"
+      className="px-2"
+    >
       <View className="gap-4 rounded-[28px] border border-border bg-card p-5 shadow-qlink-md">
-        <Reveal from="up">
-          <View className="flex-row items-start gap-3">
-            <Favicon
-              url={faviconFor("careers.lg.com")}
-              fallback="L"
-            />
-            <View className="flex-1 gap-1">
-              <Text className="text-xs text-muted-foreground">careers.lg.com</Text>
-              <Text
-                className="text-base font-semibold"
-                numberOfLines={2}
-              >
-                LG CNS 2026 상반기 신입 채용
-              </Text>
-            </View>
-          </View>
-        </Reveal>
-        <Reveal
-          from="up"
-          delay={120}
-        >
-          <View className="rounded-xl bg-primary/10 px-3 py-2">
-            <Text className="text-sm text-foreground">
-              <Text className="text-sm font-semibold text-primary">메모 · </Text>
-              마감 전 포트폴리오 링크 꼭 첨부하기!
+        <View className="flex-row items-start gap-3">
+          <Favicon
+            url={faviconFor("careers.lg.com")}
+            fallback="L"
+          />
+          <View className="flex-1 gap-1">
+            <Text className="text-xs text-muted-foreground">careers.lg.com</Text>
+            <Text
+              className="text-base font-semibold"
+              numberOfLines={2}
+            >
+              LG CNS 2026 상반기 신입 채용
             </Text>
           </View>
-        </Reveal>
+        </View>
+        <View className="rounded-xl bg-primary/10 px-3 py-2">
+          <Text className="text-sm text-foreground">
+            <Text className="text-sm font-semibold text-primary">메모 · </Text>
+            마감 전 포트폴리오 링크 꼭 첨부하기!
+          </Text>
+        </View>
         <View className="gap-3 border-t border-dashed border-border-soft pt-4">
-          <Reveal
-            from="up"
-            delay={220}
-          >
-            <View className="flex-row items-center gap-2">
-              <Badge variant="todo">
-                <Text className="text-xs font-semibold">할 일 2/3 완료</Text>
-              </Badge>
-            </View>
-          </Reveal>
-          <Reveal
-            from="up"
-            delay={300}
-          >
-            <TaskRow
-              text="자기소개서 초안 작성"
-              done
-            />
-          </Reveal>
-          <Reveal
-            from="up"
-            delay={380}
-          >
-            <TaskRow
-              text="포트폴리오 첨부"
-              done
-            />
-          </Reveal>
-          <Reveal
-            from="up"
-            delay={460}
-          >
-            <TaskRow
-              text="지원서 최종 제출"
-              reminderLabel="06/16 09:00"
-              overdue
-            />
-          </Reveal>
+          <View className="flex-row items-center gap-2">
+            <Badge variant="todo">
+              <Text className="text-xs font-semibold">할 일 2/3 완료</Text>
+            </Badge>
+          </View>
+          <TaskRow
+            text="자기소개서 초안 작성"
+            done
+          />
+          <TaskRow
+            text="포트폴리오 첨부"
+            done
+          />
+          <TaskRow
+            text="지원서 최종 제출"
+            reminderLabel="06/16 09:00"
+            overdue
+          />
         </View>
       </View>
-    </View>
+    </Reveal>
   );
 }
 
