@@ -197,15 +197,19 @@ function ShareVisual() {
           >
             news.hada.io
           </Text>
-          <View className="relative size-10 items-center justify-center">
+          {/* Fixed size-5 footprint keeps the bar height stable; the expanding
+              highlight is absolutely positioned so only the icon appears to grow. */}
+          <View className="relative size-5 items-center justify-center">
             <Reveal
               from="scale"
-              delay={480}
-              className="absolute inset-0 rounded-full bg-white/30"
-            />
+              delay={450}
+              className="absolute inset-0 items-center justify-center"
+            >
+              <View className="size-8 rounded-full bg-white/25" />
+            </Reveal>
             <Icon
               as={Share}
-              className="size-5 text-white"
+              className="relative z-10 size-5 text-white"
             />
           </View>
         </View>

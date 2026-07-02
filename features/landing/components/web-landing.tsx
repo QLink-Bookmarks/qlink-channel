@@ -105,6 +105,9 @@ function WebLanding() {
 
         {SLIDES.map((slide, index) => {
           const reversed = index % 2 === 1;
+          // Slide 3 stages its visual (bar → share icon → sheet), so its copy
+          // lands last; other slides bring the copy in alongside the visual.
+          const textDelay = slide.key === "share" ? 950 : 220;
           return (
             <View
               key={slide.key}
@@ -125,7 +128,7 @@ function WebLanding() {
                 </View>
                 <Reveal
                   from={reversed ? "left" : "right"}
-                  delay={220}
+                  delay={textDelay}
                   className="w-full gap-4 md:flex-1"
                 >
                   <Text className="text-center text-2xl font-bold leading-snug text-foreground md:text-left md:text-4xl">
