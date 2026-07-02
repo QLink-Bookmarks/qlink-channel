@@ -180,8 +180,86 @@ function OrganizeVisual() {
   );
 }
 
-// Slide 3 — the browser bar appears, the share button lights up (hover/active
-// highlight), then the QLink share-extension sheet rises up from below.
+// Flips to `active` a beat after the node scrolls into view — drives the
+// share-button's not-active → active transition.
+function useActivateInView(delay: number) {
+  const ref = React.useRef<View>(null);
+  const [active, setActive] = React.useState(false);
+
+  React.useEffect(() => {
+    const node = ref.current as unknown as Element | null;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      setActive(true);
+      return;
+    }
+    let timer: ReturnType<typeof setTimeout>;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          timer = setTimeout(() => setActive(true), delay);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 },
+    );
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
+  }, [delay]);
+
+  return { ref, active };
+}
+
+const SHARE_TRANSITION = {
+  transitionProperty: "opacity, transform",
+  transitionDuration: "420ms",
+  transitionTimingFunction: "cubic-bezier(0.34, 1.4, 0.5, 1)",
+};
+
+// The share icon keeps a thin size-5 footprint (bar stays slim). Both the icon
+// and its halo are absolute, so on activate the icon itself scales up and the
+// highlight pops in without pushing the bar taller.
+function ShareButton() {
+  const { ref, active } = useActivateInView(600);
+  return (
+    <View
+      ref={ref}
+      className="relative size-5 items-center justify-center"
+    >
+      <View
+        className="absolute inset-0 items-center justify-center"
+        style={
+          {
+            ...SHARE_TRANSITION,
+            opacity: active ? 1 : 0,
+            transform: [{ scale: active ? 1 : 0.4 }],
+          } as object
+        }
+      >
+        <View className="size-9 rounded-full bg-white/25" />
+      </View>
+      <View
+        className="absolute inset-0 items-center justify-center"
+        style={
+          {
+            ...SHARE_TRANSITION,
+            transform: [{ scale: active ? 1.5 : 1 }],
+          } as object
+        }
+      >
+        <Icon
+          as={Share}
+          className="size-5 text-white"
+        />
+      </View>
+    </View>
+  );
+}
+
+// Slide 3 — the browser bar appears, the share icon itself scales up into an
+// active highlight, then the QLink share-extension sheet rises up from below.
 function ShareVisual() {
   return (
     <View className="gap-3">
@@ -197,21 +275,7 @@ function ShareVisual() {
           >
             news.hada.io
           </Text>
-          {/* Only the share button grows on active — the halo is absolute so the
-              search text/sparkles stay put; the bar just gains a touch of height. */}
-          <View className="relative size-7 items-center justify-center">
-            <Reveal
-              from="scale"
-              delay={450}
-              className="absolute inset-0 items-center justify-center"
-            >
-              <View className="size-9 rounded-full bg-white/25" />
-            </Reveal>
-            <Icon
-              as={Share}
-              className="relative z-10 size-6 text-white"
-            />
-          </View>
+          <ShareButton />
         </View>
       </Reveal>
       <Reveal
