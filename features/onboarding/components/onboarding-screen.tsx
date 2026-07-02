@@ -17,207 +17,87 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Favicon } from "@/components/ui/favicon";
 import { Icon } from "@/components/ui/icon";
 import { LinearGradient } from "@/components/ui/linear-gradient";
 import { Text } from "@/components/ui/text";
 import { LinkCard } from "@/features/links/components/link-card/link-card";
 import { getNativeThemeVars } from "@/lib/theme-vars";
-import { cn } from "@/lib/utils";
 import { useDisplaySettings } from "@/stores/display-settings";
 
-import { AlarmClock, Search, Share, Sparkles } from "lucide-react-native/icons";
+import {
+  BookmarkCard,
+  BrowserDot,
+  ChecklistRow,
+  FolderChip,
+  MemberAvatar,
+  SheetChip,
+  faviconFor,
+} from "./slide-primitives";
+
+import { Search, Share, Sparkles } from "lucide-react-native/icons";
 import { vars } from "nativewind";
-
-function faviconFor(domain: string) {
-  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-}
-
-// A single scattered bookmark, tilted at a random-ish angle.
-function MessyCard({
-  className,
-  rotate,
-  faviconUrl,
-  fallback,
-  tint,
-  title,
-}: {
-  className?: string;
-  rotate: string;
-  faviconUrl?: string;
-  fallback: string;
-  tint?: string;
-  title: string;
-}) {
-  return (
-    <View
-      className={cn(
-        "absolute w-48 flex-row items-center gap-2.5 rounded-2xl border border-border-soft bg-card px-3 py-2.5 shadow-qlink-md",
-        className,
-      )}
-      style={{ transform: [{ rotate }] }}
-    >
-      <View
-        className={cn(
-          "size-7 items-center justify-center overflow-hidden rounded-lg bg-muted",
-          tint,
-        )}
-      >
-        {faviconUrl ? (
-          <Favicon
-            url={faviconUrl}
-            fallback={fallback}
-            size="sm"
-          />
-        ) : (
-          <Text className="text-sm">{fallback}</Text>
-        )}
-      </View>
-      <Text
-        className="flex-1 text-xs font-semibold text-foreground"
-        numberOfLines={1}
-      >
-        {title}
-      </Text>
-    </View>
-  );
-}
-
-// A scattered browser icon dot, hinting at "saved all over the place".
-function BrowserDot({
-  className,
-  rotate,
-  fallback,
-  tint,
-}: {
-  className?: string;
-  rotate: string;
-  fallback: string;
-  tint: string;
-}) {
-  return (
-    <View
-      className={cn(
-        "absolute size-8 items-center justify-center rounded-full shadow-qlink-sm",
-        tint,
-        className,
-      )}
-      style={{ transform: [{ rotate }] }}
-    >
-      <Text className="text-xs font-bold text-white">{fallback}</Text>
-    </View>
-  );
-}
 
 function ScatterSlide() {
   return (
     <View className="h-80">
-      <MessyCard
-        className="left-0 top-1"
+      <BookmarkCard
+        className="absolute left-0 top-1 w-48"
         rotate="-7deg"
         fallback="📁"
         title="Mobile Bookmarks"
       />
-      <MessyCard
-        className="right-0 top-16"
+      <BookmarkCard
+        className="absolute right-0 top-16 w-48"
         rotate="6deg"
         faviconUrl={faviconFor("brunch.co.kr")}
         fallback="B"
         title="일잘러 되는 법"
       />
-      <MessyCard
-        className="left-0 top-32"
+      <BookmarkCard
+        className="absolute left-0 top-32 w-48"
         rotate="3deg"
         faviconUrl={faviconFor("youtube.com")}
         fallback="Y"
         title="공부할 때 듣기 좋은 플리"
       />
-      <MessyCard
-        className="right-0 top-48"
+      <BookmarkCard
+        className="absolute right-0 top-48 w-48"
         rotate="-5deg"
         faviconUrl={faviconFor("google.com")}
         fallback="G"
         title="제주 3박4일 코스"
       />
-      <MessyCard
-        className="left-3 top-64"
+      <BookmarkCard
+        className="absolute left-3 top-64 w-48"
         rotate="7deg"
         fallback="🔥"
         title="갖고 싶은 신발"
       />
       <BrowserDot
-        className="right-8 top-1"
+        className="absolute right-8 top-1"
         rotate="-10deg"
         fallback="S"
         tint="bg-[#1E90FF]"
       />
       <BrowserDot
-        className="left-36 top-24"
+        className="absolute left-36 top-24"
         rotate="8deg"
         fallback="C"
         tint="bg-[#F4B400]"
       />
       <BrowserDot
-        className="left-2 top-52"
+        className="absolute left-2 top-52"
         rotate="-6deg"
         fallback="N"
         tint="bg-[#03C75A]"
       />
       <BrowserDot
-        className="right-10 top-72"
+        className="absolute right-10 top-72"
         rotate="9deg"
         fallback="W"
         tint="bg-[#4B5563]"
       />
-    </View>
-  );
-}
-
-function ChecklistRow({
-  text,
-  done,
-  reminderLabel,
-  overdue,
-}: {
-  text: string;
-  done?: boolean;
-  reminderLabel?: string;
-  overdue?: boolean;
-}) {
-  return (
-    <View className="flex-row items-center gap-3">
-      <Checkbox
-        checked={done ?? false}
-        disabled
-        shape="round"
-        size="sm"
-        onCheckedChange={() => {}}
-      />
-      <Text
-        className={cn("flex-1 text-sm", done && "text-muted-foreground line-through")}
-        numberOfLines={1}
-      >
-        {text}
-      </Text>
-      {reminderLabel ? (
-        <View
-          className={cn(
-            "flex-row items-center gap-1 rounded-full px-3 py-1.5",
-            overdue ? "bg-destructive/10" : "bg-primary/10",
-          )}
-        >
-          <Icon
-            as={AlarmClock}
-            className={cn("size-3.5", overdue ? "text-destructive" : "text-primary")}
-          />
-          <Text
-            className={cn("text-xs font-semibold", overdue ? "text-destructive" : "text-primary")}
-          >
-            {reminderLabel}
-          </Text>
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -272,26 +152,6 @@ function TaskSlide() {
   );
 }
 
-function FolderChip({ label, active }: { label: string; active?: boolean }) {
-  return (
-    <View
-      className={cn(
-        "rounded-full border px-3.5 py-1.5",
-        active ? "border-primary bg-primary" : "border-border bg-card",
-      )}
-    >
-      <Text
-        className={cn(
-          "text-sm font-semibold",
-          active ? "text-primary-foreground" : "text-muted-foreground",
-        )}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
-
 function OrganizeSlide() {
   return (
     <View className="gap-3.5">
@@ -325,26 +185,6 @@ function OrganizeSlide() {
         title="제주 3박4일 여행 코스 총정리"
         tags={["#여행코스", "#뚜벅이"]}
       />
-    </View>
-  );
-}
-
-function SheetChip({ label, active }: { label: string; active?: boolean }) {
-  return (
-    <View
-      className={cn(
-        "rounded-full border px-3 py-1.5",
-        active ? "border-foreground bg-foreground" : "border-border bg-background",
-      )}
-    >
-      <Text
-        className={cn(
-          "text-xs font-semibold",
-          active ? "text-background" : "text-muted-foreground",
-        )}
-      >
-        {label}
-      </Text>
     </View>
   );
 }
@@ -420,28 +260,6 @@ function ShareSlide() {
           </View>
         </View>
       </View>
-    </View>
-  );
-}
-
-function MemberAvatar({
-  emoji,
-  tint,
-  overlap,
-}: {
-  emoji: string;
-  tint: string;
-  overlap?: boolean;
-}) {
-  return (
-    <View
-      className={cn(
-        "size-10 items-center justify-center rounded-full border-2 border-card",
-        tint,
-        overlap && "-ml-3",
-      )}
-    >
-      <Text className="text-lg">{emoji}</Text>
     </View>
   );
 }
