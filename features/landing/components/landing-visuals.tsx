@@ -238,7 +238,7 @@ function ShareButton() {
           } as object
         }
       >
-        <View className="size-9 rounded-full bg-white/25" />
+        <View className="size-10 rounded-full bg-white/25" />
       </View>
       <View
         className="absolute inset-0 items-center justify-center"
