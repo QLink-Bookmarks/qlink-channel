@@ -44,7 +44,7 @@ function Reveal({
   delay = 0,
   className,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   from?: RevealFrom;
   delay?: number;
   className?: string;
@@ -110,14 +110,6 @@ function StartButton({ onPress, label }: { onPress: () => void; label: string })
   );
 }
 
-const SECTION_EYEBROWS: Record<string, string> = {
-  scatter: "문제",
-  organize: "정리",
-  share: "공유",
-  task: "할 일",
-  shared: "함께",
-};
-
 // Clear pastel wash per section so scrolling reads as moving between distinct
 // pages. Landing is pinned to light mode, so these fixed tints stay consistent.
 const HERO_BG = "bg-[#EFE9FB]";
@@ -178,23 +170,40 @@ function ProgressRail({ total, active }: { total: number; active: number }) {
 // reveals in sequence as the section scrolls into view (web-only).
 const faviconFor = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
 
-function FolderChip({ label, active }: { label: string; active?: boolean }) {
-  return (
-    <View
+function FolderChip({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active?: boolean;
+  onPress?: () => void;
+}) {
+  const className = cn(
+    "rounded-full border px-3.5 py-1.5",
+    active ? "border-primary bg-primary" : "border-border bg-card",
+    onPress && "web:transition-transform web:hover:scale-105",
+  );
+  const content = (
+    <Text
       className={cn(
-        "rounded-full border px-3.5 py-1.5",
-        active ? "border-primary bg-primary" : "border-border bg-card",
+        "text-sm font-semibold",
+        active ? "text-primary-foreground" : "text-muted-foreground",
       )}
     >
-      <Text
-        className={cn(
-          "text-sm font-semibold",
-          active ? "text-primary-foreground" : "text-muted-foreground",
-        )}
-      >
-        {label}
-      </Text>
-    </View>
+      {label}
+    </Text>
+  );
+  if (!onPress) {
+    return <View className={className}>{content}</View>;
+  }
+  return (
+    <Pressable
+      className={cn(className, "active:opacity-90")}
+      onPress={onPress}
+    >
+      {content}
+    </Pressable>
   );
 }
 
@@ -355,7 +364,37 @@ function ScatterVisual() {
   );
 }
 
+const ORGANIZE_FOLDERS = [
+  {
+    key: "맛집",
+    label: "🍜 맛집",
+    links: [
+      { domain: "map.naver.com", title: "성수 브런치 맛집 지도", tags: ["#성수", "#브런치"] },
+      { domain: "instagram.com", title: "요즘 핫한 이자카야 릴스", tags: ["#이자카야", "#릴스"] },
+    ],
+  },
+  {
+    key: "플리",
+    label: "🎧 플리",
+    links: [
+      { domain: "youtube.com", title: "공부할 때 듣기 좋은 플리", tags: ["#집중", "#lofi"] },
+      { domain: "spotify.com", title: "드라이브 감성 플레이리스트", tags: ["#드라이브", "#감성"] },
+    ],
+  },
+  {
+    key: "여행",
+    label: "✈️ 여행",
+    links: [
+      { domain: "maps.google.com", title: "제주 3박4일 여행 코스", tags: ["#제주", "#뚜벅이"] },
+      { domain: "airbnb.co.kr", title: "애월 감성 숙소 모음", tags: ["#숙소", "#애월"] },
+    ],
+  },
+];
+
 function OrganizeVisual() {
+  const [selected, setSelected] = React.useState(ORGANIZE_FOLDERS[0].key);
+  const folder = ORGANIZE_FOLDERS.find((item) => item.key === selected) ?? ORGANIZE_FOLDERS[0];
+
   return (
     <View className="gap-3.5">
       <Reveal from="up">
@@ -364,7 +403,7 @@ function OrganizeVisual() {
             as={Search}
             className="size-4 text-muted-foreground"
           />
-          <Text className="text-sm text-muted-foreground">제주</Text>
+          <Text className="text-sm text-muted-foreground">저장한 링크 검색</Text>
         </View>
       </Reveal>
       <Reveal
@@ -373,80 +412,71 @@ function OrganizeVisual() {
       >
         <View className="flex-row flex-wrap gap-2">
           <FolderChip label="전체" />
-          <FolderChip label="🍜 맛집" />
-          <FolderChip label="🎧 플리" />
-          <FolderChip
-            label="✈️ 여행"
-            active
-          />
+          {ORGANIZE_FOLDERS.map((item) => (
+            <FolderChip
+              key={item.key}
+              label={item.label}
+              active={item.key === selected}
+              onPress={() => setSelected(item.key)}
+            />
+          ))}
         </View>
       </Reveal>
-      <Reveal
-        from="up"
-        delay={220}
+      {/* Keyed by folder so switching remounts the cards and replays their reveal. */}
+      <View
+        key={folder.key}
+        className="gap-3.5"
       >
-        <LinkCard
-          className="shadow-qlink-md"
-          domain="google.com"
-          faviconUrl={faviconFor("google.com")}
-          title="제주 맛집 지도 — 저장한 장소"
-          tags={["#제주", "#맛집"]}
-        />
-      </Reveal>
-      <Reveal
-        from="up"
-        delay={320}
-      >
-        <LinkCard
-          className="shadow-qlink-md"
-          domain="tistory.com"
-          faviconUrl={faviconFor("tistory.com")}
-          title="제주 3박4일 여행 코스 총정리"
-          tags={["#여행코스", "#뚜벅이"]}
-        />
-      </Reveal>
+        {folder.links.map((link, index) => (
+          <Reveal
+            key={link.domain}
+            from="up"
+            delay={index === 0 ? 0 : 110}
+          >
+            <LinkCard
+              className="shadow-qlink-md"
+              domain={link.domain}
+              faviconUrl={faviconFor(link.domain)}
+              title={link.title}
+              tags={link.tags}
+            />
+          </Reveal>
+        ))}
+      </View>
     </View>
   );
 }
 
-// Slide 3 — the browser bar appears, a tap ripple lands on the share button, then
-// the QLink share-extension sheet rises up from below.
+// Slide 3 — the browser bar appears, the share button lights up (hover/active
+// highlight), then the QLink share-extension sheet rises up from below.
 function ShareVisual() {
   return (
     <View className="gap-3">
-      <View className="relative">
-        <Reveal from="up">
-          <View className="w-full flex-row items-center gap-2.5 rounded-full bg-[#48484A] px-4 py-3">
-            <Icon
-              as={Sparkles}
-              className="size-4 text-white"
+      <Reveal from="up">
+        <View className="w-full flex-row items-center gap-2.5 rounded-full bg-[#48484A] px-4 py-3">
+          <Icon
+            as={Sparkles}
+            className="size-4 text-white"
+          />
+          <Text
+            className="flex-1 text-center text-sm font-semibold text-white"
+            numberOfLines={1}
+          >
+            news.hada.io
+          </Text>
+          <View className="relative size-7 items-center justify-center">
+            <Reveal
+              from="scale"
+              delay={480}
+              className="absolute inset-0 rounded-full bg-white/25"
             />
-            <Text
-              className="flex-1 text-center text-sm font-semibold text-white"
-              numberOfLines={1}
-            >
-              news.hada.io
-            </Text>
             <Icon
               as={Share}
               className="size-4 text-white"
             />
           </View>
-        </Reveal>
-        <View
-          pointerEvents="none"
-          className="absolute right-2 top-1/2 -translate-y-1/2"
-        >
-          <Reveal
-            from="scale"
-            delay={440}
-          >
-            <View className="size-10 items-center justify-center rounded-full border-2 border-white/70 bg-white/10">
-              <View className="size-2.5 rounded-full bg-white" />
-            </View>
-          </Reveal>
         </View>
-      </View>
+      </Reveal>
       <Reveal
         from="up"
         delay={700}
@@ -789,12 +819,6 @@ function WebLanding() {
                   delay={220}
                   className="w-full gap-4 md:flex-1"
                 >
-                  <View className="flex-row items-center justify-center gap-2 md:justify-start">
-                    <View className="bg-border-strong h-px w-6" />
-                    <Text className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                      {SECTION_EYEBROWS[slide.key]}
-                    </Text>
-                  </View>
                   <Text className="text-center text-2xl font-bold leading-snug text-foreground md:text-left md:text-4xl">
                     {slide.title}
                   </Text>
@@ -813,8 +837,24 @@ function WebLanding() {
         })}
 
         <View
-          className={cn("min-h-screen w-full items-center justify-center gap-6 px-6", FINAL_BG)}
+          className={cn(
+            "min-h-screen w-full items-center justify-center gap-6 overflow-hidden px-6",
+            FINAL_BG,
+          )}
         >
+          <View
+            pointerEvents="none"
+            className="absolute inset-0"
+          >
+            <View
+              className="absolute -left-24 top-16 h-80 w-80 rounded-full"
+              style={{ backgroundColor: "#F1A8CE", opacity: 0.18 }}
+            />
+            <View
+              className="absolute -right-20 bottom-20 h-96 w-96 rounded-full"
+              style={{ backgroundColor: "#E0A9EE", opacity: 0.16 }}
+            />
+          </View>
           <Reveal
             from="up"
             className="w-full items-center gap-6"
