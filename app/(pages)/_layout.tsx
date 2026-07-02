@@ -1,9 +1,25 @@
+import { useAgreementStatus } from "@/features/agreements/hooks/use-agreement-status";
 import { ResponsiveShell } from "@/features/navigation/components/responsive-shell";
+import { useAuthStore } from "@/stores/auth";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
-import { Slot } from "expo-router";
+import { type Href, Redirect, Slot } from "expo-router";
 
 export default function PagesLayout() {
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { needsAgreement, hasResolved } = useAgreementStatus();
+
+  // Logged-out visitors who deep-link into an app page (anything but root) land
+  // on /login — the marketing landing only lives at "/".
+  if (hasHydrated && !accessToken) {
+    return <Redirect href={"/login" as Href} />;
+  }
+  // Signed in but required consent still pending → force the agreements gate.
+  if (hasHydrated && accessToken && hasResolved && needsAgreement) {
+    return <Redirect href={"/agreements" as Href} />;
+  }
+
   return (
     <BottomSheetModalProvider>
       <ResponsiveShell>

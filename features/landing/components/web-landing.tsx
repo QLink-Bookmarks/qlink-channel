@@ -9,14 +9,20 @@ import {
 } from "react-native";
 
 import { BrandHeader } from "@/components/layout/brand-header";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Favicon } from "@/components/ui/favicon";
+import { Icon } from "@/components/ui/icon";
 import { LinearGradient } from "@/components/ui/linear-gradient";
 import { Text } from "@/components/ui/text";
 import { useCycledBrandColors } from "@/features/auth/hooks/use-cycled-brand-colors";
+import { LinkCard } from "@/features/links/components/link-card/link-card";
 import { SLIDES } from "@/features/onboarding/components/onboarding-screen";
 import { getNativeThemeVars } from "@/lib/theme-vars";
 import { cn } from "@/lib/utils";
 
 import { type Href, useRouter } from "expo-router";
+import { AlarmClock, Search, Share, Sparkles } from "lucide-react-native/icons";
 import { vars } from "nativewind";
 
 type RevealFrom = "up" | "left" | "right" | "scale";
@@ -167,6 +173,523 @@ function ProgressRail({ total, active }: { total: number; active: number }) {
   );
 }
 
+// Landing-specific animated recreations of the onboarding visuals. The onboarding
+// SLIDES render statically inside a native pager; here each internal element
+// reveals in sequence as the section scrolls into view (web-only).
+const faviconFor = (domain: string) => `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+function FolderChip({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <View
+      className={cn(
+        "rounded-full border px-3.5 py-1.5",
+        active ? "border-primary bg-primary" : "border-border bg-card",
+      )}
+    >
+      <Text
+        className={cn(
+          "text-sm font-semibold",
+          active ? "text-primary-foreground" : "text-muted-foreground",
+        )}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function SheetChip({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <View
+      className={cn(
+        "rounded-full border px-3 py-1.5",
+        active ? "border-foreground bg-foreground" : "border-border bg-background",
+      )}
+    >
+      <Text
+        className={cn(
+          "text-xs font-semibold",
+          active ? "text-background" : "text-muted-foreground",
+        )}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function TaskRow({
+  text,
+  done,
+  reminderLabel,
+  overdue,
+}: {
+  text: string;
+  done?: boolean;
+  reminderLabel?: string;
+  overdue?: boolean;
+}) {
+  return (
+    <View className="flex-row items-center gap-3">
+      <Checkbox
+        checked={done ?? false}
+        disabled
+        shape="round"
+        size="sm"
+        onCheckedChange={() => {}}
+      />
+      <Text
+        className={cn("flex-1 text-sm", done && "text-muted-foreground line-through")}
+        numberOfLines={1}
+      >
+        {text}
+      </Text>
+      {reminderLabel ? (
+        <View
+          className={cn(
+            "flex-row items-center gap-1 rounded-full px-3 py-1.5",
+            overdue ? "bg-destructive/10" : "bg-primary/10",
+          )}
+        >
+          <Icon
+            as={AlarmClock}
+            className={cn("size-3.5", overdue ? "text-destructive" : "text-primary")}
+          />
+          <Text
+            className={cn("text-xs font-semibold", overdue ? "text-destructive" : "text-primary")}
+          >
+            {reminderLabel}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+const SCATTER_CARDS = [
+  { pos: "left-0 top-1", rotate: "-7deg", fallback: "📁", title: "Mobile Bookmarks" },
+  {
+    pos: "right-0 top-16",
+    rotate: "6deg",
+    faviconUrl: faviconFor("brunch.co.kr"),
+    fallback: "B",
+    title: "일잘러 되는 법",
+  },
+  {
+    pos: "left-0 top-32",
+    rotate: "3deg",
+    faviconUrl: faviconFor("youtube.com"),
+    fallback: "Y",
+    title: "공부할 때 듣기 좋은 플리",
+  },
+  {
+    pos: "right-0 top-48",
+    rotate: "-5deg",
+    faviconUrl: faviconFor("google.com"),
+    fallback: "G",
+    title: "제주 3박4일 코스",
+  },
+  { pos: "left-3 top-64", rotate: "7deg", fallback: "🔥", title: "갖고 싶은 신발" },
+];
+
+const SCATTER_DOTS = [
+  { pos: "right-8 top-1", rotate: "-10deg", fallback: "S", tint: "bg-[#1E90FF]" },
+  { pos: "left-36 top-24", rotate: "8deg", fallback: "C", tint: "bg-[#F4B400]" },
+  { pos: "left-2 top-52", rotate: "-6deg", fallback: "N", tint: "bg-[#03C75A]" },
+  { pos: "right-10 top-72", rotate: "9deg", fallback: "W", tint: "bg-[#4B5563]" },
+];
+
+function ScatterVisual() {
+  return (
+    <View className="h-80">
+      {SCATTER_DOTS.map((dot, index) => (
+        <Reveal
+          key={`dot-${index}`}
+          from="scale"
+          delay={index * 80}
+          className={cn("absolute", dot.pos)}
+        >
+          <View
+            className={cn(
+              "size-8 items-center justify-center rounded-full shadow-qlink-sm",
+              dot.tint,
+            )}
+            style={{ transform: [{ rotate: dot.rotate }] }}
+          >
+            <Text className="text-xs font-bold text-white">{dot.fallback}</Text>
+          </View>
+        </Reveal>
+      ))}
+      {SCATTER_CARDS.map((card, index) => (
+        <Reveal
+          key={`card-${index}`}
+          from="scale"
+          delay={140 + index * 120}
+          className={cn("absolute w-48", card.pos)}
+        >
+          <View
+            className="w-full flex-row items-center gap-2.5 rounded-2xl border border-border-soft bg-card px-3 py-2.5 shadow-qlink-md"
+            style={{ transform: [{ rotate: card.rotate }] }}
+          >
+            <View className="size-7 items-center justify-center overflow-hidden rounded-lg bg-muted">
+              {card.faviconUrl ? (
+                <Favicon
+                  url={card.faviconUrl}
+                  fallback={card.fallback}
+                  size="sm"
+                />
+              ) : (
+                <Text className="text-sm">{card.fallback}</Text>
+              )}
+            </View>
+            <Text
+              className="flex-1 text-xs font-semibold text-foreground"
+              numberOfLines={1}
+            >
+              {card.title}
+            </Text>
+          </View>
+        </Reveal>
+      ))}
+    </View>
+  );
+}
+
+function OrganizeVisual() {
+  return (
+    <View className="gap-3.5">
+      <Reveal from="up">
+        <View className="flex-row items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 shadow-qlink-sm">
+          <Icon
+            as={Search}
+            className="size-4 text-muted-foreground"
+          />
+          <Text className="text-sm text-muted-foreground">제주</Text>
+        </View>
+      </Reveal>
+      <Reveal
+        from="up"
+        delay={110}
+      >
+        <View className="flex-row flex-wrap gap-2">
+          <FolderChip label="전체" />
+          <FolderChip label="🍜 맛집" />
+          <FolderChip label="🎧 플리" />
+          <FolderChip
+            label="✈️ 여행"
+            active
+          />
+        </View>
+      </Reveal>
+      <Reveal
+        from="up"
+        delay={220}
+      >
+        <LinkCard
+          className="shadow-qlink-md"
+          domain="google.com"
+          faviconUrl={faviconFor("google.com")}
+          title="제주 맛집 지도 — 저장한 장소"
+          tags={["#제주", "#맛집"]}
+        />
+      </Reveal>
+      <Reveal
+        from="up"
+        delay={320}
+      >
+        <LinkCard
+          className="shadow-qlink-md"
+          domain="tistory.com"
+          faviconUrl={faviconFor("tistory.com")}
+          title="제주 3박4일 여행 코스 총정리"
+          tags={["#여행코스", "#뚜벅이"]}
+        />
+      </Reveal>
+    </View>
+  );
+}
+
+// Slide 3 — the browser bar appears, a tap ripple lands on the share button, then
+// the QLink share-extension sheet rises up from below.
+function ShareVisual() {
+  return (
+    <View className="gap-3">
+      <View className="relative">
+        <Reveal from="up">
+          <View className="w-full flex-row items-center gap-2.5 rounded-full bg-[#48484A] px-4 py-3">
+            <Icon
+              as={Sparkles}
+              className="size-4 text-white"
+            />
+            <Text
+              className="flex-1 text-center text-sm font-semibold text-white"
+              numberOfLines={1}
+            >
+              news.hada.io
+            </Text>
+            <Icon
+              as={Share}
+              className="size-4 text-white"
+            />
+          </View>
+        </Reveal>
+        <View
+          pointerEvents="none"
+          className="absolute right-2 top-1/2 -translate-y-1/2"
+        >
+          <Reveal
+            from="scale"
+            delay={440}
+          >
+            <View className="size-10 items-center justify-center rounded-full border-2 border-white/70 bg-white/10">
+              <View className="size-2.5 rounded-full bg-white" />
+            </View>
+          </Reveal>
+        </View>
+      </View>
+      <Reveal
+        from="up"
+        delay={700}
+      >
+        <View className="gap-3.5 rounded-[28px] border border-border bg-card p-5 shadow-qlink-md">
+          <View className="h-1 w-10 self-center rounded-full bg-muted" />
+          <View className="gap-0.5">
+            <Text
+              className="text-sm font-bold text-foreground"
+              numberOfLines={1}
+            >
+              news.hada.io/topic?id=42
+            </Text>
+            <Text
+              className="text-xs text-muted-foreground"
+              numberOfLines={1}
+            >
+              아이디어부터 앱스토어까지 — 1인 개발 회고
+            </Text>
+          </View>
+          <View className="gap-2">
+            <Text className="text-xs font-medium text-muted-foreground">폴더</Text>
+            <View className="flex-row flex-wrap gap-2">
+              <SheetChip
+                label="✨ AI 자동 분류"
+                active
+              />
+              <SheetChip label="💻 개발" />
+              <SheetChip label="📰 읽을거리" />
+            </View>
+          </View>
+          <View className="gap-2">
+            <Text className="text-xs font-medium text-muted-foreground">AI 모델</Text>
+            <View className="flex-row gap-2">
+              <SheetChip
+                label="Gemini · 기본"
+                active
+              />
+              <SheetChip label="OpenAI" />
+            </View>
+          </View>
+          <View className="flex-row gap-3 pt-1">
+            <View className="h-11 flex-1 items-center justify-center rounded-2xl border border-border bg-background">
+              <Text className="text-sm font-semibold text-foreground">저장</Text>
+            </View>
+            <View className="relative h-11 flex-1 items-center justify-center overflow-hidden rounded-2xl">
+              <LinearGradient
+                accent="pink"
+                style={{ bottom: 0, left: 0, position: "absolute", right: 0, top: 0 }}
+                pointerEvents="none"
+              />
+              <Text className="text-sm font-semibold text-primary-foreground">AI 요약 저장</Text>
+            </View>
+          </View>
+        </View>
+      </Reveal>
+    </View>
+  );
+}
+
+function TaskVisual() {
+  return (
+    <View className="px-2">
+      <View className="gap-4 rounded-[28px] border border-border bg-card p-5 shadow-qlink-md">
+        <Reveal from="up">
+          <View className="flex-row items-start gap-3">
+            <Favicon
+              url={faviconFor("careers.lg.com")}
+              fallback="L"
+            />
+            <View className="flex-1 gap-1">
+              <Text className="text-xs text-muted-foreground">careers.lg.com</Text>
+              <Text
+                className="text-base font-semibold"
+                numberOfLines={2}
+              >
+                LG CNS 2026 상반기 신입 채용
+              </Text>
+            </View>
+          </View>
+        </Reveal>
+        <Reveal
+          from="up"
+          delay={120}
+        >
+          <View className="rounded-xl bg-primary/10 px-3 py-2">
+            <Text className="text-sm text-foreground">
+              <Text className="text-sm font-semibold text-primary">메모 · </Text>
+              마감 전 포트폴리오 링크 꼭 첨부하기!
+            </Text>
+          </View>
+        </Reveal>
+        <View className="gap-3 border-t border-dashed border-border-soft pt-4">
+          <Reveal
+            from="up"
+            delay={220}
+          >
+            <View className="flex-row items-center gap-2">
+              <Badge variant="todo">
+                <Text className="text-xs font-semibold">할 일 2/3 완료</Text>
+              </Badge>
+            </View>
+          </Reveal>
+          <Reveal
+            from="up"
+            delay={300}
+          >
+            <TaskRow
+              text="자기소개서 초안 작성"
+              done
+            />
+          </Reveal>
+          <Reveal
+            from="up"
+            delay={380}
+          >
+            <TaskRow
+              text="포트폴리오 첨부"
+              done
+            />
+          </Reveal>
+          <Reveal
+            from="up"
+            delay={460}
+          >
+            <TaskRow
+              text="지원서 최종 제출"
+              reminderLabel="06/16 09:00"
+              overdue
+            />
+          </Reveal>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const SHARED_AVATARS = [
+  { emoji: "🧑🏻‍💻", tint: "bg-[#7B61FF]", overlap: false },
+  { emoji: "👩🏻", tint: "bg-[#EC4899]", overlap: true },
+  { emoji: "🧑🏻‍🦱", tint: "bg-[#F59E0B]", overlap: true },
+];
+
+function SharedVisual() {
+  return (
+    <View className="gap-4">
+      <View className="items-center gap-2">
+        <View className="flex-row">
+          {SHARED_AVATARS.map((avatar, index) => (
+            <Reveal
+              key={index}
+              from="scale"
+              delay={index * 110}
+              className={cn(avatar.overlap && "-ml-3")}
+            >
+              <View
+                className={cn(
+                  "size-10 items-center justify-center rounded-full border-2 border-card",
+                  avatar.tint,
+                )}
+              >
+                <Text className="text-lg">{avatar.emoji}</Text>
+              </View>
+            </Reveal>
+          ))}
+          <Reveal
+            from="scale"
+            delay={330}
+            className="-ml-3"
+          >
+            <View className="size-10 items-center justify-center rounded-full border-2 border-card bg-muted">
+              <Text className="text-xs font-bold text-muted-foreground">+2</Text>
+            </View>
+          </Reveal>
+        </View>
+        <Reveal
+          from="up"
+          delay={430}
+        >
+          <Text className="text-xs font-medium text-muted-foreground">
+            친구 5명과 함께 채우는 중
+          </Text>
+        </Reveal>
+      </View>
+      <Reveal
+        from="up"
+        delay={520}
+      >
+        <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-qlink-sm">
+          <View className="size-9 items-center justify-center rounded-xl bg-muted">
+            <Text className="text-lg">✈️</Text>
+          </View>
+          <View className="min-w-0 flex-1">
+            <Text className="text-base font-bold text-foreground">제주 여행 같이 가자</Text>
+            <Text className="text-xs text-muted-foreground">공유 폴더</Text>
+          </View>
+        </View>
+      </Reveal>
+      <Reveal
+        from="up"
+        delay={620}
+      >
+        <LinkCard
+          className="shadow-qlink-md"
+          domain="google.com"
+          faviconUrl={faviconFor("google.com")}
+          title="제주 맛집 지도 저장 목록"
+          tags={["#맛집", "#같이가요"]}
+        />
+      </Reveal>
+      <Reveal
+        from="up"
+        delay={700}
+      >
+        <LinkCard
+          className="shadow-qlink-md"
+          domain="airbnb.co.kr"
+          faviconUrl={faviconFor("airbnb.co.kr")}
+          title="애월 감성 숙소 모음"
+          tags={["#숙소", "#애월"]}
+        />
+      </Reveal>
+    </View>
+  );
+}
+
+function LandingVisual({ slideKey }: { slideKey: string }) {
+  switch (slideKey) {
+    case "scatter":
+      return <ScatterVisual />;
+    case "organize":
+      return <OrganizeVisual />;
+    case "share":
+      return <ShareVisual />;
+    case "task":
+      return <TaskVisual />;
+    case "shared":
+      return <SharedVisual />;
+    default:
+      return null;
+  }
+}
+
 function WebLanding() {
   const router = useRouter();
   // Landing is always light — it's a marketing surface and keeps the tinted
@@ -258,21 +781,15 @@ function WebLanding() {
                   reversed && "md:flex-row-reverse",
                 )}
               >
-                <Reveal
-                  from={reversed ? "right" : "left"}
-                  className="w-full max-w-sm md:flex-1"
-                >
-                  {slide.render()}
-                </Reveal>
+                <View className="w-full max-w-sm md:flex-1">
+                  <LandingVisual slideKey={slide.key} />
+                </View>
                 <Reveal
                   from={reversed ? "left" : "right"}
                   delay={220}
                   className="w-full gap-4 md:flex-1"
                 >
                   <View className="flex-row items-center justify-center gap-2 md:justify-start">
-                    <Text className="font-mono text-sm font-semibold text-primary">
-                      {String(index + 1).padStart(2, "0")}
-                    </Text>
                     <View className="bg-border-strong h-px w-6" />
                     <Text className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
                       {SECTION_EYEBROWS[slide.key]}

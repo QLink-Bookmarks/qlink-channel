@@ -151,7 +151,6 @@ function AppStack() {
         </Stack.Protected>
 
         <Stack.Protected guard={!needsAgreement}>
-          <Stack.Screen name="(pages)" />
           <Stack.Screen
             name="qr-scan"
             options={{
@@ -163,6 +162,11 @@ function AppStack() {
           />
         </Stack.Protected>
       </Stack.Protected>
+
+      {/* (pages) stays unguarded here so a logged-out deep-link into any app page
+          actually mounts and its layout can redirect to /login (root shows the
+          marketing landing instead). Auth + agreement gating lives in PagesLayout. */}
+      <Stack.Screen name="(pages)" />
     </Stack>
   );
 }
