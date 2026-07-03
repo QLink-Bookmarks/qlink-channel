@@ -52,7 +52,7 @@ export function SectionBackdrop({ index }: { index: number }) {
         style={{ backgroundColor: color, opacity: 0.12 }}
       />
       <Text className="absolute right-4 top-6 font-mono text-[150px] font-bold leading-none text-foreground/[0.045] md:text-[260px]">
-        {String(index + 1).padStart(2, "0")}
+        {`A${index + 1}`}
       </Text>
     </View>
   );

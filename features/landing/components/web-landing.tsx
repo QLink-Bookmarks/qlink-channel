@@ -177,7 +177,7 @@ function WebLanding() {
             className="w-full items-center gap-6"
           >
             <Text className="text-center text-3xl font-extrabold leading-tight text-foreground md:text-5xl">
-              흩어진 북마크,{"\n"}이제는 하나로 아카이브
+              흩어진 북마크,{"\n"}이제는 하나로 Archive
             </Text>
             <StartButton
               onPress={goLogin}
