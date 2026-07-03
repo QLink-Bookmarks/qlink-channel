@@ -8,6 +8,7 @@ import { Text } from "@/components/ui/text";
 import { type AccentName, type ThemeMode, getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { useDisplaySettings } from "@/stores/display-settings";
+import { useSheetTracker } from "@/stores/sheet-tracker";
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -128,6 +129,17 @@ function Sheet({
       sheetRef.current?.dismiss();
       wasOpenRef.current = false;
     }
+  }, [open]);
+
+  // Register this sheet as open so global chrome (mobile FAB) can hide while any
+  // sheet is up. Cleanup fires on close and on unmount, keeping the count honest.
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const { registerOpen, registerClose } = useSheetTracker.getState();
+    registerOpen();
+    return registerClose;
   }, [open]);
   const sheetTokens = React.useMemo(
     () => getThemeTokens(resolvedMode, resolvedAccent),

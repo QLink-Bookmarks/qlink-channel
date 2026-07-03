@@ -30,6 +30,7 @@ import { useCreateFolderSheet } from "@/stores/create-folder-sheet";
 import { useDisplaySettings } from "@/stores/display-settings";
 import { useHomeSearchFocus } from "@/stores/home-search-focus";
 import { useSearchDialog } from "@/stores/search-dialog";
+import { useAnySheetOpen } from "@/stores/sheet-tracker";
 
 import { useAddLinkSheet } from "../hooks/use-add-link-sheet";
 import { useLinkOverlayState } from "../hooks/use-link-overlay-state";
@@ -83,6 +84,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const accent = useDisplaySettings((state) => state.display.accent);
   const theme = useDisplaySettings((state) => state.display.theme);
   const isCreateFolderSheetOpen = useCreateFolderSheet((state) => state.isOpen);
+  const isAnySheetOpen = useAnySheetOpen();
   const setAccent = useDisplaySettings((state) => state.setAccent);
   const setTheme = useDisplaySettings((state) => state.setTheme);
   const isSearchDialogOpen = useSearchDialog((state) => state.isOpen);
@@ -616,7 +618,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
       <View className="flex-1">
         <RouteErrorBoundary resetKeys={[routeState.pathname]}>{children}</RouteErrorBoundary>
       </View>
-      {showMobileFab && !isAddLinkSheetOpen && !isCreateFolderSheetOpen ? (
+      {showMobileFab && !isAnySheetOpen && !isAddLinkSheetOpen && !isCreateFolderSheetOpen ? (
         <Fab
           bottomOffset={96}
           icon={Plus}
