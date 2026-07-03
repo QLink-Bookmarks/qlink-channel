@@ -139,7 +139,7 @@ function AgreementsScreen() {
               <View className="gap-2">
                 <Text className="text-2xl font-bold text-foreground">서비스 이용 동의</Text>
                 <Text className="text-[15px] leading-7 text-muted-foreground">
-                  큐링크 이용을 위해 아래 필수 항목에 동의해주세요.
+                  에이링크 이용을 위해 아래 필수 항목에 동의해주세요.
                 </Text>
               </View>
               <View className="gap-5">

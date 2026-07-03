@@ -15,7 +15,7 @@ const meta = {
     },
   },
   args: {
-    label: "QLINK",
+    label: "ALINK",
   },
   decorators: [
     (Story) => (
@@ -33,11 +33,11 @@ type Story = StoryObj<typeof meta>;
 export const Basic: Story = {
   name: "기본",
   args: {
-    label: "QLINK",
+    label: "ALINK",
   },
   render: () => (
     <>
-      <ShortcutTile label="QLINK" />
+      <ShortcutTile label="ALINK" />
       <ShortcutTile
         label="삭제"
         removable

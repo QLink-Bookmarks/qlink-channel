@@ -15,7 +15,7 @@ const sizeClasses: Record<BrandHeaderSize, string> = {
 
 function BrandHeader({
   className,
-  title = "QLINK",
+  title = "ALINK",
   size = "md",
   align = "start",
   accent,

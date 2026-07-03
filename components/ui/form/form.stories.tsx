@@ -73,7 +73,7 @@ function TextFieldStory() {
           name="title"
           label="Project title"
           description="Use a short label for the channel."
-          placeholder="QLink roadmap"
+          placeholder="ALink roadmap"
         />
       </View>
     </FormProvider>

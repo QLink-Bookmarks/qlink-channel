@@ -259,7 +259,7 @@ function ShareButton() {
 }
 
 // Slide 3 — the browser bar appears, the share icon itself scales up into an
-// active highlight, then the QLink share-extension sheet rises up from below.
+// active highlight, then the ALink share-extension sheet rises up from below.
 function ShareVisual() {
   return (
     <View className="gap-3">

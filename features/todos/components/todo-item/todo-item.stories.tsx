@@ -10,7 +10,7 @@ const meta = {
   title: "기능/할 일/할 일 항목",
   component: TodoItem,
   args: {
-    text: "QLINK 테마 토큰 검토",
+    text: "ALINK 테마 토큰 검토",
     badge: "오늘",
     visibility: "public",
     done: false,

@@ -16,7 +16,7 @@ const meta = {
     },
   },
   args: {
-    title: "QLINK",
+    title: "ALINK",
   },
   argTypes: {
     title: { control: "text" },

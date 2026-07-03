@@ -116,7 +116,7 @@ function AnimatedSplash() {
       </View>
 
       <BrandHeader
-        title="QLINK"
+        title="ALINK"
         size="lg"
         align="center"
         colors={BRAND_COLORS}

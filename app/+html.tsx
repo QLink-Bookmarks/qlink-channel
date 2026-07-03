@@ -15,10 +15,10 @@ export default function Root({ children }: { children: React.ReactNode }) {
           name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
-        <title>큐링크 QLink — 북마크마저 간편하게, 스마트하게</title>
+        <title>에이링크 ALink — AI가 도와주는 북마크 아카이브</title>
         <meta
           name="description"
-          content="여기저기 흩어진 북마크를 한 곳에. 저장은 간편하게. 정리는 스마트하게 🧐"
+          content="저장은 간편하게, 정리는 스마트하게 🧐 AI가 도와주는 북마크 아카이브"
         />
         <meta
           name="theme-color"
@@ -30,11 +30,11 @@ export default function Root({ children }: { children: React.ReactNode }) {
         />
         <meta
           property="og:title"
-          content="큐링크 QLink — 북마크마저 간편하게, 스마트하게"
+          content="에이링크 ALink — AI가 도와주는 북마크 아카이브"
         />
         <meta
           property="og:description"
-          content="여기저기 흩어진 북마크를 한 곳에. 저장은 간편하게. 정리는 스마트하게 🧐"
+          content="저장은 간편하게, 정리는 스마트하게 🧐 AI가 도와주는 북마크 아카이브"
         />
         <meta
           property="og:image"

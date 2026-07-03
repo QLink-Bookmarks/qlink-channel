@@ -9,7 +9,7 @@ const meta = {
   title: "공통 UI/그라디언트 텍스트",
   component: GradientText,
   args: {
-    children: "QLINK",
+    children: "ALINK",
     variant: "title",
   },
   argTypes: {
@@ -53,7 +53,7 @@ export const Variants: Story = {
         accent={(context.globals.accent ?? "gray") as AccentName}
         mode={(context.globals.mode ?? "light") as ThemeMode}
       >
-        QLINK
+        ALINK
       </GradientText>
       <GradientText
         variant="title"

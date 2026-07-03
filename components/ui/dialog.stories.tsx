@@ -46,7 +46,7 @@ export const Basic: Story = {
           <DialogTitle>프로필 수정</DialogTitle>
           <DialogDescription>앱 전체에서 사용할 표시 이름을 수정한다.</DialogDescription>
         </DialogHeader>
-        <Input defaultValue="QLINK 팀" />
+        <Input defaultValue="ALINK 팀" />
         <DialogFooter>
           <DialogClose asChild>
             <Button>

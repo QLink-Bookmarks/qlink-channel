@@ -12,7 +12,7 @@ let initialized = false;
 function ensureInitialized() {
   if (initialized) return;
   NaverLogin.initialize({
-    appName: "QLink",
+    appName: "ALink",
     consumerKey: process.env.EXPO_PUBLIC_NAVER_CLIENT_ID ?? "",
     consumerSecret: process.env.EXPO_PUBLIC_NAVER_CLIENT_SECRET ?? "",
     serviceUrlSchemeIOS: process.env.EXPO_PUBLIC_NAVER_URL_SCHEME ?? "",

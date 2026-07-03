@@ -2,7 +2,7 @@ const SHARE_PHRASES = [
   "이 추천해요!",
   "의 유익한 링크에요!",
   "의 북마크 한 번 보실래요?",
-  "의 큐링크!",
+  "의 에이링크!",
   "의 오늘의 발견!",
   "이 골라봤어요!",
   "이 좋아하는 링크에요!",
@@ -11,7 +11,7 @@ const SHARE_PHRASES = [
   "의 픽이에요!",
 ] as const;
 
-const SHARE_TITLE = "QLINK 링크 공유";
+const SHARE_TITLE = "ALINK 링크 공유";
 
 type BuildShareTextInput = {
   nickname: string;

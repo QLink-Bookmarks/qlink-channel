@@ -55,7 +55,7 @@ export const Variants: Story = {
         >
           <CardHeader>
             <CardTitle>{variant}</CardTitle>
-            <CardDescription>QLINK 카드 변형</CardDescription>
+            <CardDescription>ALINK 카드 변형</CardDescription>
           </CardHeader>
         </Card>
       ))}

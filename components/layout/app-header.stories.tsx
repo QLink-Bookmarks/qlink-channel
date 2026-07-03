@@ -26,7 +26,7 @@ function AppHeaderStory({
       title={title}
       back={back}
       transparent={transparent}
-      leftSlot={showLeftSlot ? <Text className="font-semibold">QLINK</Text> : undefined}
+      leftSlot={showLeftSlot ? <Text className="font-semibold">ALINK</Text> : undefined}
       rightSlot={
         showRightSlot ? (
           <Button size="sm">
@@ -50,7 +50,7 @@ const meta = {
     },
   },
   args: {
-    title: "QLINK",
+    title: "ALINK",
     back: true,
     transparent: false,
     showLeftSlot: false,

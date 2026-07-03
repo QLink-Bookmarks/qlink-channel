@@ -189,7 +189,7 @@ function OrganizeSlide() {
   );
 }
 
-// Recreates the QLink iOS share-extension sheet — the moment a page is shared in.
+// Recreates the ALink iOS share-extension sheet — the moment a page is shared in.
 function ShareSlide() {
   return (
     <View className="gap-3">
@@ -318,6 +318,7 @@ function SharedFolderSlide() {
 
 type Slide = {
   key: string;
+  subject: string;
   title: string;
   description: string;
   footnote?: string;
@@ -327,31 +328,36 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     key: "scatter",
+    subject: "All Around",
     title: "이게 여기 있었나?",
     description: "각종 브라우저에, 폰에, 회사 PC에…\n저장만 하고 잊어버리게 되는 북마크.",
     render: () => <ScatterSlide />,
   },
   {
     key: "organize",
-    title: "흩어진 링크,\n큐링크에서 하나로",
+    subject: "Archive",
+    title: "흩어진 링크,\n에이링크에서 하나로",
     description: "이제 기억하는 것도, 헤매는 것도 그만.\n폴더로 모으고, 검색으로 찾고.",
     render: () => <OrganizeSlide />,
   },
   {
     key: "share",
-    title: "브라우저에서\n간편하게, 스마트하게",
-    description: "보던 페이지를 큐링크로 공유하면 바로 저장,\nAI 요약 저장으로 정리까지 한 번에.",
+    subject: "AI",
+    title: "모바일 브라우저에서\n간편하게, 스마트하게",
+    description: "보던 페이지를 에이링크로 공유하면 바로 저장,\nAI 요약 저장으로 정리까지 한 번에.",
     footnote: "AI 요약 저장 시 페이지의 서비스 정책에 따라 접근·내용 추출이 제한될 수 있어요.",
     render: () => <ShareSlide />,
   },
   {
     key: "task",
+    subject: "Action",
     title: "저장하고, 행동까지.",
     description: "북마크에 할 일과 알림을 더해\n저장을 넘어 행동까지.",
     render: () => <TaskSlide />,
   },
   {
     key: "shared",
+    subject: "Amigo",
     title: "같이 모으면\n더 좋으니까",
     description: "친구·팀과 폴더를 공유하고\n링크를 함께 채워가요.",
     render: () => <SharedFolderSlide />,
@@ -471,9 +477,14 @@ function OnboardingScreen({ onDone }: { onDone: () => void }) {
             <View className="gap-8">
               {slide.render()}
               <View className="gap-3">
-                <Text className="text-center text-2xl font-bold leading-snug text-foreground">
-                  {slide.title}
-                </Text>
+                <View className="items-center gap-1.5">
+                  <Text className="text-xs font-bold uppercase tracking-widest text-primary">
+                    {slide.subject}
+                  </Text>
+                  <Text className="text-center text-2xl font-bold leading-snug text-foreground">
+                    {slide.title}
+                  </Text>
+                </View>
                 <Text className="text-center text-sm leading-6 text-muted-foreground">
                   {slide.description}
                 </Text>

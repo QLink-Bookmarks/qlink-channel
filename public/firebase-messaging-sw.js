@@ -23,7 +23,7 @@ if (!configParam) {
       // for data-only payloads so we never show a duplicate.
       if (payload.notification) return;
       const data = payload.data || {};
-      const title = data.title || "큐링크";
+      const title = data.title || "에이링크";
       const body = data.message || data.body || "";
       if (!data.title && !body) return;
       self.registration.showNotification(title, {

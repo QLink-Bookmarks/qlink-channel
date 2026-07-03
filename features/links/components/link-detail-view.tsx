@@ -610,7 +610,7 @@ function LinkDetailView({
   }, [detail, handleDetailUpdated, queryClient, setFavoriteMutation]);
 
   const handleShare = React.useCallback(async () => {
-    const nickname = myProfileQuery.data?.nickname?.trim() || "QLINKer";
+    const nickname = myProfileQuery.data?.nickname?.trim() || "ALINKer";
     const payload = buildShareText({
       nickname,
       linkTitle: detail.title,

@@ -138,13 +138,13 @@ export function PrivacyPolicyScreen() {
       >
         <View className="mx-auto w-full max-w-2xl gap-7">
           <Text className="text-[15px] leading-7 text-muted-foreground">
-            큐링크는 개인 개발자가 운영하는 링크·QR 북마크 서비스로, 관련 법령에 따라 이용자의
-            개인정보가 안전하게 관리됩니다. 본 방침은 큐링크에서 개인정보가 어떻게 처리되는지를
+            에이링크는 개인 개발자가 운영하는 링크·QR 북마크 서비스로, 관련 법령에 따라 이용자의
+            개인정보가 안전하게 관리됩니다. 본 방침은 에이링크에서 개인정보가 어떻게 처리되는지를
             안내합니다.
           </Text>
 
           <Section title="제1조 (수집하는 개인정보 항목)">
-            <Paragraph>큐링크에선 서비스 제공에 필요한 최소한의 정보만 수집됩니다.</Paragraph>
+            <Paragraph>에이링크에선 서비스 제공에 필요한 최소한의 정보만 수집됩니다.</Paragraph>
             <NumberedList
               items={[
                 {
@@ -172,7 +172,7 @@ export function PrivacyPolicyScreen() {
           </Section>
 
           <Section title="제2조 (개인정보의 이용 목적)">
-            <Paragraph>큐링크에선 수집된 개인정보가 다음 목적으로만 이용됩니다.</Paragraph>
+            <Paragraph>에이링크에선 수집된 개인정보가 다음 목적으로만 이용됩니다.</Paragraph>
             <NumberedList
               items={[
                 { body: "소셜 로그인을 통한 회원 식별 및 서비스 제공" },
@@ -186,7 +186,7 @@ export function PrivacyPolicyScreen() {
 
           <Section title="제3조 (개인정보 처리의 위탁 및 국외 이전)">
             <Paragraph>
-              큐링크에선 서비스 운영을 위하여 다음과 같이 개인정보 처리가 위탁되고 있으며, 일부는
+              에이링크에선 서비스 운영을 위하여 다음과 같이 개인정보 처리가 위탁되고 있으며, 일부는
               국외로 이전됩니다. 위탁된 정보는 처리 목적이 달성되거나 회원이 탈퇴하면 파기되며, 국외
               이전은 서비스 이용 시점에 정보통신망을 통해 이루어집니다.
             </Paragraph>
@@ -197,7 +197,7 @@ export function PrivacyPolicyScreen() {
             <NumberedList
               items={[
                 {
-                  body: "큐링크에선 별도의 보유기간을 두지 않으며, 회원이 탈퇴하면 보유 중인 개인정보가 지체 없이 파기됩니다.",
+                  body: "에이링크에선 별도의 보유기간을 두지 않으며, 회원이 탈퇴하면 보유 중인 개인정보가 지체 없이 파기됩니다.",
                 },
                 { body: "전자적 파일 형태의 정보는 복구할 수 없는 방법으로 삭제됩니다." },
               ]}
@@ -219,21 +219,21 @@ export function PrivacyPolicyScreen() {
 
           <Section title="제6조 (만 14세 미만 아동의 개인정보)">
             <Paragraph>
-              큐링크에선 만 14세 미만 아동의 개인정보가 수집되지 않으며, 만 14세 이상의 이용자에
+              에이링크에선 만 14세 미만 아동의 개인정보가 수집되지 않으며, 만 14세 이상의 이용자에
               한하여 서비스 이용이 허용됩니다.
             </Paragraph>
           </Section>
 
           <Section title="제7조 (개인정보의 안전성 확보 조치)">
             <Paragraph>
-              큐링크에선 개인정보의 분실·도난·유출·변조·훼손을 방지하기 위하여 접근 권한 관리,
+              에이링크에선 개인정보의 분실·도난·유출·변조·훼손을 방지하기 위하여 접근 권한 관리,
               데이터의 암호화 전송, 보안 시스템 운영 등 필요한 조치가 이루어집니다.
             </Paragraph>
           </Section>
 
           <Section title="제8조 (쿠키 등 자동 수집 장치)">
             <Paragraph>
-              큐링크에선 웹에서 로그인 유지를 위해 쿠키가 사용됩니다. 이용자는 웹브라우저 설정을
+              에이링크에선 웹에서 로그인 유지를 위해 쿠키가 사용됩니다. 이용자는 웹브라우저 설정을
               통해 쿠키 저장을 거부할 수 있으며, 이 경우 로그인이 필요한 일부 기능 이용에 제한이
               있을 수 있습니다.
             </Paragraph>
@@ -241,7 +241,7 @@ export function PrivacyPolicyScreen() {
 
           <Section title="제9조 (개인정보 보호책임자)">
             <Paragraph>
-              큐링크에선 개인정보 처리에 관한 업무를 총괄하고 이용자의 문의·불만을 처리하기 위하여
+              에이링크에선 개인정보 처리에 관한 업무를 총괄하고 이용자의 문의·불만을 처리하기 위하여
               개인정보 보호책임자를 두고 있습니다.
             </Paragraph>
             <View className="gap-1 rounded-xl border border-border bg-muted/40 px-4 py-3">

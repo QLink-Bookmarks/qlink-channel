@@ -82,7 +82,7 @@ function WebLanding() {
             className="w-full items-center gap-6"
           >
             <View className="rounded-full border border-border bg-card px-3.5 py-1.5">
-              <Text className="font-mono text-xs text-muted-foreground">✦ AI 스마트 북마크</Text>
+              <Text className="font-mono text-xs text-muted-foreground">✦ AI 북마크 아카이브</Text>
             </View>
             <BrandHeader
               size="xl"
@@ -90,7 +90,7 @@ function WebLanding() {
               colors={brandColors}
             />
             <Text className="max-w-md text-center text-lg leading-8 text-muted-foreground md:text-2xl">
-              북마크마저 간편하게, 스마트하게.
+              AI가 도와주는 북마크 아카이브.
             </Text>
             <StartButton
               onPress={goLogin}
@@ -131,9 +131,14 @@ function WebLanding() {
                   delay={textDelay}
                   className="w-full gap-4 md:flex-1"
                 >
-                  <Text className="text-center text-2xl font-bold leading-snug text-foreground md:text-left md:text-4xl">
-                    {slide.title}
-                  </Text>
+                  <View className="items-center gap-1.5 md:items-start">
+                    <Text className="text-xs font-bold uppercase tracking-widest text-primary">
+                      {slide.subject}
+                    </Text>
+                    <Text className="text-center text-2xl font-bold leading-snug text-foreground md:text-left md:text-4xl">
+                      {slide.title}
+                    </Text>
+                  </View>
                   <Text className="text-center text-base leading-7 text-muted-foreground md:text-left md:text-lg">
                     {slide.description}
                   </Text>
@@ -172,7 +177,7 @@ function WebLanding() {
             className="w-full items-center gap-6"
           >
             <Text className="text-center text-3xl font-extrabold leading-tight text-foreground md:text-5xl">
-              흩어진 북마크,{"\n"}지금 하나로 모아요
+              흩어진 북마크,{"\n"}이제는 하나로 아카이브
             </Text>
             <StartButton
               onPress={goLogin}
@@ -180,7 +185,7 @@ function WebLanding() {
             />
           </Reveal>
           <View className="absolute inset-x-0 bottom-0 items-center gap-2 border-t border-border bg-background px-6 py-10">
-            <Text className="font-mono text-sm text-muted-foreground">큐링크 QLink</Text>
+            <Text className="font-mono text-sm text-muted-foreground">에이링크 ALink</Text>
             <Pressable onPress={() => router.push("/privacy" as Href)}>
               <Text className="text-xs text-muted-foreground underline web:hover:text-foreground">
                 개인정보처리방침

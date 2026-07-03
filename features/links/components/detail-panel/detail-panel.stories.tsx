@@ -44,7 +44,7 @@ const meta = {
     detail: {
       id: 1,
       url: "https://qlink.app/reference",
-      title: "QLINK 컴포넌트 시스템",
+      title: "ALINK 컴포넌트 시스템",
       summary: "저장한 링크의 요약, 태그, 액션을 확인하는 상세 미리보기다.",
       tags: ["레퍼런스", "디자인"],
       memo: "와이드 상세 패널 스토리북용 메모다.",
