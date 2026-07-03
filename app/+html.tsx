@@ -3,6 +3,12 @@ import * as React from "react";
 import { ScrollViewStyleReset } from "expo-router/html";
 
 export default function Root({ children }: { children: React.ReactNode }) {
+  // OG tags must be absolute URLs (KakaoTalk/Facebook won't resolve relative
+  // paths). The image filename is versioned so social/CDN caches fetch fresh
+  // instead of serving the previously-cached bytes at the same URL.
+  const webHost = process.env.EXPO_PUBLIC_WEB_APP_HOST || "dev.qlinkapps.com";
+  const siteUrl = `https://${webHost}/`;
+  const ogImage = `https://${webHost}/og-image-v2.png`;
   return (
     <html lang="ko">
       <head>
@@ -29,6 +35,10 @@ export default function Root({ children }: { children: React.ReactNode }) {
           content="website"
         />
         <meta
+          property="og:url"
+          content={siteUrl}
+        />
+        <meta
           property="og:title"
           content="에이링크 ALink — AI가 도와주는 북마크 아카이브"
         />
@@ -38,7 +48,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         />
         <meta
           property="og:image"
-          content="/og-image.png"
+          content={ogImage}
         />
         <meta
           property="og:image:width"
@@ -51,6 +61,10 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta
           name="twitter:card"
           content="summary_large_image"
+        />
+        <meta
+          name="twitter:image"
+          content={ogImage}
         />
         <script
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.9/kakao.min.js"
