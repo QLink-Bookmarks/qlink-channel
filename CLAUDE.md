@@ -120,7 +120,7 @@ const isStorybookVite = typeof process !== "undefined" && process.env.STORYBOOK_
 ## API Server Connection
 
 - Regardless of the BASE_URL in the env var, check `http://localhost:8080/openapi` for API info.
-- If local server is not alive, check `https://dev.api.qlinkapps.com/openapi`.
+- If local server is not alive, check `https://dev.api.archivelink.app/openapi`.
 
 ## References
 

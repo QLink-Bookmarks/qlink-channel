@@ -6,11 +6,11 @@ const appVariant = process.env.APP_VARIANT ?? "production";
 const naverUrlScheme = process.env.EXPO_PUBLIC_NAVER_URL_SCHEME ?? "";
 // Host for iOS Universal Links / Android App Links, pinned per variant to match
 // getWebAppOrigin (lib/app-variant.ts) so https invite URLs open the native app.
-// Enabled for preview (dev.qlinkapps.com) first; production is added once preview
+// Enabled for preview (dev.archivelink.app) first; production is added once preview
 // is verified. development uses localhost:PORT, which can't host Universal Links.
 // EXPO_PUBLIC_WEB_APP_HOST overrides when present.
 const webAppHost =
-  process.env.EXPO_PUBLIC_WEB_APP_HOST || (appVariant === "preview" ? "dev.qlinkapps.com" : "");
+  process.env.EXPO_PUBLIC_WEB_APP_HOST || (appVariant === "preview" ? "dev.archivelink.app" : "");
 const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";
 
 // Firebase native config files. Local builds read them from ./ga; EAS cloud builds

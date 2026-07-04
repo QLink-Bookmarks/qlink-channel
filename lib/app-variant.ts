@@ -8,8 +8,8 @@ function getAppVariant(): string {
 
 const WEB_APP_ORIGIN: Record<AppVariant, string> = {
   development: "http://localhost:8081",
-  preview: "https://dev.qlinkapps.com",
-  production: "https://qlinkapps.com",
+  preview: "https://dev.archivelink.app",
+  production: "https://archivelink.app",
 };
 
 function getWebAppOrigin(): string {

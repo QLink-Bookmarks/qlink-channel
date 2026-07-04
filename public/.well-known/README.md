@@ -5,7 +5,7 @@ browser. They are served from the web build root (`public/` → `/.well-known/..
 
 Activation checklist (none of this requires a paid Expo plan):
 
-1. Set `EXPO_PUBLIC_WEB_APP_HOST` (e.g. `app.qlinkapps.com`) so `app.config.ts` emits
+1. Set `EXPO_PUBLIC_WEB_APP_HOST` (e.g. `app.archivelink.app`) so `app.config.ts` emits
    `ios.associatedDomains` + `android.intentFilters`.
 2. `apple-app-site-association` — replace `TEAMID` with the Apple Developer Team ID
    (Membership page). Must be served at `https://<host>/.well-known/apple-app-site-association`

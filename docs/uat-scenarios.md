@@ -7,10 +7,10 @@
 
 | 구분 | 대상 |
 |---|---|
-| **웹 와이드** | https://dev.qlinkapps.com (PC 넓은 화면) |
-| **웹 모바일** | https://dev.qlinkapps.com (좁은 화면) |
+| **웹 와이드** | https://dev.archivelink.app (PC 넓은 화면) |
+| **웹 모바일** | https://dev.archivelink.app (좁은 화면) |
 | **앱** | iOS Simulator 빌드 앱 |
-| **서버** | https://dev.api.qlinkapps.com |
+| **서버** | https://dev.api.archivelink.app |
 
 ## 수행 방법
 - **진입**: 번호 1(개발자 로그인) 또는 소셜 로그인 중 하나로 로그인 후 그 계정으로 끝까지 진행.

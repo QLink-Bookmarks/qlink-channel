@@ -6,7 +6,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
   // OG tags must be absolute URLs (KakaoTalk/Facebook won't resolve relative
   // paths). The image filename is versioned so social/CDN caches fetch fresh
   // instead of serving the previously-cached bytes at the same URL.
-  const webHost = process.env.EXPO_PUBLIC_WEB_APP_HOST || "dev.qlinkapps.com";
+  const webHost = process.env.EXPO_PUBLIC_WEB_APP_HOST || "dev.archivelink.app";
   const siteUrl = `https://${webHost}/`;
   const ogImage = `https://${webHost}/og-image-v2.png`;
   return (
