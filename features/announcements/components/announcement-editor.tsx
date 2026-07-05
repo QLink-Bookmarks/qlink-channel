@@ -163,8 +163,10 @@ function AnnouncementEditor({
     );
   }
 
-  // Keep the sheet mounted (don't early-return null when closed) so a button-driven
-  // close plays the dismiss slide-down animation instead of abruptly unmounting.
+  if (!open) {
+    return null;
+  }
+
   return (
     <Sheet
       open={open}

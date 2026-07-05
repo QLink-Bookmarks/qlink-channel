@@ -347,9 +347,7 @@ function FeedbackEditor({
             </ScrollView>
           </DialogContent>
         </Dialog>
-      ) : (
-        // Keep the sheet mounted (no open?:null) so button-close animates the
-        // slide-down dismiss instead of unmounting abruptly.
+      ) : open ? (
         <Sheet
           open={open}
           fitContent
@@ -360,7 +358,7 @@ function FeedbackEditor({
             {body}
           </View>
         </Sheet>
-      )}
+      ) : null}
 
       <AlertDialog
         open={isDiscardGuardOpen}
