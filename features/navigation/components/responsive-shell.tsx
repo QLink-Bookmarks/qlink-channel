@@ -18,6 +18,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { useMyProfileQuery } from "@/features/account/queries";
+import { AnnouncementsHeaderAction } from "@/features/announcements/components/announcements-header-action";
 import { CreateFolderDialog } from "@/features/folders/components/create-folder-dialog";
 import { FolderHeaderActions } from "@/features/folders/components/folder-header-actions";
 import { useFoldersQuery } from "@/features/folders/queries";
@@ -102,6 +103,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
   const { linkUrl: linkUrlParam } = useLocalSearchParams<{ linkUrl?: string }>();
   const foldersQuery = useFoldersQuery({ size: 15 });
   const myProfileQuery = useMyProfileQuery();
+  const isAnnouncementsListRoute = routeState.pathname === "/announcements";
   const avatarEmojiOverride = useDisplaySettings((state) => state.profile.avatarEmoji);
   const profileAvatarEmoji = avatarEmojiOverride ?? myProfileQuery.data?.avatarEmoji ?? "🌸";
   const profileNickname = myProfileQuery.data?.nickname ?? "사용자";
@@ -473,6 +475,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
             onSearchPress={handleWideSearchPress}
             actions={
               <>
+                {isAnnouncementsListRoute ? <AnnouncementsHeaderAction mode="wide" /> : null}
                 <NotificationBellButton
                   size="sm"
                   onPress={handleNotificationsPress}
@@ -611,6 +614,8 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
               folder={mobileFolder}
               mode="mobile"
             />
+          ) : isAnnouncementsListRoute ? (
+            <AnnouncementsHeaderAction mode="mobile" />
           ) : undefined
         }
         title={isMobileHome ? undefined : mobileHeaderTitle}

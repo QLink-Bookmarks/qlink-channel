@@ -52,6 +52,7 @@ import type { AiProviderWithModels } from "@/features/ai/types";
 import { signOut as signOutApi } from "@/features/auth/api";
 import { ConnectedProvidersRow } from "@/features/auth/components/connect-providers";
 import { logoutNaver } from "@/features/auth/lib/native-naver-logout";
+import { FeedbackEditor } from "@/features/feedback/components/feedback-editor";
 import { useUploadImageMutation } from "@/features/images/mutations";
 import type { ImageUploadInput } from "@/features/images/types";
 import { DeviceNotificationNotice } from "@/features/notifications/components/device-notification-notice";
@@ -74,6 +75,8 @@ import {
   EyeOff,
   Info,
   KeyRound,
+  Megaphone,
+  MessageSquareText,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -145,7 +148,7 @@ function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
 
           <BehaviorSection />
 
-          <AppInfoSection />
+          <AppInfoSection mode={mode} />
         </View>
       )}
     </View>
@@ -688,7 +691,7 @@ function BehaviorSection() {
   );
 }
 
-function AppInfoSection() {
+function AppInfoSection({ mode }: { mode: SettingsScreenMode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const signOutStore = useAuthStore((state) => state.signOut);
@@ -700,6 +703,7 @@ function AppInfoSection() {
     [settingsQuery.data?.providers],
   );
   const [withdrawOpen, setWithdrawOpen] = React.useState(false);
+  const [feedbackOpen, setFeedbackOpen] = React.useState(false);
   const deleteAccountMutation = useDeleteMyAccountMutation();
 
   const appVersion = Constants.expoConfig?.version ?? "—";
@@ -748,6 +752,44 @@ function AppInfoSection() {
   return (
     <>
       <SettingsSectionCard title="앱 정보">
+        <Pressable
+          className="-mx-2 flex-row items-center justify-between gap-3 rounded-xl px-2 py-1.5 active:bg-accent web:hover:bg-accent"
+          onPress={() => router.push("/announcements" as Href)}
+        >
+          <View className="flex-row items-center gap-2">
+            <Icon
+              as={Megaphone}
+              size={16}
+              className="text-muted-foreground"
+            />
+            <Text className="text-sm font-semibold text-foreground">공지사항</Text>
+          </View>
+          <Icon
+            as={ChevronRight}
+            size={18}
+            className="text-muted-foreground"
+          />
+        </Pressable>
+
+        <Pressable
+          className="-mx-2 flex-row items-center justify-between gap-3 rounded-xl px-2 py-1.5 active:bg-accent web:hover:bg-accent"
+          onPress={() => setFeedbackOpen(true)}
+        >
+          <View className="flex-row items-center gap-2">
+            <Icon
+              as={MessageSquareText}
+              size={16}
+              className="text-muted-foreground"
+            />
+            <Text className="text-sm font-semibold text-foreground">피드백</Text>
+          </View>
+          <Icon
+            as={ChevronRight}
+            size={18}
+            className="text-muted-foreground"
+          />
+        </Pressable>
+
         <Pressable
           className="-mx-2 flex-row items-center justify-between gap-3 rounded-xl px-2 py-1.5 active:bg-accent web:hover:bg-accent"
           onPress={() => router.push("/privacy" as Href)}
@@ -819,6 +861,12 @@ function AppInfoSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <FeedbackEditor
+        mode={mode}
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+      />
     </>
   );
 }

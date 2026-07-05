@@ -39,6 +39,7 @@ function useShellRouteState() {
       !isWideView &&
       (pathname.startsWith("/folders") ||
         pathname.startsWith("/links") ||
+        pathname.startsWith("/announcements") ||
         pathname.startsWith("/notifications") ||
         pathname.startsWith("/todos") ||
         pathname.startsWith("/settings"));

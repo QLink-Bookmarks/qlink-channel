@@ -2,7 +2,7 @@ import type { ApiEnvelope } from "@/features/links/types";
 
 type AiProviderType = "GEMINI" | "CLAUDE" | "OPENAI";
 
-type UserRole = "USER" | "ADMIN" | string;
+type UserRole = "SUPER_ADMIN" | "ADMIN" | "NORMAL" | "GUEST" | string;
 
 type UserDefaultProvider = {
   id: number | null;
@@ -95,4 +95,5 @@ export type {
   UserDefaultModel,
   UserDefaultProvider,
   UserDisplaySettings,
+  UserRole,
 };

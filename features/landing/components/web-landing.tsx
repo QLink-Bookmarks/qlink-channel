@@ -9,6 +9,7 @@ import {
 } from "react-native";
 
 import { BrandHeader } from "@/components/layout/brand-header";
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { Text } from "@/components/ui/text";
 import { useCycledBrandColors } from "@/features/auth/hooks/use-cycled-brand-colors";
 import { SLIDES } from "@/features/onboarding/components/onboarding-screen";
@@ -81,14 +82,14 @@ function WebLanding() {
             from="scale"
             className="w-full items-center gap-6"
           >
-            <View className="rounded-full border border-border bg-card px-3.5 py-1.5">
-              <Text className="font-mono text-xs text-muted-foreground">✦ AI 북마크 아카이브</Text>
+            <View className="items-center gap-2">
+              <BrandLogo size={96} />
+              <BrandHeader
+                size="xl"
+                align="center"
+                colors={brandColors}
+              />
             </View>
-            <BrandHeader
-              size="xl"
-              align="center"
-              colors={brandColors}
-            />
             <Text className="max-w-md text-center text-lg leading-8 text-muted-foreground md:text-2xl">
               AI가 도와주는 북마크 아카이브.
             </Text>

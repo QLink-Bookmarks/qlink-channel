@@ -1,6 +1,7 @@
 import { View } from "react-native";
 
 import { BrandHeader } from "@/components/layout/brand-header";
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { Text } from "@/components/ui/text";
 import { useDisplaySettings } from "@/stores/display-settings";
 
@@ -16,11 +17,14 @@ function LoginPrompt({ subtitle = DEFAULT_SUBTITLE }: { subtitle?: string }) {
   return (
     <View className="flex-1 items-center justify-center gap-12 bg-background px-6 py-12">
       <View className="items-center gap-3">
-        <BrandHeader
-          size="xl"
-          align="center"
-          colors={colors}
-        />
+        <View className="items-center gap-2">
+          <BrandLogo size={72} />
+          <BrandHeader
+            size="xl"
+            align="center"
+            colors={colors}
+          />
+        </View>
         <Text className="text-center text-lg text-muted-foreground">{subtitle}</Text>
       </View>
       <LoginButtonsStack />

@@ -42,6 +42,10 @@ function isLinkDetailPath(pathname: string) {
   return /^\/links\/[^/]+$/.test(pathname);
 }
 
+function isAnnouncementDetailPath(pathname: string) {
+  return /^\/announcements\/[^/]+$/.test(pathname);
+}
+
 function isSettingsSubPath(pathname: string) {
   return (
     pathname === "/settings/profile" ||
@@ -59,6 +63,8 @@ function isKnownShellPath(pathname: string) {
     pathname === "/notifications" ||
     pathname === "/links" ||
     isLinkDetailPath(pathname) ||
+    pathname === "/announcements" ||
+    isAnnouncementDetailPath(pathname) ||
     pathname === "/settings" ||
     isSettingsSubPath(pathname) ||
     pathname === "/invite" ||
@@ -163,6 +169,8 @@ function getRouteTitle(pathname: string, params: RouteParams, isWideView: boolea
       return "알림";
     case "/links":
       return "링크";
+    case "/announcements":
+      return "공지사항";
     case "/settings":
       return "설정";
     case "/settings/profile":
@@ -184,6 +192,10 @@ function getRouteTitle(pathname: string, params: RouteParams, isWideView: boolea
         return isWideView ? "링크" : "링크 상세";
       }
 
+      if (isAnnouncementDetailPath(normalizedPathname)) {
+        return "공지사항";
+      }
+
       return "페이지를 찾을 수 없음";
   }
 }
@@ -195,6 +207,10 @@ function getBackHref(pathname: string) {
 
   if (isLinkDetailPath(pathname)) {
     return "/links";
+  }
+
+  if (isAnnouncementDetailPath(pathname)) {
+    return "/announcements";
   }
 
   if (isSettingsSubPath(pathname)) {

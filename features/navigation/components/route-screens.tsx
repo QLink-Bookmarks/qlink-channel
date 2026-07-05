@@ -3,6 +3,8 @@ import { ScrollView, View } from "react-native";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
+import { AnnouncementDetailScreen } from "@/features/announcements/components/announcement-detail-screen";
+import { AnnouncementsListScreen } from "@/features/announcements/components/announcements-list-screen";
 import { FolderHeaderActions } from "@/features/folders/components/folder-header-actions";
 import { MobileFoldersScreen } from "@/features/folders/components/mobile-folders-screen";
 import { useFoldersQuery } from "@/features/folders/queries";
@@ -199,6 +201,17 @@ function SettingsRouteScreen() {
   return <SettingsScreen mode={isWideView ? "wide" : "mobile"} />;
 }
 
+function AnnouncementsRouteScreen() {
+  const { isWideView } = useShellRouteState();
+  return <AnnouncementsListScreen mode={isWideView ? "wide" : "mobile"} />;
+}
+
+function AnnouncementDetailRouteScreen() {
+  const params = useLocalSearchParams<{ id?: string | string[] }>();
+  const postId = readParamValue(params.id);
+  return <AnnouncementDetailScreen postId={postId} />;
+}
+
 function SettingsProfileRouteScreen() {
   const { isWideView } = useShellRouteState();
 
@@ -243,6 +256,8 @@ function SettingsAccountsRouteScreen() {
 }
 
 export {
+  AnnouncementDetailRouteScreen,
+  AnnouncementsRouteScreen,
   FolderDetailRouteScreen,
   FoldersRouteScreen,
   HomeRouteScreen,
