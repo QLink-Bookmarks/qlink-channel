@@ -36,6 +36,7 @@ type NotificationScrollResponse = {
 
 type GetNotificationsParams = {
   query?: string;
+  type?: NotificationContext;
   order?: NotificationOrder;
   cursor?: string;
   size?: number;

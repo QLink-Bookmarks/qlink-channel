@@ -31,14 +31,15 @@ const NOTIFICATION_SEGMENTS = [
 function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const notificationsQuery = useNotificationsQuery({ size: 30 });
-  const readNotificationMutation = useReadNotificationMutation();
   const [filter, setFilter] = React.useState<NotificationFilter>("all");
+  // Filter server-side so each tab gets its own full page (a client-side filter
+  // would leave uneven page sizes as items of other types are dropped).
+  const notificationsQuery = useNotificationsQuery({
+    size: 30,
+    ...(filter === "all" ? {} : { type: filter }),
+  });
+  const readNotificationMutation = useReadNotificationMutation();
   const notifications = notificationsQuery.data?.contents ?? [];
-  const filteredNotifications =
-    filter === "all"
-      ? notifications
-      : notifications.filter((notification) => notification.context === filter);
   const unreadCount = notifications.filter((notification) => !notification.readAt).length;
   const isRefreshing = notificationsQuery.isFetching && !notificationsQuery.isLoading;
 
@@ -112,6 +113,7 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
         />
         <View className="w-full max-w-4xl gap-3 px-6 pb-10 pt-2">
           <SegmentedControl
+            variant="chipsBadge"
             className="self-start"
             value={filter}
             options={NOTIFICATION_SEGMENTS}
@@ -122,7 +124,7 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
               size="large"
               className="py-16"
             />
-          ) : filteredNotifications.length === 0 ? (
+          ) : notifications.length === 0 ? (
             <EmptyState
               emoji="🔔"
               title="알림이 없어요"
@@ -130,7 +132,7 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
             />
           ) : (
             <View className="gap-3">
-              {filteredNotifications.map((notification) => (
+              {notifications.map((notification) => (
                 <NotificationCard
                   key={notification.id}
                   disabled={readNotificationMutation.isPending}
@@ -161,7 +163,8 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
     >
       <View className="gap-3 px-4 pb-24 pt-4">
         <SegmentedControl
-          block
+          variant="chipsBadge"
+          className="self-start"
           value={filter}
           options={NOTIFICATION_SEGMENTS}
           onValueChange={(value) => setFilter(value as NotificationFilter)}
@@ -171,14 +174,14 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
             size="large"
             className="py-16"
           />
-        ) : filteredNotifications.length === 0 ? (
+        ) : notifications.length === 0 ? (
           <EmptyState
             emoji="🔔"
             title="알림이 없어요"
             description="새 알림이 도착하면 이곳에 표시돼요."
           />
         ) : (
-          filteredNotifications.map((notification) => (
+          notifications.map((notification) => (
             <NotificationCard
               key={notification.id}
               disabled={readNotificationMutation.isPending}
