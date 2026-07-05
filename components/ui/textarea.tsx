@@ -1,9 +1,13 @@
 import * as React from "react";
 import { Platform, TextInput } from "react-native";
 
+import { useIsInsideSheet } from "@/components/layout/sheet";
 import { getThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { useDisplaySettings } from "@/stores/display-settings";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
+
+import { useControlledValueMirror } from "./use-controlled-value-mirror";
 
 const Textarea = React.forwardRef<
   TextInput,
@@ -16,6 +20,9 @@ const Textarea = React.forwardRef<
     numberOfLines = Platform.select({ web: 2, native: 8 }), // On web, numberOfLines also determines initial height. On native, it determines the maximum height.
     onBlur,
     onFocus,
+    onChangeText,
+    value,
+    defaultValue,
     placeholderClassName,
     style,
     ...props
@@ -27,8 +34,21 @@ const Textarea = React.forwardRef<
   const tokens = React.useMemo(() => getThemeTokens(theme, accent), [accent, theme]);
   const [isFocused, setIsFocused] = React.useState(false);
 
+  // Match the Input primitive: swap to BottomSheetTextInput inside a sheet so the
+  // native Korean IME doesn't drop/split composition, and mirror the controlled
+  // value so web IME composition doesn't duplicate characters.
+  const isInsideSheet = useIsInsideSheet();
+  const TextInputComponent = (isInsideSheet
+    ? BottomSheetTextInput
+    : TextInput) as unknown as typeof TextInput;
+  const { inputValue, inputDefaultValue, handleChangeText } = useControlledValueMirror({
+    value,
+    defaultValue,
+    onChangeText,
+  });
+
   return (
-    <TextInput
+    <TextInputComponent
       ref={ref}
       className={cn(
         "scrollbar-none flex min-h-16 w-full flex-row rounded-md border border-input px-3 py-2 text-base text-foreground shadow-sm shadow-black/5 dark:bg-input/30 md:text-sm",
@@ -47,6 +67,9 @@ const Textarea = React.forwardRef<
         setIsFocused(true);
         onFocus?.(event);
       }}
+      onChangeText={handleChangeText}
+      value={inputValue}
+      defaultValue={inputDefaultValue}
       placeholderClassName={cn("text-muted-foreground", placeholderClassName)}
       multiline={multiline}
       numberOfLines={numberOfLines}
