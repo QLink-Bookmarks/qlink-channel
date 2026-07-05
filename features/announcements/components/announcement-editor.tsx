@@ -106,7 +106,7 @@ function AnnouncementEditor({
       <View className="gap-2">
         <Text className="text-sm font-semibold text-muted-foreground">내용</Text>
         <Textarea
-          className="min-h-40 rounded-xl px-4 py-3 text-base"
+          className="min-h-40 rounded-xl bg-card px-4 py-3 text-base"
           placeholder="공지 내용을 입력해주세요"
           value={contents}
           onChangeText={(next) => {
@@ -153,7 +153,7 @@ function AnnouncementEditor({
         open={open}
         onOpenChange={onOpenChange}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[42rem] max-w-[90vw] sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>새 공지사항</DialogTitle>
           </DialogHeader>
