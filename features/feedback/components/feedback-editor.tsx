@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { uploadImage } from "@/features/images/api";
+import type { ImageUploadInput } from "@/features/images/types";
 import { getApiErrorMessage } from "@/features/posts/lib";
 import { useCreatePostMutation } from "@/features/posts/mutations";
 import { reportError } from "@/lib/error-reporting";
@@ -83,7 +84,7 @@ function FeedbackEditor({
   }, []);
 
   const uploadPickedImage = React.useCallback(
-    async (id: string, file: { uri: string; name: string; type: string }) => {
+    async (id: string, file: ImageUploadInput) => {
       try {
         const response = await uploadImage(file);
         const url = response.data.url;
@@ -127,15 +128,19 @@ function FeedbackEditor({
       const id = String((imageIdRef.current += 1));
       const type = asset.mimeType ?? "image/jpeg";
       const name = asset.fileName ?? `feedback-${id}.${type.split("/")[1] ?? "jpg"}`;
-      return { id, uri: asset.uri, name, type };
+      // Web exposes a real File on the asset; RN FormData needs the {uri,name,type}
+      // descriptor. Sending the descriptor on web serializes to "[object Object]".
+      const uploadInput: ImageUploadInput =
+        process.env.EXPO_OS === "web" && asset.file ? asset.file : { uri: asset.uri, name, type };
+      return { id, uri: asset.uri, uploadInput };
     });
 
     setImages((prev) => [
       ...prev,
       ...picked.map(({ id, uri }) => ({ id, uri, status: "uploading" as const })),
     ]);
-    picked.forEach(({ id, uri, name, type }) => {
-      void uploadPickedImage(id, { uri, name, type });
+    picked.forEach(({ id, uploadInput }) => {
+      void uploadPickedImage(id, uploadInput);
     });
   }, [images.length, uploadPickedImage]);
 
@@ -342,7 +347,9 @@ function FeedbackEditor({
             </ScrollView>
           </DialogContent>
         </Dialog>
-      ) : open ? (
+      ) : (
+        // Keep the sheet mounted (no open?:null) so button-close animates the
+        // slide-down dismiss instead of unmounting abruptly.
         <Sheet
           open={open}
           fitContent
@@ -353,7 +360,7 @@ function FeedbackEditor({
             {body}
           </View>
         </Sheet>
-      ) : null}
+      )}
 
       <AlertDialog
         open={isDiscardGuardOpen}
