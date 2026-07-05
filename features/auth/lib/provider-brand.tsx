@@ -91,7 +91,7 @@ const PROVIDER_BRANDS: Record<SocialProvider, ProviderBrand> = {
   // name untranslated, approved phrasing ("Apple로 로그인" / "Apple로 계속하기").
   APPLE: {
     provider: "APPLE",
-    loginLabel: "Apple로 로그인",
+    loginLabel: "Apple로 계속하기",
     connectLabel: "Apple로 계속하기",
     containerClassName: "bg-black",
     chipClassName: "bg-black",
@@ -101,7 +101,7 @@ const PROVIDER_BRANDS: Record<SocialProvider, ProviderBrand> = {
   },
   KAKAO: {
     provider: "KAKAO",
-    loginLabel: "카카오 로그인",
+    loginLabel: "카카오로 계속하기",
     connectLabel: "카카오 계정 연결",
     containerClassName: "bg-[#FEE500]",
     chipClassName: "bg-[#FEE500]",
@@ -111,7 +111,7 @@ const PROVIDER_BRANDS: Record<SocialProvider, ProviderBrand> = {
   },
   NAVER: {
     provider: "NAVER",
-    loginLabel: "네이버 로그인",
+    loginLabel: "네이버로 계속하기",
     connectLabel: "네이버 계정 연결",
     containerClassName: "bg-[#03C75A]",
     chipClassName: "bg-[#03C75A]",
@@ -123,7 +123,7 @@ const PROVIDER_BRANDS: Record<SocialProvider, ProviderBrand> = {
   // #1F1F1F medium label, full-color "G", brand name untranslated.
   GOOGLE: {
     provider: "GOOGLE",
-    loginLabel: "Google로 로그인",
+    loginLabel: "Google로 계속하기",
     connectLabel: "Google로 계속하기",
     containerClassName: "bg-white border border-[#747775]",
     chipClassName: "bg-white border border-[#747775]",
