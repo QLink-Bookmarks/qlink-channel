@@ -235,7 +235,7 @@ function FeedbackEditor({
           </Text>
         </View>
         <Textarea
-          className="min-h-32 rounded-xl bg-card px-4 py-3 text-base"
+          className="min-h-32 rounded-xl bg-card px-4 py-3 text-base dark:bg-card"
           maxLength={CONTENTS_MAX_LENGTH}
           placeholder="자유롭게 의견을 남겨주세요"
           value={contents}
