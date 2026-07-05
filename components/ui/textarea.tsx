@@ -38,7 +38,10 @@ const Textarea = React.forwardRef<
   // native Korean IME doesn't drop/split composition, and mirror the controlled
   // value so web IME composition doesn't duplicate characters.
   const isInsideSheet = useIsInsideSheet();
-  const TextInputComponent = (isInsideSheet
+  // Swap to BottomSheetTextInput only on native: it fixes the sheet's IME
+  // composition there, but on web it drops the className (transparent background)
+  // and web has no such IME issue. (Mirrors why Input has a separate web variant.)
+  const TextInputComponent = (isInsideSheet && process.env.EXPO_OS !== "web"
     ? BottomSheetTextInput
     : TextInput) as unknown as typeof TextInput;
   const { inputValue, inputDefaultValue, handleChangeText } = useControlledValueMirror({
