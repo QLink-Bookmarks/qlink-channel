@@ -199,10 +199,10 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
   }, [folderId, generateTodo, model, sharedUrl, title]);
 
   const handleGoToLogin = React.useCallback(() => {
-    // Open the host app at root ("" -> qlinkchannel:///), which lands on the
-    // auth splash and shows the login screen when signed out. There is no
-    // "/login" route, so passing "login" would deep-link to a not-found page.
-    openHostApp("");
+    // Deep-link straight to /login. An empty path crashes the extension's URL
+    // builder ("".split("?") is empty, so pathComponents[0] is out of range),
+    // which is why "로그인 하러가기" opened nothing. /login is a real route now.
+    openHostApp("login");
     close();
   }, []);
 
