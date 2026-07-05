@@ -106,7 +106,7 @@ function AnnouncementEditor({
       <View className="gap-2">
         <Text className="text-sm font-semibold text-muted-foreground">내용</Text>
         <Textarea
-          className="min-h-40 rounded-xl bg-card px-4 py-3 text-base dark:bg-card"
+          className="min-h-40 resize-none rounded-xl bg-card px-4 py-3 text-base dark:bg-card"
           placeholder="공지 내용을 입력해주세요"
           value={contents}
           onChangeText={(next) => {
