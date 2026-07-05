@@ -9,7 +9,6 @@ import {
   getOverlayLinkId,
   getRedirectHref,
   getRouteTitle,
-  getSettingsSectionKey,
   getWideSidebarActiveItem,
   isKnownShellPath,
   normalizePathname,
@@ -33,7 +32,6 @@ function useShellRouteState() {
     });
     const wideSidebarKey = getWideSidebarActiveItem(pathname);
     const mobileTabKey = getMobileTabActiveItem(pathname);
-    const settingsSectionKey = getSettingsSectionKey(pathname);
     const backHref = getBackHref(pathname);
     const showBackButton =
       !isWideView &&
@@ -55,7 +53,6 @@ function useShellRouteState() {
       redirectHref,
       wideSidebarKey,
       mobileTabKey,
-      settingsSectionKey,
       backHref,
       showBackButton,
       isKnownShellPath: isKnownShellPath(pathname),

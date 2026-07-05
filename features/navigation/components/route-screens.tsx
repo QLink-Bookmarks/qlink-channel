@@ -20,7 +20,6 @@ import { TodosScreen } from "@/features/todos/components/todos-screen/todos-scre
 
 import { useShellRouteState } from "../hooks/use-shell-route-state";
 import { readParamValue } from "../routes";
-import { DummyRouteScreen } from "./dummy-route-screen";
 
 import { type Href, Redirect, useLocalSearchParams } from "expo-router";
 import { BookCopyIcon } from "lucide-react-native";
@@ -71,15 +70,9 @@ function HomeRouteScreen() {
 function FoldersRouteScreen() {
   const { isWideView } = useShellRouteState();
 
+  // Wide view has no folders page — the shell redirects /folders to /home.
   if (isWideView) {
-    return (
-      <DummyRouteScreen
-        title="폴더"
-        routePath="/folders"
-        viewMode="wide"
-        description="와이드에서는 레이아웃 레벨에서 /home으로 리다이렉트된다."
-      />
-    );
+    return <Redirect href={"/home" as Href} />;
   }
 
   return <MobileFoldersScreen />;
@@ -162,15 +155,9 @@ function LinksRouteScreen() {
   const params = useLocalSearchParams<{ linkId?: string | string[] }>();
   const linkIdParam = readParamValue(params.linkId);
 
+  // Mobile has no full-links page — the shell redirects /links to /home.
   if (!isWideView) {
-    return (
-      <DummyRouteScreen
-        title="링크"
-        routePath="/links"
-        viewMode="mobile"
-        description="모바일에서는 /home으로 리다이렉트된다."
-      />
-    );
+    return <Redirect href={"/home" as Href} />;
   }
 
   return (
@@ -298,49 +285,6 @@ function FeedbackDetailRouteScreen() {
   );
 }
 
-function SettingsProfileRouteScreen() {
-  const { isWideView } = useShellRouteState();
-
-  return (
-    <DummyRouteScreen
-      title={isWideView ? "프로필 관리" : "설정"}
-      routePath="/settings/profile"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description={
-        isWideView
-          ? "와이드 전용 프로필 관리 더미 페이지다."
-          : "모바일에서는 향후 프로필 관리 바텀시트가 열릴 예정이라는 placeholder를 보여준다."
-      }
-    />
-  );
-}
-
-function SettingsAiRouteScreen() {
-  const { isWideView } = useShellRouteState();
-
-  return (
-    <DummyRouteScreen
-      title="AI 설정"
-      routePath="/settings/ai"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="AI 설정 관리 더미 화면이다."
-    />
-  );
-}
-
-function SettingsAccountsRouteScreen() {
-  const { isWideView } = useShellRouteState();
-
-  return (
-    <DummyRouteScreen
-      title="계정 관리"
-      routePath="/settings/accounts"
-      viewMode={isWideView ? "wide" : "mobile"}
-      description="계정 관리 더미 화면이다."
-    />
-  );
-}
-
 export {
   AnnouncementDetailRouteScreen,
   AnnouncementsRouteScreen,
@@ -352,9 +296,6 @@ export {
   LinkDetailRouteScreen,
   LinksRouteScreen,
   NotificationsRouteScreen,
-  SettingsAccountsRouteScreen,
-  SettingsAiRouteScreen,
-  SettingsProfileRouteScreen,
   SettingsRouteScreen,
   TodosRouteScreen,
 };

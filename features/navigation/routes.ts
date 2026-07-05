@@ -1,10 +1,4 @@
-import type {
-  MobileTabKey,
-  RouteParamValue,
-  RouteParams,
-  SettingsSectionKey,
-  WideSidebarKey,
-} from "./types";
+import type { MobileTabKey, RouteParamValue, RouteParams, WideSidebarKey } from "./types";
 
 type ShellRouteStateInput = {
   isWideView: boolean;
@@ -50,14 +44,6 @@ function isFeedbackDetailPath(pathname: string) {
   return /^\/feedbacks\/[^/]+$/.test(pathname);
 }
 
-function isSettingsSubPath(pathname: string) {
-  return (
-    pathname === "/settings/profile" ||
-    pathname === "/settings/ai" ||
-    pathname === "/settings/accounts"
-  );
-}
-
 function isKnownShellPath(pathname: string) {
   return (
     pathname === "/home" ||
@@ -72,7 +58,6 @@ function isKnownShellPath(pathname: string) {
     pathname === "/feedbacks" ||
     isFeedbackDetailPath(pathname) ||
     pathname === "/settings" ||
-    isSettingsSubPath(pathname) ||
     pathname === "/invite" ||
     pathname === "/share"
   );
@@ -121,28 +106,8 @@ function getMobileTabActiveItem(pathname: string): MobileTabKey | null {
     return "todos";
   }
 
-  if (pathname === "/settings" || isSettingsSubPath(pathname)) {
-    return "settings";
-  }
-
-  return null;
-}
-
-function getSettingsSectionKey(pathname: string): SettingsSectionKey | null {
   if (pathname === "/settings") {
     return "settings";
-  }
-
-  if (pathname === "/settings/profile") {
-    return "profile";
-  }
-
-  if (pathname === "/settings/ai") {
-    return "ai";
-  }
-
-  if (pathname === "/settings/accounts") {
-    return "accounts";
   }
 
   return null;
@@ -181,12 +146,6 @@ function getRouteTitle(pathname: string, params: RouteParams, isWideView: boolea
       return "피드백";
     case "/settings":
       return "설정";
-    case "/settings/profile":
-      return isWideView ? "프로필 관리" : "설정";
-    case "/settings/ai":
-      return "AI 설정";
-    case "/settings/accounts":
-      return "계정 관리";
     case "/invite":
       return "초대 확인";
     case "/share":
@@ -227,10 +186,6 @@ function getBackHref(pathname: string) {
 
   if (isFeedbackDetailPath(pathname)) {
     return "/feedbacks";
-  }
-
-  if (isSettingsSubPath(pathname)) {
-    return "/settings";
   }
 
   if (pathname === "/notifications") {
@@ -305,7 +260,6 @@ export {
   getOverlayLinkId,
   getRedirectHref,
   getRouteTitle,
-  getSettingsSectionKey,
   getWideSidebarActiveItem,
   isKnownShellPath,
   normalizePathname,
