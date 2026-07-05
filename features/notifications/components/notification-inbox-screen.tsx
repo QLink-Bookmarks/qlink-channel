@@ -4,7 +4,7 @@ import { RefreshControl, ScrollView, View } from "react-native";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Text } from "@/components/ui/text";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { getTodos } from "@/features/todos/api";
 import { todoQueryKeys } from "@/features/todos/queries";
 import { reportError } from "@/lib/error-reporting";
@@ -20,12 +20,25 @@ import { Bell } from "lucide-react-native";
 
 type NotificationInboxScreenMode = "mobile" | "wide";
 
+type NotificationFilter = "all" | "TODO" | "ANNOUNCE";
+
+const NOTIFICATION_SEGMENTS = [
+  { label: "전체", value: "all" },
+  { label: "할일", value: "TODO" },
+  { label: "공지사항", value: "ANNOUNCE" },
+];
+
 function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const notificationsQuery = useNotificationsQuery({ size: 30 });
   const readNotificationMutation = useReadNotificationMutation();
+  const [filter, setFilter] = React.useState<NotificationFilter>("all");
   const notifications = notificationsQuery.data?.contents ?? [];
+  const filteredNotifications =
+    filter === "all"
+      ? notifications
+      : notifications.filter((notification) => notification.context === filter);
   const unreadCount = notifications.filter((notification) => !notification.readAt).length;
   const isRefreshing = notificationsQuery.isFetching && !notificationsQuery.isLoading;
 
@@ -58,6 +71,10 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
         if (!notification.readAt) {
           await readNotificationMutation.mutateAsync(notification.id);
         }
+        if (notification.context === "ANNOUNCE") {
+          router.push(`/announcements/${notification.contextId}` as Href);
+          return;
+        }
         await navigateToTodoContext(notification);
       } catch (error: unknown) {
         reportError(error, {
@@ -70,7 +87,7 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
         });
       }
     },
-    [navigateToTodoContext, readNotificationMutation],
+    [navigateToTodoContext, readNotificationMutation, router],
   );
 
   if (mode === "wide") {
@@ -94,33 +111,34 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
           meta={unreadCount > 0 ? `안 읽은 알림 ${unreadCount}개` : "새 알림이 없어요"}
         />
         <View className="w-full max-w-4xl gap-3 px-6 pb-10 pt-2">
+          <SegmentedControl
+            className="self-start"
+            value={filter}
+            options={NOTIFICATION_SEGMENTS}
+            onValueChange={(value) => setFilter(value as NotificationFilter)}
+          />
           {notificationsQuery.isLoading ? (
             <ActivityIndicator
               size="large"
               className="py-16"
             />
-          ) : notifications.length === 0 ? (
+          ) : filteredNotifications.length === 0 ? (
             <EmptyState
               emoji="🔔"
               title="알림이 없어요"
               description="새 알림이 도착하면 이곳에 표시돼요."
             />
           ) : (
-            <>
-              <Text className="px-1 text-sm font-semibold text-muted-foreground">
-                전체 {notifications.length}개
-              </Text>
-              <View className="gap-3">
-                {notifications.map((notification) => (
-                  <NotificationCard
-                    key={notification.id}
-                    disabled={readNotificationMutation.isPending}
-                    notification={notification}
-                    onPress={handleNotificationPress}
-                  />
-                ))}
-              </View>
-            </>
+            <View className="gap-3">
+              {filteredNotifications.map((notification) => (
+                <NotificationCard
+                  key={notification.id}
+                  disabled={readNotificationMutation.isPending}
+                  notification={notification}
+                  onPress={handleNotificationPress}
+                />
+              ))}
+            </View>
           )}
         </View>
       </ScrollView>
@@ -142,19 +160,25 @@ function NotificationInboxScreen({ mode }: { mode: NotificationInboxScreenMode }
       }
     >
       <View className="gap-3 px-4 pb-24 pt-4">
+        <SegmentedControl
+          block
+          value={filter}
+          options={NOTIFICATION_SEGMENTS}
+          onValueChange={(value) => setFilter(value as NotificationFilter)}
+        />
         {notificationsQuery.isLoading ? (
           <ActivityIndicator
             size="large"
             className="py-16"
           />
-        ) : notifications.length === 0 ? (
+        ) : filteredNotifications.length === 0 ? (
           <EmptyState
             emoji="🔔"
             title="알림이 없어요"
             description="새 알림이 도착하면 이곳에 표시돼요."
           />
         ) : (
-          notifications.map((notification) => (
+          filteredNotifications.map((notification) => (
             <NotificationCard
               key={notification.id}
               disabled={readNotificationMutation.isPending}

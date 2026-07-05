@@ -1,7 +1,7 @@
 import type { ApiEnvelope } from "@/features/links/types";
 
 type DevicePlatform = "WEB" | "NATIVE";
-type NotificationContext = "TODO";
+type NotificationContext = "TODO" | "ANNOUNCE";
 type NotificationOrder = "latest" | "earliest" | string;
 
 type PutDeviceRequest = {
