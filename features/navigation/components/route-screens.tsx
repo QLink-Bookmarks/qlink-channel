@@ -3,8 +3,8 @@ import { ScrollView, View } from "react-native";
 import { PageHeader } from "@/components/layout/page-header";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { EmptyState } from "@/components/ui/empty-state";
-import { AnnouncementDetailScreen } from "@/features/announcements/components/announcement-detail-screen";
-import { AnnouncementsListScreen } from "@/features/announcements/components/announcements-list-screen";
+import { isAdminRole } from "@/features/account/lib/roles";
+import { useMyProfileQuery } from "@/features/account/queries";
 import { FolderHeaderActions } from "@/features/folders/components/folder-header-actions";
 import { MobileFoldersScreen } from "@/features/folders/components/mobile-folders-screen";
 import { useFoldersQuery } from "@/features/folders/queries";
@@ -13,6 +13,8 @@ import { MobileHomeScreen } from "@/features/home/components/mobile-home-screen"
 import { WideHomeScreen } from "@/features/home/components/wide-home-screen";
 import { LinkDetailScreen } from "@/features/links/components/link-detail-screen";
 import { NotificationInboxScreen } from "@/features/notifications/components/notification-inbox-screen";
+import { PostDetailScreen } from "@/features/posts/components/post-detail-screen";
+import { PostListScreen } from "@/features/posts/components/post-list-screen";
 import { SettingsScreen } from "@/features/settings/components/settings-screen";
 import { TodosScreen } from "@/features/todos/components/todos-screen/todos-screen";
 
@@ -203,13 +205,97 @@ function SettingsRouteScreen() {
 
 function AnnouncementsRouteScreen() {
   const { isWideView } = useShellRouteState();
-  return <AnnouncementsListScreen mode={isWideView ? "wide" : "mobile"} />;
+  return (
+    <PostListScreen
+      mode={isWideView ? "wide" : "mobile"}
+      type="ANNOUNCEMENT"
+      basePath="/announcements"
+      title="공지사항"
+      emptyEmoji="📢"
+      emptyTitle="아직 공지사항이 없어요"
+      emptyDescription="새로운 소식이 올라오면 여기에서 확인할 수 있어요."
+    />
+  );
 }
 
 function AnnouncementDetailRouteScreen() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const postId = readParamValue(params.id);
-  return <AnnouncementDetailScreen postId={postId} />;
+  return (
+    <PostDetailScreen
+      postId={postId}
+      backPath="/announcements"
+    />
+  );
+}
+
+function PermissionDeniedScreen() {
+  return (
+    <View className="flex-1">
+      <EmptyState
+        className="flex-1"
+        emoji="🔒"
+        title="페이지 권한이 없어요"
+        description="이 페이지에 접근할 수 있는 권한이 없어요."
+      />
+    </View>
+  );
+}
+
+function useAdminGate() {
+  const profileQuery = useMyProfileQuery();
+  return { isLoading: profileQuery.isLoading, isAdmin: isAdminRole(profileQuery.data?.role) };
+}
+
+function FeedbacksRouteScreen() {
+  const { isWideView } = useShellRouteState();
+  const { isLoading, isAdmin } = useAdminGate();
+  if (isLoading) {
+    return (
+      <ActivityIndicator
+        size="large"
+        className="flex-1 py-16"
+      />
+    );
+  }
+  if (!isAdmin) {
+    return <PermissionDeniedScreen />;
+  }
+  return (
+    <PostListScreen
+      mode={isWideView ? "wide" : "mobile"}
+      type="FEEDBACK"
+      basePath="/feedbacks"
+      title="피드백"
+      emptyEmoji="📮"
+      emptyTitle="아직 피드백이 없어요"
+      emptyDescription="사용자들이 보낸 피드백이 여기에 모여요."
+    />
+  );
+}
+
+function FeedbackDetailRouteScreen() {
+  const params = useLocalSearchParams<{ id?: string | string[] }>();
+  const postId = readParamValue(params.id);
+  const { isLoading, isAdmin } = useAdminGate();
+  if (isLoading) {
+    return (
+      <ActivityIndicator
+        size="large"
+        className="flex-1 py-16"
+      />
+    );
+  }
+  if (!isAdmin) {
+    return <PermissionDeniedScreen />;
+  }
+  return (
+    <PostDetailScreen
+      postId={postId}
+      backPath="/feedbacks"
+      imagesClickable
+    />
+  );
 }
 
 function SettingsProfileRouteScreen() {
@@ -258,6 +344,8 @@ function SettingsAccountsRouteScreen() {
 export {
   AnnouncementDetailRouteScreen,
   AnnouncementsRouteScreen,
+  FeedbackDetailRouteScreen,
+  FeedbacksRouteScreen,
   FolderDetailRouteScreen,
   FoldersRouteScreen,
   HomeRouteScreen,

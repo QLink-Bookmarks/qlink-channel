@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ScrollView, View } from "react-native";
+import { Modal, Pressable, ScrollView, View } from "react-native";
 
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,9 @@ import { usePostQuery } from "@/features/posts/queries";
 import { Image } from "expo-image";
 import { type Href, useRouter } from "expo-router";
 
-function PostImage({ url }: { url: string }) {
+function PostImage({ url, onPress }: { url: string; onPress?: () => void }) {
   const [aspectRatio, setAspectRatio] = React.useState(4 / 3);
-  return (
+  const image = (
     <Image
       source={{ uri: url }}
       contentFit="cover"
@@ -25,6 +25,17 @@ function PostImage({ url }: { url: string }) {
       }}
       style={{ width: "100%", aspectRatio, borderRadius: 12 }}
     />
+  );
+  if (!onPress) {
+    return image;
+  }
+  return (
+    <Pressable
+      className="active:opacity-90"
+      onPress={onPress}
+    >
+      {image}
+    </Pressable>
   );
 }
 
@@ -59,13 +70,20 @@ function DetailNotice({
   );
 }
 
-function AnnouncementDetailScreen({ postId }: { postId?: string }) {
+type PostDetailScreenProps = {
+  postId?: string;
+  backPath: string;
+  imagesClickable?: boolean;
+};
+
+function PostDetailScreen({ postId, backPath, imagesClickable = false }: PostDetailScreenProps) {
   const router = useRouter();
   const query = usePostQuery(postId ?? "");
+  const [lightboxUrl, setLightboxUrl] = React.useState<string | null>(null);
 
   const handleBackToList = React.useCallback(() => {
-    router.replace("/announcements" as Href);
-  }, [router]);
+    router.replace(backPath as Href);
+  }, [backPath, router]);
 
   if (!postId) {
     return (
@@ -120,32 +138,58 @@ function AnnouncementDetailScreen({ postId }: { postId?: string }) {
   }
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentInsetAdjustmentBehavior="automatic"
-      showsVerticalScrollIndicator={false}
-      contentContainerClassName="mx-auto w-full gap-4 px-4 pb-16 pt-4 md:max-w-3xl md:px-6"
-    >
-      <View className="gap-2">
-        <Text className="text-2xl font-semibold text-foreground">{post.title}</Text>
-        <Text className="text-sm text-muted-foreground">
-          {post.author} · {formatPostDate(post.createdAt)}
-        </Text>
-      </View>
-      <View className="h-px bg-border" />
-      <Text className="text-base leading-7 text-foreground">{post.contents}</Text>
-      {post.imageUrls.length > 0 ? (
-        <View className="gap-3 pt-2">
-          {post.imageUrls.map((url) => (
-            <PostImage
-              key={url}
-              url={url}
-            />
-          ))}
+    <>
+      <ScrollView
+        className="flex-1"
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+        contentContainerClassName="mx-auto w-full gap-4 px-4 pb-16 pt-4 md:max-w-3xl md:px-6"
+      >
+        <View className="gap-2">
+          <Text className="text-2xl font-semibold text-foreground">{post.title}</Text>
+          <Text className="text-sm text-muted-foreground">
+            {post.author} · {formatPostDate(post.createdAt)}
+          </Text>
         </View>
-      ) : null}
-    </ScrollView>
+        <View className="h-px bg-border" />
+        {post.contents ? (
+          <Text className="text-base leading-7 text-foreground">{post.contents}</Text>
+        ) : null}
+        {post.imageUrls.length > 0 ? (
+          <View className="gap-3 pt-2">
+            {post.imageUrls.map((url) => (
+              <PostImage
+                key={url}
+                url={url}
+                onPress={imagesClickable ? () => setLightboxUrl(url) : undefined}
+              />
+            ))}
+          </View>
+        ) : null}
+      </ScrollView>
+
+      <Modal
+        visible={lightboxUrl != null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLightboxUrl(null)}
+      >
+        <Pressable
+          className="flex-1 items-center justify-center bg-black/90 p-4"
+          onPress={() => setLightboxUrl(null)}
+        >
+          {lightboxUrl ? (
+            <Image
+              source={{ uri: lightboxUrl }}
+              contentFit="contain"
+              style={{ width: "92%", height: "85%" }}
+            />
+          ) : null}
+        </Pressable>
+      </Modal>
+    </>
   );
 }
 
-export { AnnouncementDetailScreen };
+export { PostDetailScreen };
+export type { PostDetailScreenProps };

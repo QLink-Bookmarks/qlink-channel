@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { isAdminRole } from "@/features/account/lib/roles";
 import {
   useDeleteMyAccountMutation,
   useUpdateMyProfileMutation,
@@ -704,6 +705,8 @@ function AppInfoSection({ mode }: { mode: SettingsScreenMode }) {
   );
   const [withdrawOpen, setWithdrawOpen] = React.useState(false);
   const [feedbackOpen, setFeedbackOpen] = React.useState(false);
+  const profileQuery = useMyProfileQuery();
+  const isAdmin = isAdminRole(profileQuery.data?.role);
   const deleteAccountMutation = useDeleteMyAccountMutation();
 
   const appVersion = Constants.expoConfig?.version ?? "—";
@@ -773,7 +776,14 @@ function AppInfoSection({ mode }: { mode: SettingsScreenMode }) {
 
         <Pressable
           className="-mx-2 flex-row items-center justify-between gap-3 rounded-xl px-2 py-1.5 active:bg-accent web:hover:bg-accent"
-          onPress={() => setFeedbackOpen(true)}
+          onPress={() => {
+            // Admins manage feedback in a list page; regular users write feedback.
+            if (isAdmin) {
+              router.push("/feedbacks" as Href);
+            } else {
+              setFeedbackOpen(true);
+            }
+          }}
         >
           <View className="flex-row items-center gap-2">
             <Icon
@@ -809,7 +819,7 @@ function AppInfoSection({ mode }: { mode: SettingsScreenMode }) {
           />
         </Pressable>
 
-        <View className="flex-row items-center justify-between gap-3">
+        <View className="-mx-2 flex-row items-center justify-between gap-3 px-2 py-1.5">
           <View className="flex-row items-center gap-2">
             <Icon
               as={Info}

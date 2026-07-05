@@ -8,16 +8,32 @@ import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { formatPostDate } from "@/features/posts/lib";
 import { usePostsQuery } from "@/features/posts/queries";
-import type { PostListItem } from "@/features/posts/types";
+import type { PostListItem, PostType } from "@/features/posts/types";
 
 import { type Href, useRouter } from "expo-router";
 import { ChevronRight } from "lucide-react-native/icons";
 
-type AnnouncementsListScreenMode = "wide" | "mobile";
+type PostListScreenProps = {
+  mode: "wide" | "mobile";
+  type: PostType;
+  basePath: string;
+  title: string;
+  emptyEmoji: string;
+  emptyTitle: string;
+  emptyDescription: string;
+};
 
-function AnnouncementsListScreen({ mode }: { mode: AnnouncementsListScreenMode }) {
+function PostListScreen({
+  mode,
+  type,
+  basePath,
+  title,
+  emptyEmoji,
+  emptyTitle,
+  emptyDescription,
+}: PostListScreenProps) {
   const router = useRouter();
-  const query = usePostsQuery("ANNOUNCEMENT");
+  const query = usePostsQuery(type);
 
   const posts = React.useMemo(
     () => query.data?.pages.flatMap((page) => page.contents) ?? [],
@@ -26,9 +42,9 @@ function AnnouncementsListScreen({ mode }: { mode: AnnouncementsListScreenMode }
 
   const handlePressItem = React.useCallback(
     (id: number) => {
-      router.push(`/announcements/${id}` as Href);
+      router.push(`${basePath}/${id}` as Href);
     },
-    [router],
+    [basePath, router],
   );
 
   const renderItem = React.useCallback(
@@ -73,7 +89,7 @@ function AnnouncementsListScreen({ mode }: { mode: AnnouncementsListScreenMode }
         <EmptyState
           className="flex-1"
           emoji="⚠️"
-          title="공지사항을 불러오지 못했어요"
+          title={`${title}을 불러오지 못했어요`}
           description="잠시 후 다시 시도해주세요."
         />
       </View>
@@ -92,7 +108,7 @@ function AnnouncementsListScreen({ mode }: { mode: AnnouncementsListScreenMode }
         mode === "wide" ? (
           <PageHeader
             className="px-4 md:px-6"
-            title="공지사항"
+            title={title}
           />
         ) : null
       }
@@ -100,9 +116,9 @@ function AnnouncementsListScreen({ mode }: { mode: AnnouncementsListScreenMode }
       ListEmptyComponent={
         <EmptyState
           className="py-16"
-          emoji="📢"
-          title="아직 공지사항이 없어요"
-          description="새로운 소식이 올라오면 여기에서 확인할 수 있어요."
+          emoji={emptyEmoji}
+          title={emptyTitle}
+          description={emptyDescription}
         />
       }
       onEndReachedThreshold={0.4}
@@ -123,5 +139,5 @@ function AnnouncementsListScreen({ mode }: { mode: AnnouncementsListScreenMode }
   );
 }
 
-export { AnnouncementsListScreen };
-export type { AnnouncementsListScreenMode };
+export { PostListScreen };
+export type { PostListScreenProps };
