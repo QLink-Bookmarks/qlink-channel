@@ -13,6 +13,7 @@ import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Emoji } from "@/components/ui/emoji";
 import { IconButton } from "@/components/ui/icon-button";
 import { Kbd } from "@/components/ui/kbd";
 import { Text } from "@/components/ui/text";
@@ -401,7 +402,8 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                             <SidebarItem
                               key={folder.id}
                               active={routeState.pathname === href}
-                              count={folder.shareCounts}
+                              count={folder.linkCounts}
+                              meta={`${folder.shareCounts}명 참여`}
                               label={folder.emoji ? `${folder.emoji} ${folder.name}` : folder.name}
                               labelClassName="text-base"
                               onPress={() => router.replace(href as Href)}
@@ -441,7 +443,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
                   >
                     {profileAvatarUrl ? <AvatarImage source={{ uri: profileAvatarUrl }} /> : null}
                     <AvatarFallback>
-                      <Text className="text-xl leading-none">{profileAvatarEmoji}</Text>
+                      <Emoji className="text-xl">{profileAvatarEmoji}</Emoji>
                     </AvatarFallback>
                   </Avatar>
                   <View className="min-w-0 flex-1 items-start">
@@ -470,7 +472,7 @@ function ResponsiveShell({ children }: { children: React.ReactNode }) {
             placeholder="링크 · 요약 · 태그 검색…"
             variant="default"
             searchReadOnly
-            searchLeftSlot={<Text className="text-xl leading-none">🔍</Text>}
+            searchLeftSlot={<Emoji className="text-xl">🔍</Emoji>}
             searchRightSlot={<Kbd size="sm">⌘/Ctrl + K</Kbd>}
             onSearchPress={handleWideSearchPress}
             actions={

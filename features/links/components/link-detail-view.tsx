@@ -164,7 +164,10 @@ function buildUpdateLinkPayload(
   overrides: Partial<Pick<UpdateLinkRequest, "memo" | "summary" | "tags" | "title">> = {},
 ): UpdateLinkRequest {
   // TODO: Switch link detail field updates to PATCH /api/links/{id} when the server exposes partial update support.
+  // PUT replaces the whole link, so every preserved field (esp. folderId) must be
+  // resent — otherwise the server drops the link back to uncategorized.
   return {
+    folderId: detail.folderId ?? null,
     memo: overrides.memo ?? detail.memo,
     sourceType: detail.sourceType,
     summary: overrides.summary ?? detail.summary,
@@ -208,7 +211,7 @@ function LinkEditFields({
       <View className="gap-2">
         <Text className="text-sm font-semibold text-muted-foreground">한 줄 요약</Text>
         <Textarea
-          className="min-h-24 rounded-xl px-4 py-3 text-base"
+          className="min-h-24 rounded-xl bg-card px-4 py-3 text-base dark:bg-card"
           value={summary}
           placeholder="한 줄 요약을 입력해주세요"
           onChangeText={onChangeSummary}
@@ -239,6 +242,9 @@ function mergeLinkDetail(base: LinkDetail, incoming: Partial<LinkDetail>): LinkD
   return {
     ...base,
     ...incoming,
+    // Update responses (PUT/PATCH) can omit or null the folder fields; keep the
+    // known values so the folder-move modal still preselects the current folder.
+    folderId: incoming.folderId ?? base.folderId ?? null,
     folderEmoji: incoming.folderEmoji ?? base.folderEmoji ?? null,
     folderName: incoming.folderName ?? base.folderName ?? null,
     memo: incoming.memo ?? base.memo ?? null,
@@ -443,6 +449,9 @@ function LinkDetailView({
 
       void queryClient.invalidateQueries({ queryKey: ["links", "list"] });
       void queryClient.invalidateQueries({ queryKey: ["folders"] });
+      // Refetch the authoritative detail so moving out to "없음" clears the folder
+      // instead of keeping the merged-in previous value.
+      void queryClient.invalidateQueries({ queryKey: getLinkDetailQueryKey(detail.id) });
     },
     [detail.folderId, detail.id, handleDetailUpdated, patchLinkMutation, queryClient, showToast],
   );
@@ -1374,7 +1383,7 @@ function LinkDetailView({
           open={isFolderMoveOpen}
           onOpenChange={setIsFolderMoveOpen}
         >
-          <DialogContent className="max-h-[80vh] min-h-[24rem] min-w-[24rem] max-w-md">
+          <DialogContent className="max-h-[80vh] min-h-[24rem] min-w-[24rem] max-w-xl">
             <DialogHeader>
               <DialogTitle>폴더 이동</DialogTitle>
               <DialogDescription>이동할 폴더를 선택해주세요.</DialogDescription>
@@ -1419,7 +1428,7 @@ function LinkDetailView({
           open={isCopyFolderOpen}
           onOpenChange={setIsCopyFolderOpen}
         >
-          <DialogContent className="max-h-[80vh] min-h-[24rem] min-w-[24rem] max-w-md">
+          <DialogContent className="max-h-[80vh] min-h-[24rem] min-w-[24rem] max-w-xl">
             <DialogHeader>
               <DialogTitle>개인 폴더로 추가</DialogTitle>
               <DialogDescription>복사할 개인 폴더를 선택해주세요.</DialogDescription>

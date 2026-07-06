@@ -252,7 +252,7 @@ function LinkCardGrid({
             if (!open) setFolderMoveLink(null);
           }}
         >
-          <DialogContent className="max-h-[80vh] min-h-[24rem] min-w-[24rem] max-w-md">
+          <DialogContent className="max-h-[80vh] min-h-[24rem] min-w-[24rem] max-w-xl">
             <DialogHeader>
               <DialogTitle>폴더 이동</DialogTitle>
               <DialogDescription>이동할 폴더를 선택해주세요.</DialogDescription>

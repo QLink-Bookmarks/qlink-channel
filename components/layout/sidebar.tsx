@@ -38,6 +38,7 @@ function SidebarItem({
   label,
   labelClassName,
   count,
+  meta,
   kbd,
   active,
   onPress,
@@ -47,6 +48,7 @@ function SidebarItem({
   label: string;
   labelClassName?: string;
   count?: number | string;
+  meta?: string;
   kbd?: string;
   active?: boolean;
   onPress?: () => void;
@@ -81,6 +83,16 @@ function SidebarItem({
       >
         {label}
       </Text>
+      {meta ? (
+        <Text
+          className={cn(
+            "text-xs",
+            active ? "text-primary/70" : "text-sidebar-muted/70 web:group-hover:text-sidebar-hover",
+          )}
+        >
+          {meta}
+        </Text>
+      ) : null}
       {count != null ? (
         <Text
           className={cn(

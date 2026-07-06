@@ -31,6 +31,9 @@ type UpdateLinkRequest = {
   summary?: string | null;
   tags: string[];
   memo?: string | null;
+  // PUT is a full replace — omitting folderId makes the server reset the link to
+  // uncategorized, so always send the link's current folder.
+  folderId?: number | null;
   sourceType: SourceType;
 };
 
