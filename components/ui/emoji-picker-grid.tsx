@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 
+import { Emoji } from "@/components/ui/emoji";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
@@ -184,7 +185,7 @@ function EmojiPickerGridBase({
                     )}
                     onPress={() => onChange(isSelected ? null : entry.emoji)}
                   >
-                    <Text className="text-xl leading-none">{entry.emoji}</Text>
+                    <Emoji className="text-xl">{entry.emoji}</Emoji>
                   </Pressable>
                 );
               })}

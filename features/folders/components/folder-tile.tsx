@@ -1,5 +1,6 @@
 import { Pressable, View } from "react-native";
 
+import { Emoji } from "@/components/ui/emoji";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +37,7 @@ function FolderTile({ className, emoji, name, count, add, onPress }: FolderTileP
       onPress={onPress}
     >
       <View className="size-10 items-center justify-center rounded-2xl bg-muted">
-        <Text className="text-xl leading-none">{emoji ?? "📁"}</Text>
+        <Emoji className="text-xl">{emoji ?? "📁"}</Emoji>
       </View>
       <View className="min-w-0 flex-1 gap-1">
         <Text

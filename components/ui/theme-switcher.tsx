@@ -1,6 +1,7 @@
 import { Pressable, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Emoji } from "@/components/ui/emoji";
 import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { ACCENT_OPTIONS, accentSwatchClasses } from "@/lib/accent";
@@ -89,7 +90,7 @@ function ThemeSwitcher({
         {variant === "switch" ? (
           <Switch
             checked={isDark}
-            thumbContent={<Text className="text-2xs leading-none">{isDark ? "🌙" : "☀️"}</Text>}
+            thumbContent={<Emoji className="text-2xs">{isDark ? "🌙" : "☀️"}</Emoji>}
             onCheckedChange={(checked) => onModeChange?.(checked ? "dark" : "light")}
           />
         ) : null}

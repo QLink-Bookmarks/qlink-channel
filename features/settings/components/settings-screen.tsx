@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Emoji } from "@/components/ui/emoji";
 import { EmojiPickerGrid } from "@/components/ui/emoji-picker-grid";
 import { Icon } from "@/components/ui/icon";
 import { ImageUploader } from "@/components/ui/image-uploader";
@@ -275,7 +276,7 @@ function ProfileSection({
             >
               {avatarUrl ? <AvatarImage source={{ uri: avatarUrl }} /> : null}
               <AvatarFallback>
-                <Text className="text-2xl leading-none">{avatar}</Text>
+                <Emoji className="text-2xl">{avatar}</Emoji>
               </AvatarFallback>
             </Avatar>
             <View className="min-w-0 flex-1">
@@ -516,9 +517,9 @@ function ProfileEditOverlay({
             >
               {displayAvatarUrl ? <AvatarImage source={{ uri: displayAvatarUrl }} /> : null}
               <AvatarFallback>
-                <Text className="text-3xl leading-none">
+                <Emoji className="text-3xl">
                   {uploadImageMutation.isPending ? "⏳" : (draftAvatarEmoji ?? "🌸")}
-                </Text>
+                </Emoji>
               </AvatarFallback>
             </Avatar>
           </Pressable>

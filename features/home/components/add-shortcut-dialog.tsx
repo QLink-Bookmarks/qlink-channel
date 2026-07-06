@@ -3,6 +3,7 @@ import { Pressable, ScrollView, View } from "react-native";
 
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Emoji } from "@/components/ui/emoji";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Favicon } from "@/components/ui/favicon";
 import { Icon } from "@/components/ui/icon";
@@ -53,7 +54,7 @@ function AddShortcutDialog({
     >
       <DialogContent className="max-h-[80vh] w-[560px] max-w-[90vw] gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-[90vw]">
         <View className="flex-row items-center gap-2 border-b border-border px-5 py-4 pr-12">
-          <Text className="text-xl leading-none">⭐</Text>
+          <Emoji className="text-xl">⭐</Emoji>
           <DialogTitle className="text-lg">바로가기 추가</DialogTitle>
         </View>
 
