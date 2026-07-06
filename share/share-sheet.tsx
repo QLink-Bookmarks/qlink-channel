@@ -37,10 +37,25 @@ function isHttpUrl(value: string): boolean {
   return /^https?:\/\//i.test(value.trim());
 }
 
+function getMetaTitle(meta: unknown): string | null {
+  if (!meta || typeof meta !== "object") return null;
+  const record = meta as Record<string, unknown>;
+  for (const key of ["og:title", "twitter:title"]) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
 function getSharedTitle(preprocessingResults: unknown, fallback: string): string {
   if (preprocessingResults && typeof preprocessingResults === "object") {
-    const title = (preprocessingResults as { title?: unknown }).title;
-    if (typeof title === "string" && title.trim()) return title.trim();
+    const pre = preprocessingResults as { title?: unknown; meta?: unknown };
+    // Prefer og:title/twitter:title over document.title. YouTube's mobile SPA
+    // leaves document.title as a stale "YouTube" at share time, but the OG tags
+    // already carry the real video title.
+    const metaTitle = getMetaTitle(pre.meta);
+    if (metaTitle) return metaTitle;
+    if (typeof pre.title === "string" && pre.title.trim()) return pre.title.trim();
   }
   return fallback;
 }
@@ -72,9 +87,26 @@ function decodeHtmlEntities(value: string): string {
   );
 }
 
+// Prefer og:title/twitter:title over <title>. Sites like YouTube's mobile web
+// (m.youtube.com) serve a static <title> of just "YouTube" and inject the real
+// title via client JS, but their OG tags carry it in the server HTML.
+function extractTitleFromHtml(html: string): string | null {
+  const ogMatch =
+    /<meta[^>]+(?:property|name)=["']og:title["'][^>]*>/i.exec(html) ??
+    /<meta[^>]+(?:property|name)=["']twitter:title["'][^>]*>/i.exec(html);
+  if (ogMatch) {
+    const content = /content=(["'])([\s\S]*?)\1/i.exec(ogMatch[0]);
+    const ogTitle = content ? decodeHtmlEntities(content[2]).replace(/\s+/g, " ").trim() : "";
+    if (ogTitle) return ogTitle;
+  }
+  const titleMatch = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
+  const title = titleMatch ? decodeHtmlEntities(titleMatch[1]).replace(/\s+/g, " ").trim() : "";
+  return title || null;
+}
+
 // Fallback when the share preprocessing didn't surface a title (e.g. a bare URL
-// shared from a non-browser app): fetch the page and read its <title>. Bounded
-// and best-effort — returns null on any failure.
+// shared from a non-browser app): fetch the page and read its OG/<title>.
+// Bounded and best-effort — returns null on any failure.
 async function fetchPageTitle(url: string): Promise<string | null> {
   try {
     const controller = new AbortController();
@@ -85,9 +117,7 @@ async function fetchPageTitle(url: string): Promise<string | null> {
     });
     clearTimeout(timer);
     const html = await response.text();
-    const match = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
-    const title = match ? decodeHtmlEntities(match[1]).replace(/\s+/g, " ").trim() : "";
-    return title || null;
+    return extractTitleFromHtml(html);
   } catch {
     return null;
   }
