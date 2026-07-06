@@ -1,3 +1,5 @@
+import { AppState } from "react-native";
+
 import { SessionStorage } from "@/lib/session-storage";
 
 import { create } from "zustand";
@@ -30,20 +32,52 @@ const useAuthStore = create<AuthState>((set) => ({
   setHasHydrated: (hasHydrated) => set({ hasHydrated }),
 }));
 
-async function hydrateAuthStore() {
+async function readStoredTokens(): Promise<AuthTokens | null> {
   try {
     const raw = await SessionStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<AuthTokens>;
-      useAuthStore.setState({
-        accessToken: typeof parsed.accessToken === "string" ? parsed.accessToken : null,
-        refreshToken: typeof parsed.refreshToken === "string" ? parsed.refreshToken : null,
-      });
-    }
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<AuthTokens>;
+    return {
+      accessToken: typeof parsed.accessToken === "string" ? parsed.accessToken : null,
+      refreshToken: typeof parsed.refreshToken === "string" ? parsed.refreshToken : null,
+    };
   } catch {
     // ignore corrupt storage
+    return null;
+  }
+}
+
+async function hydrateAuthStore() {
+  const stored = await readStoredTokens();
+  if (stored) {
+    useAuthStore.setState({
+      accessToken: stored.accessToken,
+      refreshToken: stored.refreshToken,
+    });
   }
   useAuthStore.setState({ hasHydrated: true });
+}
+
+// Re-read the shared keychain and adopt tokens the iOS share extension may have
+// refreshed (and rotated) while the app was backgrounded. Without this the app
+// keeps its stale in-memory refresh token, which the server already consumed,
+// and the next request fails auth. Returns true when new tokens were adopted.
+async function syncAuthFromStorage(): Promise<boolean> {
+  const stored = await readStoredTokens();
+  // A missing/empty record must not clobber a live in-memory session (e.g. a
+  // transient keychain miss) — only adopt when the store actually holds tokens.
+  if (!stored || !(stored.accessToken || stored.refreshToken)) {
+    return false;
+  }
+  const current = useAuthStore.getState();
+  if (current.accessToken === stored.accessToken && current.refreshToken === stored.refreshToken) {
+    return false;
+  }
+  useAuthStore.setState({
+    accessToken: stored.accessToken,
+    refreshToken: stored.refreshToken,
+  });
+  return true;
 }
 
 let unsubPersist: (() => void) | null = null;
@@ -70,8 +104,23 @@ function startAuthPersistence() {
   });
 }
 
+let foregroundSyncStarted = false;
+
+function startForegroundAuthSync() {
+  if (foregroundSyncStarted || process.env.EXPO_OS === "web") return;
+  foregroundSyncStarted = true;
+  // On every return to the foreground, pull in whatever the share extension
+  // refreshed in the shared keychain so the app never acts on a rotated token.
+  AppState.addEventListener("change", (status) => {
+    if (status === "active") {
+      void syncAuthFromStorage();
+    }
+  });
+}
+
 void hydrateAuthStore().then(() => {
   startAuthPersistence();
+  startForegroundAuthSync();
 });
 
 function getAccessTokenFromStore() {
@@ -82,5 +131,5 @@ function getRefreshTokenFromStore() {
   return useAuthStore.getState().refreshToken;
 }
 
-export { getAccessTokenFromStore, getRefreshTokenFromStore, useAuthStore };
+export { getAccessTokenFromStore, getRefreshTokenFromStore, syncAuthFromStorage, useAuthStore };
 export type { AuthState };

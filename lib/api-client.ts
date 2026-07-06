@@ -1,6 +1,11 @@
 import { Platform } from "react-native";
 
-import { getAccessTokenFromStore, getRefreshTokenFromStore, useAuthStore } from "@/stores/auth";
+import {
+  getAccessTokenFromStore,
+  getRefreshTokenFromStore,
+  syncAuthFromStorage,
+  useAuthStore,
+} from "@/stores/auth";
 import { useToastStore } from "@/stores/toast-store";
 
 import { type AxiosError, type AxiosRequestConfig, create, isAxiosError } from "axios";
@@ -56,6 +61,12 @@ let refreshPromise: Promise<string | null> | null = null;
 
 async function performRefresh(): Promise<string | null> {
   try {
+    if (Platform.OS !== "web") {
+      // The iOS share extension may have already refreshed (and rotated) the
+      // shared-keychain tokens. Adopt those before refreshing so we don't send a
+      // stale, already-consumed refresh token.
+      await syncAuthFromStorage();
+    }
     const response =
       Platform.OS === "web"
         ? await apiClient.post<RefreshResponse>("/api/auth/token/refresh/web")
