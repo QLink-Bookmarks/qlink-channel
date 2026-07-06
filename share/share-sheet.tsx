@@ -37,6 +37,28 @@ function isHttpUrl(value: string): boolean {
   return /^https?:\/\//i.test(value.trim());
 }
 
+// AI summary generates its own title, so a "title" that is really just the URL
+// (the last-resort fallback, or an extracted title that happens to be
+// URL-shaped) should be dropped — otherwise the AI keeps the URL as the title.
+// A real web/OG title is kept so the AI can build on it.
+function isUrlLikeTitle(title: string, url: string): boolean {
+  const trimmed = title.trim();
+  if (!trimmed) return true;
+  if (/^https?:\/\//i.test(trimmed)) return true;
+  const strip = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/\/+$/, "");
+  if (strip(trimmed) === strip(url)) return true;
+  // A bare host (optionally with a path) and no whitespace, e.g.
+  // "developer.apple.com" or "developer.apple.com/wwdc".
+  if (!/\s/.test(trimmed) && /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(trimmed)) return true;
+  return false;
+}
+
 function getMetaTitle(meta: unknown): string | null {
   if (!meta || typeof meta !== "object") return null;
   const record = meta as Record<string, unknown>;
@@ -215,7 +237,9 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
     try {
       await requestSharedAiSummary({
         url: sharedUrl,
-        title,
+        // Drop a URL-shaped title so the AI generates a real one; keep a genuine
+        // web/OG title.
+        title: isUrlLikeTitle(title, sharedUrl) ? "" : title,
         folderId,
         userProviderId: model.userProviderId,
         modelId: model.modelId,
