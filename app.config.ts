@@ -173,6 +173,7 @@ const config: ExpoConfig = {
       },
     ],
     "./plugins/with-share-extension-rn-imports",
+    "./plugins/with-share-extension-name",
     ...nativeAuthPlugins,
     "expo-apple-authentication",
     "./plugins/with-ios-modular-headers",
