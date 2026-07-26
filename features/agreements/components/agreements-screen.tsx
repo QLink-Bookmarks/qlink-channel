@@ -115,7 +115,7 @@ function AgreementsScreen() {
                 </Text>
               </View>
               <View className="rounded-2xl border border-border bg-muted/40 p-4">
-                <DeviceNotificationNotice />
+                <DeviceNotificationNotice enabledMessage="알림이 허용됐어요! 다음으로 진행해주세요." />
               </View>
             </View>
           </ScrollView>
