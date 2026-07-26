@@ -8,13 +8,28 @@ import { useDeviceNotificationStatus } from "../hooks/use-device-notification-st
 
 import { BellOff } from "lucide-react-native/icons";
 
-function DeviceNotificationNotice() {
+type DeviceNotificationNoticeProps = {
+  enabledMessage?: string;
+};
+
+function DeviceNotificationNotice({ enabledMessage }: DeviceNotificationNoticeProps) {
   const { isEnabled, enable } = useDeviceNotificationStatus();
 
-  // Hide while loading (null) or when device notifications are already on (true);
-  // only surface the notice when this device has them off (false).
-  if (isEnabled !== false) {
+  // Hide while loading (null). Once enabled (true) the notice is done, but callers can
+  // pass enabledMessage to confirm the grant in place instead of leaving a blank slot.
+  if (isEnabled === null) {
     return null;
+  }
+
+  if (isEnabled) {
+    if (!enabledMessage) {
+      return null;
+    }
+    return (
+      <Text className="text-center text-[15px] font-semibold text-foreground">
+        {enabledMessage}
+      </Text>
+    );
   }
 
   return (

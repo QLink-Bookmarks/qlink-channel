@@ -1,9 +1,16 @@
-name: Flight (TestFlight build or OTA)
+name: Release (TestFlight build or OTA)
+
+# release 브랜치 배포용 (flight 워크플로를 대체). fingerprint로 네이티브 변경 여부를 판단:
+#  - 지문 변경: EAS production 프로필로 build -> submit (App Store Connect / TestFlight)
+#  - 지문 동일: production 브랜치로 OTA update (새 바이너리 없음)
+# submit(TestFlight) 성공엔 eas.json submit.production에 Apple 값
+# (ASC API Key 또는 appleId/ascAppId/appleTeamId)이 채워져야 한다.
+# share extension은 expo-updates를 제외하므로 OTA로는 갱신되지 않는다 (네이티브 재빌드 필요).
 
 on:
   push:
     branches:
-      - flight
+      - release
 
 jobs:
   fingerprint:
