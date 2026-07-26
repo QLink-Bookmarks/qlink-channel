@@ -1,0 +1,36 @@
+name: EAS 워크플로 트리거
+
+# 재사용 워크플로: EAS Workflows 를 실행만 시키고 러너는 바로 빠진다.
+# `eas workflow:run` 은 기본이 --no-wait 이라 EAS 빌드 시간이
+# GitHub 러너 시간으로 잡히지 않는다.
+
+on:
+  workflow_call:
+    inputs:
+      workflow_file:
+        description: 실행할 EAS 워크플로 파일 경로 (.eas/workflows/*.yml)
+        required: true
+        type: string
+
+jobs:
+  trigger:
+    name: Run ${{ inputs.workflow_file }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_CI_TOKEN }}
+
+      - name: Run EAS workflow
+        run: eas workflow:run "${WORKFLOW_FILE}" --non-interactive
+        env:
+          WORKFLOW_FILE: ${{ inputs.workflow_file }}
