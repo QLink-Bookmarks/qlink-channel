@@ -1,5 +1,6 @@
 import * as React from "react";
 import {
+  Linking,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   Pressable,
@@ -29,6 +30,8 @@ import { Reveal } from "./reveal";
 
 import { type Href, useRouter } from "expo-router";
 import { vars } from "nativewind";
+
+const SUPPORT_EMAIL = "qlinkk1004@gmail.com";
 
 function WebLanding() {
   const router = useRouter();
@@ -187,6 +190,11 @@ function WebLanding() {
           </Reveal>
           <View className="absolute inset-x-0 bottom-0 items-center gap-2 border-t border-border bg-background px-6 py-10">
             <Text className="font-mono text-sm text-muted-foreground">에이링크 ALink</Text>
+            <Pressable onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}>
+              <Text className="text-xs text-muted-foreground web:hover:text-foreground">
+                문의 · <Text className="underline">{SUPPORT_EMAIL}</Text>
+              </Text>
+            </Pressable>
             <Pressable onPress={() => router.push("/privacy" as Href)}>
               <Text className="text-xs text-muted-foreground underline web:hover:text-foreground">
                 개인정보처리방침
