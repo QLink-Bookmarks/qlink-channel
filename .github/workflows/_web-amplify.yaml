@@ -1,0 +1,143 @@
+name: 웹 배포 (Amplify)
+
+# 재사용 워크플로: Expo 웹을 정적 export 해서 Amplify 브랜치에 배포한다.
+# 호출부(cd-dev / cd-prod)는 environment 와 amplify_branch 만 다르므로
+# 배포 절차 자체는 여기 한 곳에서만 관리한다.
+#
+# 시크릿/변수는 호출부에서 `secrets: inherit` 로 넘기고, 환경 스코프 값은
+# 아래 job 의 `environment:` 선언으로 해석된다.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 값을 읽어올 GitHub Environment 이름 (dev / Production)
+        required: true
+        type: string
+      amplify_branch:
+        description: 배포 대상 Amplify 브랜치 (dev / prod)
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy web (${{ inputs.amplify_branch }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    env:
+      AMPLIFY_APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
+      AMPLIFY_BRANCH_NAME: ${{ inputs.amplify_branch }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      APP_VARIANT: ${{ vars.APP_VARIANT }}
+      EXPO_PUBLIC_API_BASE_URL: ${{ vars.EXPO_PUBLIC_API_BASE_URL }}
+      EXPO_PUBLIC_FIREBASE_API_KEY: ${{ secrets.EXPO_PUBLIC_FIREBASE_API_KEY }}
+      EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+      EXPO_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.EXPO_PUBLIC_FIREBASE_PROJECT_ID }}
+      EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+      EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+      EXPO_PUBLIC_FIREBASE_APP_ID: ${{ secrets.EXPO_PUBLIC_FIREBASE_APP_ID }}
+      EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+      EXPO_PUBLIC_FIREBASE_VAPID_KEY: ${{ secrets.EXPO_PUBLIC_FIREBASE_VAPID_KEY }}
+      EXPO_PUBLIC_KAKAO_NATIVE_KEY: ${{ secrets.EXPO_PUBLIC_KAKAO_NATIVE_KEY }}
+      EXPO_PUBLIC_KAKAO_JS_KEY: ${{ secrets.EXPO_PUBLIC_KAKAO_JS_KEY }}
+      EXPO_PUBLIC_KAKAO_REST_KEY: ${{ secrets.EXPO_PUBLIC_KAKAO_REST_KEY }}
+      EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID }}
+      EXPO_PUBLIC_NAVER_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_NAVER_CLIENT_ID }}
+      EXPO_PUBLIC_APPLE_WEB_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_APPLE_WEB_CLIENT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate environment variables
+        run: |
+          required_names=(
+            AMPLIFY_APP_ID
+            AWS_ACCESS_KEY_ID
+            AWS_SECRET_ACCESS_KEY
+            APP_VARIANT
+            EXPO_PUBLIC_API_BASE_URL
+            EXPO_PUBLIC_FIREBASE_API_KEY
+            EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN
+            EXPO_PUBLIC_FIREBASE_PROJECT_ID
+            EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET
+            EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+            EXPO_PUBLIC_FIREBASE_APP_ID
+            EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
+            EXPO_PUBLIC_FIREBASE_VAPID_KEY
+            EXPO_PUBLIC_KAKAO_NATIVE_KEY
+            EXPO_PUBLIC_KAKAO_JS_KEY
+            EXPO_PUBLIC_KAKAO_REST_KEY
+          )
+
+          missing_names=()
+          for name in "${required_names[@]}"; do
+            if [ -z "${!name}" ]; then
+              missing_names+=("${name}")
+            fi
+          done
+
+          if [ "${#missing_names[@]}" -gt 0 ]; then
+            printf "Missing required environment values:\n"
+            printf " - %s\n" "${missing_names[@]}"
+            exit 1
+          fi
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Export web
+        run: bunx expo export --platform web --clear
+
+      - name: Zip web artifact
+        run: |
+          cd dist
+          zip -r ../dist.zip .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Create Amplify deployment
+        id: create-deployment
+        run: |
+          read -r JOB_ID ZIP_UPLOAD_URL < <(aws amplify create-deployment \
+            --app-id "${AMPLIFY_APP_ID}" \
+            --branch-name "${AMPLIFY_BRANCH_NAME}" \
+            --query "[jobId, zipUploadUrl]" \
+            --output text)
+
+          echo "job_id=${JOB_ID}" >> "${GITHUB_OUTPUT}"
+          echo "zip_upload_url=${ZIP_UPLOAD_URL}" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload artifact to Amplify
+        env:
+          ZIP_UPLOAD_URL: ${{ steps.create-deployment.outputs.zip_upload_url }}
+        run: |
+          curl --fail --silent --show-error \
+            --request PUT \
+            --header "Content-Type: application/zip" \
+            --upload-file dist.zip \
+            "${ZIP_UPLOAD_URL}"
+
+      - name: Start Amplify deployment
+        env:
+          JOB_ID: ${{ steps.create-deployment.outputs.job_id }}
+        run: |
+          aws amplify start-deployment \
+            --app-id "${AMPLIFY_APP_ID}" \
+            --branch-name "${AMPLIFY_BRANCH_NAME}" \
+            --job-id "${JOB_ID}"
