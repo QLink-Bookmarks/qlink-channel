@@ -23,10 +23,10 @@ import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { type TimeValue } from "@/components/ui/time-picker";
 import {
-  AiModelPickerList,
   type AiModelSelection,
-  getProviderLabel,
-} from "@/features/ai/components/ai-model-picker-list";
+  AiProviderPickerList,
+  getProviderSelection,
+} from "@/features/ai/components/ai-provider-picker-list";
 import { useRequestAiSummaryMutation } from "@/features/ai/mutations";
 import { useAiProviderModelsQuery } from "@/features/ai/queries";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
@@ -118,7 +118,6 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
   const aiProvidersQuery = useAiProviderModelsQuery();
   const aiProviders = aiProvidersQuery.data;
   const defaultProvider = useDisplaySettings((state) => state.ai.defaultProvider);
-  const defaultModel = useDisplaySettings((state) => state.ai.defaultModel);
   const requestAiSummaryMutation = useRequestAiSummaryMutation();
   const [url, setUrl] = React.useState("");
   const [title, setTitle] = React.useState("");
@@ -139,19 +138,12 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
     if (!matchedProvider) {
       return;
     }
-    const matchedModel =
-      matchedProvider.models.find((model) => model.id === defaultModel.id) ??
-      matchedProvider.models[0];
-    if (!matchedModel) {
+    const selection = getProviderSelection(matchedProvider);
+    if (!selection) {
       return;
     }
-    setAiModel({
-      modelId: matchedModel.id,
-      modelLabel: matchedModel.model,
-      providerLabel: getProviderLabel(matchedProvider),
-      userProviderId: matchedModel.userProviderId,
-    });
-  }, [aiModel, aiProviders, defaultModel.id, defaultProvider.id]);
+    setAiModel(selection);
+  }, [aiModel, aiProviders, defaultProvider.id]);
 
   const handleClipboardReadFailure = React.useCallback(
     (error: unknown) => {
@@ -458,11 +450,7 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
     validate,
   ]);
 
-  const aiModelLabel = aiModel
-    ? `${aiModel.providerLabel} · ${aiModel.modelLabel}`
-    : defaultModel.model
-      ? defaultModel.model
-      : "기본 모델 사용";
+  const aiProviderLabel = aiModel?.providerLabel ?? "기본 제공자 사용";
 
   const decoratedTodos = React.useMemo(
     () => todos.map((todo) => ({ ...todo, isPast: isScheduleInPast(todo) })),
@@ -568,9 +556,9 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
               onValueChange={setGenerateTodo}
             />
             <MobileOptionCard
-              eyebrow="AI 제공자 모델"
+              eyebrow="AI 제공자"
               icon="🤖"
-              label={aiModelLabel}
+              label={aiProviderLabel}
               onPress={() => setMobileSheetStep("ai-model-picker")}
             />
 
@@ -605,8 +593,8 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
             }}
           />
         ) : (
-          <AiModelPickerList
-            selectedModelId={aiModel?.modelId ?? defaultModel.id ?? null}
+          <AiProviderPickerList
+            selectedProviderId={aiModel?.providerId ?? defaultProvider.id ?? null}
             onSelect={(selection) => {
               setAiModel(selection);
               setMobileSheetStep("form");
@@ -766,7 +754,7 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
               className="h-10 flex-row items-center gap-1 rounded-2xl px-3"
               variant="outline"
             >
-              <Text className="text-sm font-semibold">{aiModelLabel}</Text>
+              <Text className="text-sm font-semibold">{aiProviderLabel}</Text>
               <Icon
                 as={ChevronDown}
                 size={14}
@@ -779,8 +767,8 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
             side="bottom"
             className="max-h-[60vh] w-80 overflow-y-auto p-3"
           >
-            <AiModelPickerListWithClose
-              selectedModelId={aiModel?.modelId ?? defaultModel.id ?? null}
+            <AiProviderPickerListWithClose
+              selectedProviderId={aiModel?.providerId ?? defaultProvider.id ?? null}
               onSelect={setAiModel}
             />
           </PopoverContent>
@@ -790,18 +778,18 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
   );
 }
 
-function AiModelPickerListWithClose({
-  selectedModelId,
+function AiProviderPickerListWithClose({
+  selectedProviderId,
   onSelect,
 }: {
-  selectedModelId: number | null;
+  selectedProviderId: number | null;
   onSelect: (selection: AiModelSelection) => void;
 }) {
   const popoverContext = usePopoverContext();
 
   return (
-    <AiModelPickerList
-      selectedModelId={selectedModelId}
+    <AiProviderPickerList
+      selectedProviderId={selectedProviderId}
       onSelect={(selection) => {
         onSelect(selection);
         popoverContext.onOpenChange(false);
