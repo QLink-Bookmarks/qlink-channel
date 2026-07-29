@@ -125,7 +125,7 @@ async function fetchFolders(): Promise<Folder[]> {
 async function fetchProviderModels(): Promise<AiProviderWithModels[]> {
   const res = await authed<GetAiProviderModelsResponse>({
     method: "get",
-    url: "/api/ai/providers/models",
+    url: "/api/ai/providers/models?isMine=true",
   });
   return res.data ?? [];
 }

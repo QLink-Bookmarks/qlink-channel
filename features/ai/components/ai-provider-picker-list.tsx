@@ -6,22 +6,19 @@ import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
-import { useAiProviderModelsQuery } from "../queries";
+import { useAiProviderCatalogQuery } from "../queries";
 import type { AiProviderModel, AiProviderWithModels } from "../types";
 
 import { Sparkles } from "lucide-react-native/icons";
 
-type AiModelSelection = {
+type AiProviderSelection = {
   providerId: number;
-  userProviderId: number;
-  modelId: number;
-  modelLabel: string;
   providerLabel: string;
 };
 
 type AiProviderPickerListProps = {
   selectedProviderId: number | null;
-  onSelect: (selection: AiModelSelection) => void;
+  onSelect: (selection: AiProviderSelection) => void;
   className?: string;
 };
 
@@ -43,17 +40,10 @@ function sortModelsByPriority(models: AiProviderModel[]): AiProviderModel[] {
   return [...models].sort((a, b) => a.priority - b.priority);
 }
 
-function getProviderSelection(provider: AiProviderWithModels): AiModelSelection | null {
-  const model = sortModelsByPriority(provider.models)[0];
-  if (!model) {
-    return null;
-  }
+function getProviderSelection(provider: AiProviderWithModels): AiProviderSelection {
   return {
-    modelId: model.id,
-    modelLabel: model.model,
     providerId: provider.providerId,
     providerLabel: getProviderLabel(provider),
-    userProviderId: model.userProviderId,
   };
 }
 
@@ -62,7 +52,7 @@ function AiProviderPickerList({
   onSelect,
   className,
 }: AiProviderPickerListProps) {
-  const providersQuery = useAiProviderModelsQuery();
+  const providersQuery = useAiProviderCatalogQuery();
   const providers = providersQuery.data ?? [];
 
   if (providersQuery.isLoading) {
@@ -92,12 +82,7 @@ function AiProviderPickerList({
             key={provider.providerId}
             provider={provider}
             selected={selectedProviderId === provider.providerId}
-            onPress={() => {
-              const selection = getProviderSelection(provider);
-              if (selection) {
-                onSelect(selection);
-              }
-            }}
+            onPress={() => onSelect(getProviderSelection(provider))}
           />
         ))}
       </View>
@@ -171,4 +156,4 @@ function AiProviderModelNotice({ providers }: { providers: AiProviderWithModels[
 }
 
 export { AiProviderPickerList, getProviderLabel, getProviderSelection };
-export type { AiModelSelection, AiProviderPickerListProps };
+export type { AiProviderPickerListProps, AiProviderSelection };

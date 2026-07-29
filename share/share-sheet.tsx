@@ -145,11 +145,14 @@ async function fetchPageTitle(url: string): Promise<string | null> {
   }
 }
 
-// 제공자 단위로만 고르게 하고, 실제 모델은 priority가 앞선 것을 기본값으로 붙인다.
+// 제공자 단위로만 고르게 한다. 실제 모델/userProviderId는 isMine=true 응답에서만
+// 나오므로, priority가 앞서면서 userProviderId가 있는 항목을 기본값으로 붙인다.
 function toModelOptions(providers: AiProviderWithModels[]): ModelOption[] {
   return providers.flatMap((provider) => {
-    const model = [...provider.models].sort((a, b) => a.priority - b.priority)[0];
-    if (!model) {
+    const model = [...provider.models]
+      .sort((a, b) => a.priority - b.priority)
+      .find((entry) => entry.userProviderId != null);
+    if (!model?.userProviderId) {
       return [];
     }
     return [

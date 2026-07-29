@@ -5,7 +5,8 @@ type AiProviderModel = {
   id: number;
   model: string;
   priority: number;
-  userProviderId: number;
+  // null on the public catalog (isMine=false); only set for the caller's own providers.
+  userProviderId: number | null;
 };
 
 type AiProviderWithModels = {
@@ -15,17 +16,6 @@ type AiProviderWithModels = {
 };
 
 type GetAiProviderModelsResponse = ApiEnvelope<AiProviderWithModels[]>;
-
-type PutAiUserProviderRequest = {
-  providerId: number;
-  apiKey: string;
-};
-
-type PutAiUserProviderResponseData = {
-  id: number;
-};
-
-type PutAiUserProviderResponse = ApiEnvelope<PutAiUserProviderResponseData>;
 
 type AiSummaryRequest = {
   id?: number | null;
@@ -50,7 +40,4 @@ export type {
   AiSummaryResponse,
   AiSummaryResponseData,
   GetAiProviderModelsResponse,
-  PutAiUserProviderRequest,
-  PutAiUserProviderResponse,
-  PutAiUserProviderResponseData,
 };
