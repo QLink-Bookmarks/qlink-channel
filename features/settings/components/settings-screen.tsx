@@ -44,11 +44,12 @@ import {
 } from "@/features/account/queries";
 import type { ConnectedAuthProvider } from "@/features/account/types";
 import {
-  type AiModelSelection,
   AiProviderPickerList,
+  type AiProviderSelection,
   getProviderLabel,
 } from "@/features/ai/components/ai-provider-picker-list";
-import { useAiProviderModelsQuery } from "@/features/ai/queries";
+import { resolveProviderRequest } from "@/features/ai/lib/resolve-provider-request";
+import { useAiProviderCatalogQuery, useMyAiProvidersQuery } from "@/features/ai/queries";
 import { signOut as signOutApi } from "@/features/auth/api";
 import { ConnectedProvidersRow } from "@/features/auth/components/connect-providers";
 import { logoutNaver } from "@/features/auth/lib/native-naver-logout";
@@ -869,8 +870,10 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
   const defaultProvider = useDisplaySettings((state) => state.ai.defaultProvider);
   const setDefaultProvider = useDisplaySettings((state) => state.setDefaultProvider);
   const setDefaultModel = useDisplaySettings((state) => state.setDefaultModel);
-  const providersQuery = useAiProviderModelsQuery();
+  const providersQuery = useAiProviderCatalogQuery();
   const providers = React.useMemo(() => providersQuery.data ?? [], [providersQuery.data]);
+  const myProvidersQuery = useMyAiProvidersQuery();
+  const myProviders = myProvidersQuery.data;
 
   const [pickerOpen, setPickerOpen] = React.useState(false);
 
@@ -878,15 +881,17 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
   const providerNameLabel = selectedProvider ? getProviderLabel(selectedProvider) : null;
 
   const handleSelect = React.useCallback(
-    (selection: AiModelSelection) => {
+    (selection: AiProviderSelection) => {
       const provider = providers.find((entry) => entry.providerId === selection.providerId);
       if (provider) {
         setDefaultProvider({ id: provider.providerId, type: provider.providerType });
       }
-      setDefaultModel({ id: selection.modelId, model: selection.modelLabel });
+      // Persist the model the server actually runs for this user, not a catalog row.
+      const target = resolveProviderRequest(myProviders, selection.providerId);
+      setDefaultModel({ id: target?.modelId ?? null, model: null });
       setPickerOpen(false);
     },
-    [providers, setDefaultModel, setDefaultProvider],
+    [myProviders, providers, setDefaultModel, setDefaultProvider],
   );
 
   return (
@@ -947,7 +952,7 @@ function AiPickerOverlay({
   open: boolean;
   selectedProviderId: number | null;
   onOpenChange: (open: boolean) => void;
-  onSelect: (selection: AiModelSelection) => void;
+  onSelect: (selection: AiProviderSelection) => void;
 }) {
   const body = (
     <AiProviderPickerList

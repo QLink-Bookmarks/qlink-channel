@@ -23,12 +23,13 @@ import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { type TimeValue } from "@/components/ui/time-picker";
 import {
-  type AiModelSelection,
   AiProviderPickerList,
+  type AiProviderSelection,
   getProviderSelection,
 } from "@/features/ai/components/ai-provider-picker-list";
+import { resolveProviderRequest } from "@/features/ai/lib/resolve-provider-request";
 import { useRequestAiSummaryMutation } from "@/features/ai/mutations";
-import { useAiProviderModelsQuery } from "@/features/ai/queries";
+import { useAiProviderCatalogQuery, useMyAiProvidersQuery } from "@/features/ai/queries";
 import { FolderPickerList } from "@/features/folders/components/folder-picker-list";
 import { useFoldersQuery } from "@/features/folders/queries";
 import {
@@ -115,22 +116,24 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
   }, [folderContents]);
   const clipboardFeedback = useClipboardFailureFeedback();
   const showToast = useToastStore((state) => state.showToast);
-  const aiProvidersQuery = useAiProviderModelsQuery();
+  const aiProvidersQuery = useAiProviderCatalogQuery();
   const aiProviders = aiProvidersQuery.data;
+  const myProvidersQuery = useMyAiProvidersQuery();
+  const myProviders = myProvidersQuery.data;
   const defaultProvider = useDisplaySettings((state) => state.ai.defaultProvider);
   const requestAiSummaryMutation = useRequestAiSummaryMutation();
   const [url, setUrl] = React.useState("");
   const [title, setTitle] = React.useState("");
   const [memo, setMemo] = React.useState("");
   const [folder, setFolder] = React.useState<FolderDraft>(defaultFolder);
-  const [aiModel, setAiModel] = React.useState<AiModelSelection | null>(null);
+  const [aiProvider, setAiProvider] = React.useState<AiProviderSelection | null>(null);
   const [todos, setTodos] = React.useState<TodoDraftEditorItem[]>(createInitialTodos);
   const [generateTodo, setGenerateTodo] = React.useState(false);
   const [errors, setErrors] = React.useState<{ url?: string; title?: string }>({});
   const [mobileSheetStep, setMobileSheetStep] = React.useState<MobileSheetStep>("form");
 
   React.useEffect(() => {
-    if (aiModel || !aiProviders) {
+    if (aiProvider || !aiProviders) {
       return;
     }
     const matchedProvider =
@@ -138,12 +141,8 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
     if (!matchedProvider) {
       return;
     }
-    const selection = getProviderSelection(matchedProvider);
-    if (!selection) {
-      return;
-    }
-    setAiModel(selection);
-  }, [aiModel, aiProviders, defaultProvider.id]);
+    setAiProvider(getProviderSelection(matchedProvider));
+  }, [aiProvider, aiProviders, defaultProvider.id]);
 
   const handleClipboardReadFailure = React.useCallback(
     (error: unknown) => {
@@ -172,7 +171,7 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
     setTitle("");
     setMemo("");
     setFolder(defaultFolder);
-    setAiModel(null);
+    setAiProvider(null);
     setTodos(createInitialTodos());
     setGenerateTodo(false);
     setErrors({});
@@ -301,13 +300,16 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
       return;
     }
 
-    if (!aiModel) {
+    // userProviderId only exists on the caller's own providers, so the request is
+    // built from myProviders — the catalog the picker shows cannot supply it.
+    const target = resolveProviderRequest(myProviders, aiProvider?.providerId ?? null);
+    if (!target) {
       showToast({
-        description: "사용할 AI 모델을 먼저 선택해주세요.",
+        description: "사용할 AI 제공자를 먼저 선택해주세요.",
         dismissible: true,
         durationMs: 3000,
         sourceKey: "link-create-ai-model",
-        title: "AI 모델이 필요해요",
+        title: "AI 제공자가 필요해요",
         variant: "warning",
       });
       return;
@@ -319,10 +321,10 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
       const response = await requestAiSummaryMutation.mutateAsync({
         folderId: folder.id ? Number(folder.id) : null,
         generateTodo,
-        modelId: aiModel.modelId,
+        modelId: target.modelId,
         title: trimmedTitle ? trimmedTitle : null,
         url: trimmedUrl,
-        userProviderId: aiModel.userProviderId,
+        userProviderId: target.userProviderId,
       });
 
       showToast({
@@ -363,8 +365,9 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
       });
     }
   }, [
-    aiModel,
+    aiProvider?.providerId,
     folder.id,
+    myProviders,
     generateTodo,
     invalidateLinkQueries,
     mode,
@@ -450,7 +453,7 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
     validate,
   ]);
 
-  const aiProviderLabel = aiModel?.providerLabel ?? "기본 제공자 사용";
+  const aiProviderLabel = aiProvider?.providerLabel ?? "기본 제공자 사용";
 
   const decoratedTodos = React.useMemo(
     () => todos.map((todo) => ({ ...todo, isPast: isScheduleInPast(todo) })),
@@ -594,9 +597,9 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
           />
         ) : (
           <AiProviderPickerList
-            selectedProviderId={aiModel?.providerId ?? defaultProvider.id ?? null}
+            selectedProviderId={aiProvider?.providerId ?? defaultProvider.id ?? null}
             onSelect={(selection) => {
-              setAiModel(selection);
+              setAiProvider(selection);
               setMobileSheetStep("form");
             }}
           />
@@ -768,8 +771,8 @@ function LinkCreateForm({ mode, open, initialUrl, onCancel, onSaved }: LinkCreat
             className="max-h-[60vh] w-80 overflow-y-auto p-3"
           >
             <AiProviderPickerListWithClose
-              selectedProviderId={aiModel?.providerId ?? defaultProvider.id ?? null}
-              onSelect={setAiModel}
+              selectedProviderId={aiProvider?.providerId ?? defaultProvider.id ?? null}
+              onSelect={setAiProvider}
             />
           </PopoverContent>
         </Popover>
@@ -783,7 +786,7 @@ function AiProviderPickerListWithClose({
   onSelect,
 }: {
   selectedProviderId: number | null;
-  onSelect: (selection: AiModelSelection) => void;
+  onSelect: (selection: AiProviderSelection) => void;
 }) {
   const popoverContext = usePopoverContext();
 

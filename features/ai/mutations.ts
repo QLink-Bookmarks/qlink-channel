@@ -1,8 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
-import { putAiUserProvider, requestAiSummary } from "./api";
-import { aiQueryKeys } from "./queries";
-import type { AiSummaryRequest, PutAiUserProviderRequest } from "./types";
+import { requestAiSummary } from "./api";
+import type { AiSummaryRequest } from "./types";
 
 function useRequestAiSummaryMutation() {
   return useMutation({
@@ -10,14 +9,4 @@ function useRequestAiSummaryMutation() {
   });
 }
 
-function usePutAiUserProviderMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: PutAiUserProviderRequest) => putAiUserProvider(payload),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: aiQueryKeys.providerModels() });
-    },
-  });
-}
-
-export { usePutAiUserProviderMutation, useRequestAiSummaryMutation };
+export { useRequestAiSummaryMutation };
