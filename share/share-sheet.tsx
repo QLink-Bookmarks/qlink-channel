@@ -145,15 +145,22 @@ async function fetchPageTitle(url: string): Promise<string | null> {
   }
 }
 
+// 제공자 단위로만 고르게 하고, 실제 모델은 priority가 앞선 것을 기본값으로 붙인다.
 function toModelOptions(providers: AiProviderWithModels[]): ModelOption[] {
-  return providers.flatMap((provider) =>
-    provider.models.map((model) => ({
-      key: `${provider.providerId}:${model.id}`,
-      userProviderId: model.userProviderId,
-      modelId: model.id,
-      label: `${provider.providerType} · ${model.model}`,
-    })),
-  );
+  return providers.flatMap((provider) => {
+    const model = [...provider.models].sort((a, b) => a.priority - b.priority)[0];
+    if (!model) {
+      return [];
+    }
+    return [
+      {
+        key: String(provider.providerId),
+        userProviderId: model.userProviderId,
+        modelId: model.id,
+        label: provider.providerType,
+      },
+    ];
+  });
 }
 
 function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
@@ -229,7 +236,7 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
 
   const handleAiSave = React.useCallback(async () => {
     if (!model) {
-      setErrorMessage("AI 모델을 먼저 선택해주세요.");
+      setErrorMessage("AI 제공자를 먼저 선택해주세요.");
       return;
     }
     setErrorMessage(null);
@@ -342,7 +349,7 @@ function ShareSheet({ url, text, preprocessingResults }: ShareSheetProps) {
         </ChipSection>
 
         {models.length > 0 ? (
-          <ChipSection label="AI 모델">
+          <ChipSection label="AI 제공자">
             {models.map((option) => (
               <Chip
                 key={option.key}

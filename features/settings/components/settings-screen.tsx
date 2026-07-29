@@ -42,15 +42,13 @@ import {
   useMyProfileQuery,
   useMySettingsQuery,
 } from "@/features/account/queries";
-import type { AiProviderType, ConnectedAuthProvider } from "@/features/account/types";
+import type { ConnectedAuthProvider } from "@/features/account/types";
 import {
-  AiModelPickerList,
   type AiModelSelection,
+  AiProviderPickerList,
   getProviderLabel,
-} from "@/features/ai/components/ai-model-picker-list";
-import { usePutAiUserProviderMutation } from "@/features/ai/mutations";
+} from "@/features/ai/components/ai-provider-picker-list";
 import { useAiProviderModelsQuery } from "@/features/ai/queries";
-import type { AiProviderWithModels } from "@/features/ai/types";
 import { signOut as signOutApi } from "@/features/auth/api";
 import { ConnectedProvidersRow } from "@/features/auth/components/connect-providers";
 import { logoutNaver } from "@/features/auth/lib/native-naver-logout";
@@ -73,10 +71,7 @@ import { type Href, useRouter } from "expo-router";
 import {
   Camera,
   ChevronRight,
-  Eye,
-  EyeOff,
   Info,
-  KeyRound,
   Megaphone,
   MessageSquareText,
   Settings,
@@ -87,18 +82,6 @@ import {
 } from "lucide-react-native/icons";
 
 type SettingsScreenMode = "wide" | "mobile";
-
-type ProviderTypeOption = {
-  type: AiProviderType;
-  label: string;
-  placeholder: string;
-};
-
-const PROVIDER_TYPE_OPTIONS: ProviderTypeOption[] = [
-  { type: "OPENAI", label: "OpenAI", placeholder: "sk-..." },
-  { type: "CLAUDE", label: "Claude", placeholder: "sk-ant-..." },
-  { type: "GEMINI", label: "Gemini", placeholder: "AIza..." },
-];
 
 function SettingsScreen({ mode }: { mode: SettingsScreenMode }) {
   const profileQuery = useMyProfileQuery();
@@ -884,28 +867,19 @@ function AppInfoSection({ mode }: { mode: SettingsScreenMode }) {
 
 function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
   const defaultProvider = useDisplaySettings((state) => state.ai.defaultProvider);
-  const defaultModel = useDisplaySettings((state) => state.ai.defaultModel);
   const setDefaultProvider = useDisplaySettings((state) => state.setDefaultProvider);
   const setDefaultModel = useDisplaySettings((state) => state.setDefaultModel);
   const providersQuery = useAiProviderModelsQuery();
   const providers = React.useMemo(() => providersQuery.data ?? [], [providersQuery.data]);
 
   const [pickerOpen, setPickerOpen] = React.useState(false);
-  const [addKeyOpen, setAddKeyOpen] = React.useState(false);
 
-  const selectedModelId = defaultModel.id;
   const selectedProvider = providers.find((provider) => provider.providerId === defaultProvider.id);
-  const selectedModel = selectedProvider?.models.find((model) => model.id === selectedModelId);
-
   const providerNameLabel = selectedProvider ? getProviderLabel(selectedProvider) : null;
-  const modelNameLabel =
-    selectedModel?.model ?? defaultModel.model ?? (selectedProvider ? "모델 미선택" : null);
 
   const handleSelect = React.useCallback(
     (selection: AiModelSelection) => {
-      const provider = providers.find((entry) =>
-        entry.models.some((model) => model.id === selection.modelId),
-      );
+      const provider = providers.find((entry) => entry.providerId === selection.providerId);
       if (provider) {
         setDefaultProvider({ id: provider.providerId, type: provider.providerType });
       }
@@ -933,14 +907,14 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
                 numberOfLines={1}
                 className="text-xs font-semibold uppercase text-muted-foreground"
               >
-                {providerNameLabel ?? "제공자 미선택"}
+                기본 제공자
               </Text>
             </View>
             <Text
               numberOfLines={1}
               className="text-lg font-semibold text-foreground"
             >
-              {modelNameLabel ?? "기본 모델 사용"}
+              {providerNameLabel ?? "제공자 미선택"}
             </Text>
           </View>
           <Icon
@@ -949,38 +923,14 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
             className="text-muted-foreground"
           />
         </Pressable>
-
-        <Button
-          variant="outline"
-          className="flex-row items-center gap-2"
-          onPress={() => setAddKeyOpen(true)}
-        >
-          <Icon
-            as={KeyRound}
-            size={16}
-            className="text-foreground"
-          />
-          <Text>API 키 등록</Text>
-        </Button>
       </SettingsSectionCard>
 
       <AiPickerOverlay
         mode={mode}
         open={pickerOpen}
-        selectedModelId={selectedModelId}
+        selectedProviderId={defaultProvider.id}
         onOpenChange={setPickerOpen}
         onSelect={handleSelect}
-        onAddKeyPress={() => {
-          setPickerOpen(false);
-          setAddKeyOpen(true);
-        }}
-      />
-
-      <AddProviderKeyOverlay
-        mode={mode}
-        providers={providers}
-        open={addKeyOpen}
-        onOpenChange={setAddKeyOpen}
       />
     </>
   );
@@ -989,37 +939,21 @@ function AiProviderSection({ mode }: { mode: SettingsScreenMode }) {
 function AiPickerOverlay({
   mode,
   open,
-  selectedModelId,
+  selectedProviderId,
   onOpenChange,
   onSelect,
-  onAddKeyPress,
 }: {
   mode: SettingsScreenMode;
   open: boolean;
-  selectedModelId: number | null;
+  selectedProviderId: number | null;
   onOpenChange: (open: boolean) => void;
   onSelect: (selection: AiModelSelection) => void;
-  onAddKeyPress: () => void;
 }) {
   const body = (
-    <View className="gap-4">
-      <AiModelPickerList
-        selectedModelId={selectedModelId}
-        onSelect={onSelect}
-      />
-      <Button
-        variant="outline"
-        className="flex-row items-center gap-2"
-        onPress={onAddKeyPress}
-      >
-        <Icon
-          as={KeyRound}
-          size={16}
-          className="text-foreground"
-        />
-        <Text>새 API 키 등록</Text>
-      </Button>
-    </View>
+    <AiProviderPickerList
+      selectedProviderId={selectedProviderId}
+      onSelect={onSelect}
+    />
   );
 
   if (mode === "wide") {
@@ -1030,8 +964,8 @@ function AiPickerOverlay({
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>AI 제공자 모델</DialogTitle>
-            <DialogDescription>기본 AI 모델을 선택하거나 새 키를 등록해요.</DialogDescription>
+            <DialogTitle>AI 제공자</DialogTitle>
+            <DialogDescription>요약에 사용할 기본 제공자를 선택해요.</DialogDescription>
           </DialogHeader>
           {body}
         </DialogContent>
@@ -1049,200 +983,7 @@ function AiPickerOverlay({
       fitContent
       onOpenChange={onOpenChange}
     >
-      <Text className="text-lg font-semibold text-foreground">AI 제공자 모델</Text>
-      {body}
-    </Sheet>
-  );
-}
-
-function AddProviderKeyOverlay({
-  mode,
-  providers,
-  open,
-  onOpenChange,
-}: {
-  mode: SettingsScreenMode;
-  providers: AiProviderWithModels[];
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const [providerType, setProviderType] = React.useState<AiProviderType>("OPENAI");
-  const [apiKey, setApiKey] = React.useState("");
-  const [isApiKeyVisible, setIsApiKeyVisible] = React.useState(false);
-  const mutation = usePutAiUserProviderMutation();
-  const resetMutation = mutation.reset;
-  const showToast = useToastStore((state) => state.showToast);
-
-  React.useEffect(() => {
-    if (!open) {
-      setApiKey("");
-      setProviderType("OPENAI");
-      setIsApiKeyVisible(false);
-      resetMutation();
-    }
-  }, [open, resetMutation]);
-
-  const matchingProvider = providers.find((provider) => provider.providerType === providerType);
-  const providerOption = PROVIDER_TYPE_OPTIONS.find((entry) => entry.type === providerType);
-
-  const handleSave = React.useCallback(async () => {
-    const trimmed = apiKey.trim();
-    if (!matchingProvider) {
-      showToast({
-        description: "지원하지 않는 제공자입니다.",
-        dismissible: true,
-        durationMs: 3000,
-        sourceKey: "settings-ai-provider",
-        title: "등록 실패",
-        variant: "warning",
-      });
-      return;
-    }
-    if (!trimmed) {
-      showToast({
-        description: "API 키를 입력해주세요.",
-        dismissible: true,
-        durationMs: 3000,
-        sourceKey: "settings-ai-provider",
-        title: "API 키 필요",
-        variant: "warning",
-      });
-      return;
-    }
-    try {
-      await mutation.mutateAsync({
-        providerId: matchingProvider.providerId,
-        apiKey: trimmed,
-      });
-      showToast({
-        description: "새 API 키가 등록되었어요.",
-        dismissible: true,
-        durationMs: 3000,
-        sourceKey: "settings-ai-provider",
-        title: "등록 완료",
-        variant: "success",
-      });
-      onOpenChange(false);
-    } catch {
-      showToast({
-        description: "API 키 등록에 실패했어요. 잠시 후 다시 시도해주세요.",
-        dismissible: true,
-        durationMs: 3000,
-        sourceKey: "settings-ai-provider",
-        title: "등록 실패",
-        variant: "warning",
-      });
-    }
-  }, [apiKey, matchingProvider, mutation, onOpenChange, showToast]);
-
-  const body = (
-    <View className="gap-4">
-      <View className="gap-2">
-        <Text className="text-sm font-semibold text-muted-foreground">제공자</Text>
-        <View className="flex-row flex-wrap gap-2">
-          {PROVIDER_TYPE_OPTIONS.map((option) => {
-            const isSelected = providerType === option.type;
-            const isSupported = providers.some((provider) => provider.providerType === option.type);
-            return (
-              <Pressable
-                key={option.type}
-                className={`flex-row items-center gap-2 rounded-xl border px-3 py-2 ${
-                  isSelected ? "border-primary bg-accent" : "border-border bg-card"
-                } ${isSupported ? "" : "opacity-50"}`}
-                onPress={() => {
-                  if (isSupported) {
-                    setProviderType(option.type);
-                  }
-                }}
-              >
-                <Text
-                  className={`text-sm font-semibold ${
-                    isSelected ? "text-accent-foreground" : "text-foreground"
-                  }`}
-                >
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      <View className="gap-2">
-        <Text className="text-sm font-semibold text-muted-foreground">API 키</Text>
-        <View className="relative justify-center">
-          <Input
-            className="h-10 rounded-xl pl-4 pr-11 text-base"
-            autoCapitalize="none"
-            autoCorrect={false}
-            secureTextEntry={!isApiKeyVisible}
-            placeholder={providerOption?.placeholder ?? "sk-..."}
-            value={apiKey}
-            onChangeText={setApiKey}
-          />
-          <Pressable
-            accessibilityLabel={isApiKeyVisible ? "API 키 숨기기" : "API 키 표시"}
-            className="absolute right-1 size-9 items-center justify-center rounded-lg active:bg-accent web:hover:bg-accent"
-            hitSlop={6}
-            onPress={() => setIsApiKeyVisible((prev) => !prev)}
-          >
-            <Icon
-              as={isApiKeyVisible ? EyeOff : Eye}
-              size={18}
-              className="text-muted-foreground"
-            />
-          </Pressable>
-        </View>
-        <Text className="text-xs text-muted-foreground">
-          저장하면 새 키로 등록돼요. 기존 키는 표시되지 않아요.
-        </Text>
-      </View>
-
-      <View className="flex-row justify-end gap-2">
-        <Button
-          variant="outline"
-          onPress={() => onOpenChange(false)}
-        >
-          <Text>취소</Text>
-        </Button>
-        <Button
-          disabled={mutation.isPending}
-          onPress={handleSave}
-        >
-          <Text>저장</Text>
-        </Button>
-      </View>
-    </View>
-  );
-
-  if (mode === "wide") {
-    return (
-      <Dialog
-        open={open}
-        onOpenChange={onOpenChange}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>API 키 등록</DialogTitle>
-            <DialogDescription>제공자를 선택하고 새 키를 입력하면 저장돼요.</DialogDescription>
-          </DialogHeader>
-          {body}
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (!open) {
-    return null;
-  }
-
-  return (
-    <Sheet
-      open={open}
-      fitContent
-      onOpenChange={onOpenChange}
-    >
-      <Text className="text-lg font-semibold text-foreground">API 키 등록</Text>
+      <Text className="text-lg font-semibold text-foreground">AI 제공자</Text>
       {body}
     </Sheet>
   );
