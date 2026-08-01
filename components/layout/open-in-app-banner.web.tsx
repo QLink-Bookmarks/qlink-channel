@@ -93,11 +93,7 @@ function OpenInAppBanner({ token, folderId }: OpenInAppBannerProps) {
       <View className="flex-row items-center gap-3">
         <View className="flex-1">
           <Text className="text-sm font-semibold text-foreground">저희 앱도 있어요..</Text>
-          <Text className="text-xs text-muted-foreground">
-            {storeUrl
-              ? "앱이 있으면 앱에서, 없으면 스토어에서 이어가세요."
-              : "앱이 설치돼 있으면 앱에서 이어가세요."}
-          </Text>
+          <Text className="text-xs text-muted-foreground">앱도 한 번 써보시죠</Text>
         </View>
         <Button
           accessibilityLabel="배너 닫기"
