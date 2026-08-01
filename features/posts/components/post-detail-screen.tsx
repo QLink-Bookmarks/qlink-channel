@@ -1,15 +1,59 @@
 import * as React from "react";
-import { Modal, Pressable, ScrollView, View } from "react-native";
+import { Linking, Modal, Pressable, ScrollView, View } from "react-native";
 
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Text } from "@/components/ui/text";
 import { formatPostDate, isPostForbidden, isPostNotFound } from "@/features/posts/lib";
+import { type PostBlock, parsePostContent } from "@/features/posts/lib/parse-post-content";
 import { usePostQuery } from "@/features/posts/queries";
 
 import { Image } from "expo-image";
 import { type Href, useRouter } from "expo-router";
+
+function PostContentBlock({
+  block,
+  onImagePress,
+}: {
+  block: PostBlock;
+  onImagePress?: (url: string) => void;
+}) {
+  if (block.kind === "text") {
+    return <Text className="text-base leading-7 text-foreground">{block.value}</Text>;
+  }
+
+  if (block.kind === "image") {
+    return (
+      <PostImage
+        url={block.url}
+        onPress={onImagePress ? () => onImagePress(block.url) : undefined}
+      />
+    );
+  }
+
+  if (block.kind === "button") {
+    return (
+      <Button
+        variant="gradient"
+        className="self-start"
+        onPress={() => Linking.openURL(block.url)}
+      >
+        <Text>{block.label}</Text>
+      </Button>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="link"
+      className="self-start active:opacity-70"
+      onPress={() => Linking.openURL(block.url)}
+    >
+      <Text className="text-base font-semibold text-primary underline">{block.label}</Text>
+    </Pressable>
+  );
+}
 
 function PostImage({ url, onPress }: { url: string; onPress?: () => void }) {
   const [aspectRatio, setAspectRatio] = React.useState(4 / 3);
@@ -153,7 +197,15 @@ function PostDetailScreen({ postId, backPath, imagesClickable = false }: PostDet
         </View>
         <View className="h-px bg-border" />
         {post.contents ? (
-          <Text className="text-base leading-7 text-foreground">{post.contents}</Text>
+          <View className="gap-4">
+            {parsePostContent(post.contents).map((block, index) => (
+              <PostContentBlock
+                key={index}
+                block={block}
+                onImagePress={imagesClickable ? setLightboxUrl : undefined}
+              />
+            ))}
+          </View>
         ) : null}
         {post.imageUrls.length > 0 ? (
           <View className="gap-3 pt-2">
