@@ -11,6 +11,7 @@ import {
 
 import { BrandHeader } from "@/components/layout/brand-header";
 import { BrandLogo } from "@/components/layout/brand-logo";
+import { AppStoreBadge } from "@/components/ui/app-store-badge";
 import { Text } from "@/components/ui/text";
 import { useCycledBrandColors } from "@/features/auth/hooks/use-cycled-brand-colors";
 import { SLIDES } from "@/features/onboarding/components/onboarding-screen";
@@ -100,6 +101,7 @@ function WebLanding() {
               onPress={goLogin}
               label="웹으로 시작하기"
             />
+            <AppStoreBadge />
           </Reveal>
           <View className="absolute bottom-10 items-center gap-1">
             <Text className="font-mono text-[11px] text-muted-foreground">scroll</Text>
@@ -187,6 +189,7 @@ function WebLanding() {
               onPress={goLogin}
               label="웹으로 시작하기"
             />
+            <AppStoreBadge />
           </Reveal>
           <View className="absolute inset-x-0 bottom-0 items-center gap-2 border-t border-border bg-background px-6 py-10">
             <Text className="font-mono text-sm text-muted-foreground">에이링크 ALink</Text>

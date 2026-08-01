@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AppStoreBadge } from "@/components/ui/app-store-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -828,6 +829,10 @@ function AppInfoSection({ mode }: { mode: SettingsScreenMode }) {
           <Text className="text-xs font-semibold text-destructive">회원 탈퇴</Text>
         </Pressable>
       </SettingsSectionCard>
+
+      <View className="items-center pt-1">
+        <AppStoreBadge />
+      </View>
 
       <AlertDialog
         open={withdrawOpen}

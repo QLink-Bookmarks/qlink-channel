@@ -13,11 +13,14 @@ import { type Href, useRouter } from "expo-router";
 type InviteAcceptScreenProps = {
   folderId?: string | null;
   token?: string | null;
+  // Fired once the invite is actually accepted, so the caller can drop the
+  // stored invite only after it has been consumed.
+  onAccepted?: () => void;
 };
 
 type InviteAcceptStatus = "reading" | "checking" | "success" | "client-error" | "server-error";
 
-function InviteAcceptScreen({ folderId, token }: InviteAcceptScreenProps) {
+function InviteAcceptScreen({ folderId, token, onAccepted }: InviteAcceptScreenProps) {
   const router = useRouter();
   const { mutateAsync, reset } = useAcceptFolderInvitationMutation();
   const [status, setStatus] = React.useState<InviteAcceptStatus>("reading");
@@ -58,6 +61,7 @@ function InviteAcceptScreen({ folderId, token }: InviteAcceptScreenProps) {
       .then((response) => {
         setAcceptedFolderId(response.data.folderId);
         setStatus("success");
+        onAccepted?.();
       })
       .catch((error: unknown) => {
         const statusCode = isAxiosError(error) ? error.response?.status : undefined;
@@ -66,7 +70,7 @@ function InviteAcceptScreen({ folderId, token }: InviteAcceptScreenProps) {
         setStatus(isClientError ? "client-error" : "server-error");
         setErrorMessage(getInviteErrorMessage(error));
       });
-  }, [folderId, mutateAsync, token]);
+  }, [folderId, mutateAsync, onAccepted, token]);
 
   const message =
     status === "reading"

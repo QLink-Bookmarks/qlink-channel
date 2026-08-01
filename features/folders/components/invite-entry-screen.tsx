@@ -1,6 +1,7 @@
 import * as React from "react";
 import { View } from "react-native";
 
+import { OpenInAppBanner } from "@/components/layout/open-in-app-banner";
 import { ActivityIndicator } from "@/components/ui/activity-indicator";
 import { LoginPrompt } from "@/features/auth/components/login-prompt";
 import { readParamValue } from "@/features/navigation/routes";
@@ -8,7 +9,6 @@ import { useAuthStore } from "@/stores/auth";
 import { useInviteStore } from "@/stores/invite";
 
 import { InviteAcceptScreen } from "./invite-accept-screen";
-import { OpenInAppBanner } from "./open-in-app-banner";
 
 import { useLocalSearchParams } from "expo-router";
 
@@ -39,12 +39,9 @@ function InviteEntryScreen() {
   const token = paramToken ?? pending?.token ?? null;
   const folderId = paramFolderId ?? pending?.folderId ?? null;
 
-  // Once we're authenticated and ready to accept, the pending invite is consumed.
-  React.useEffect(() => {
-    if (isAuthenticated && token && folderId) {
-      clearPending();
-    }
-  }, [clearPending, folderId, isAuthenticated, token]);
+  // Keep the stored invite until the accept call actually succeeds — dropping it
+  // on sign-in alone loses the invite whenever the accept fails, and the user has
+  // no way back to it.
 
   if (!authHasHydrated) {
     return (
@@ -64,6 +61,7 @@ function InviteEntryScreen() {
         <InviteAcceptScreen
           folderId={folderId}
           token={token}
+          onAccepted={clearPending}
         />
       ) : (
         <LoginPrompt subtitle="초대를 수락하려면 먼저 로그인해 주세요 ✨" />
