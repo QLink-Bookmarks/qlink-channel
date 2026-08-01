@@ -1,3 +1,6 @@
+import { View } from "react-native";
+
+import { OpenInAppBanner } from "@/components/layout/open-in-app-banner";
 import { useAuthStore } from "@/stores/auth";
 
 import { LoginPrompt } from "./login-prompt";
@@ -15,7 +18,12 @@ function LoginRouteScreen() {
     return <Redirect href={"/" as Href} />;
   }
 
-  return <LoginPrompt />;
+  return (
+    <View className="flex-1 bg-background">
+      <OpenInAppBanner />
+      <LoginPrompt />
+    </View>
+  );
 }
 
 export { LoginRouteScreen };

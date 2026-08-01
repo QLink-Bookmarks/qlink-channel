@@ -30,6 +30,11 @@ export default function Root({ children }: { children: React.ReactNode }) {
           name="theme-color"
           content="#6B7280"
         />
+        {/* Safari's own banner: "열기" when the app is installed, "받기" when it is not. */}
+        <meta
+          name="apple-itunes-app"
+          content="app-id=6788230955"
+        />
         <meta
           property="og:type"
           content="website"

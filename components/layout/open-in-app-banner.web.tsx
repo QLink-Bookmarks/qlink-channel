@@ -46,7 +46,7 @@ function OpenInAppBanner({ token, folderId }: OpenInAppBannerProps) {
   const storeUrl = getStoreUrl(platform);
   const isProduction = getAppVariant() === "production";
 
-  if (dismissed || !platform || !token || !folderId) {
+  if (dismissed || !platform) {
     return null;
   }
   // Outside production, always surface the banner so testers can hand off to the
@@ -56,9 +56,13 @@ function OpenInAppBanner({ token, folderId }: OpenInAppBannerProps) {
     return null;
   }
 
-  const deepLink = `${APP_SCHEME}://invite?token=${encodeURIComponent(
-    token,
-  )}&folderId=${encodeURIComponent(folderId)}`;
+  // With an invite in hand, hand off straight to it; otherwise just open the app.
+  const deepLink =
+    token && folderId
+      ? `${APP_SCHEME}://invite?token=${encodeURIComponent(token)}&folderId=${encodeURIComponent(
+          folderId,
+        )}`
+      : `${APP_SCHEME}://`;
 
   // Try to hand off to the installed app. If the page never backgrounds (app not
   // installed), fall back to the store, or tell the user no app is installed.
@@ -88,7 +92,7 @@ function OpenInAppBanner({ token, folderId }: OpenInAppBannerProps) {
     <View className="gap-3 border-b border-border bg-card px-4 py-3">
       <View className="flex-row items-center gap-3">
         <View className="flex-1">
-          <Text className="text-sm font-semibold text-foreground">앱에서 열기</Text>
+          <Text className="text-sm font-semibold text-foreground">저희 앱도 있어요..</Text>
           <Text className="text-xs text-muted-foreground">
             {storeUrl
               ? "앱이 있으면 앱에서, 없으면 스토어에서 이어가세요."
