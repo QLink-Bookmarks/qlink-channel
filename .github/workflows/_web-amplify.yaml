@@ -49,6 +49,9 @@ jobs:
       EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID }}
       EXPO_PUBLIC_NAVER_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_NAVER_CLIENT_ID }}
       EXPO_PUBLIC_APPLE_WEB_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_APPLE_WEB_CLIENT_ID }}
+      # Drives the "앱에서 열기" store fallback on /invite. Without it the banner
+      # is hidden in production, so the invite page dead-ends for users with no app.
+      EXPO_PUBLIC_IOS_APP_STORE_URL: ${{ secrets.EXPO_PUBLIC_IOS_APP_STORE_URL }}
 
     steps:
       - name: Checkout
