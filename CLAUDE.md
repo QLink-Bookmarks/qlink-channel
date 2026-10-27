@@ -128,8 +128,11 @@ Consult these resources as needed:
 
 ```
 references/
-  rhf-zod-form-guide.md  Form control guide
-  route-structure.md     Route conventions, dynamic routes, groups, folder organization
-  search.md              Search bar with headers, useSearch hook, filtering patterns
-  visual-effects.md      Blur (expo-blur) and liquid glass (expo-glass-effect)
+  design-candidates.md            Design option rules: how many, what to vary, artifact requirements
+  project-management-workflow.md  Issue/Project/PR stages, confirmation gates, section rules
+  rhf-zod-form-guide.md           Form control guide
+  route-structure.md              Route conventions, dynamic routes, groups, folder organization
+  search.md                       Search bar with headers, useSearch hook, filtering patterns
+  test-criteria.md                Hand-checkable pass/fail conditions: form, coverage axes, scope
+  visual-effects.md               Blur (expo-blur) and liquid glass (expo-glass-effect)
 ```
