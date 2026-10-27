@@ -38,7 +38,7 @@ expo-env.d.ts
 /ga/google-services.json
 output/
 storybook-static/
-docs/reference
+docs/
 .eslintcache
 
 # Local tooling / E2E artifacts
