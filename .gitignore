@@ -42,7 +42,8 @@ docs/
 .eslintcache
 
 # Local tooling / E2E artifacts
-.claude/
+.claude/*
+!.claude/skills/
 test-results/
 playwright.config.ts
 playwright.config.js

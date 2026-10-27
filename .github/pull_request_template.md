@@ -1,5 +1,6 @@
 ## 연결 Issue
-Closes #
+<!-- 여러 PR로 나뉘면 마지막 PR만 Resolves, 나머지는 - Refs # -->
+- Resolves #
 
 ## 작업 내용
 -

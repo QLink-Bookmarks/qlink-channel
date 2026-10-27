@@ -82,17 +82,40 @@ Conditions the user can walk through by hand to judge whether the feature works 
 
 ### 5. Breakdown
 
-The implementation spec: screens and components to build, data / API / state handling, and how the work splits. Follow the repo conventions already stated in `AGENTS.md`; do not restate them here. Split into several PRs only when one flow is too large to land at once.
+The implementation spec: screens and components to build, data / API / state handling, and how the work splits. Follow the repo conventions already stated in `AGENTS.md`; do not restate them here. Split into several PRs only when one flow is too large to land at once, and into a sub-issue when the server has to change — see `## Across repos`.
 
 ### 6. PR
 
-The PR body carries the linked Issue number (`Closes #12`) and the same checklist from section 4, with only the items actually verified checked off. Section 6 of the Issue records the PR link.
+The PR body carries the same checklist from section 4, with only the items actually verified checked off. When the work spans several PRs, every PR but the last links the Issue with `- Refs #n`, and the last one with `- Resolves #n`, so the Issue closes only when all of them land. Section 6 of the Issue records every PR link.
 
 ## Skipping sections
 
 - Which stages a type skips by default is in the issue types table above.
 - Confirm what to skip in chat. Mark a skipped section by keeping its heading and writing `(생략)`.
 - `Requirement` (2) and `Test Criteria` (4) are never skipped.
+
+## Across repos
+
+The product is `QLink-Bookmarks/qlink-channel` (app) and `QLink-Bookmarks/qlink-backend` (server). The integrated requirement issue lives in `qlink-channel`, because the flow is judged on screen.
+
+- Server work gets its own issue in `qlink-backend`, linked from the parent as a sub-issue at the `Breakdown` stage, once the split is known.
+- The server issue owns its API contract. The parent links it and never copies it; read the contract there.
+- A server sub-issue is always finished before its parent. So the parent's `Status` only ever follows its own stage and is never derived from its children.
+- Server-only work with no user-visible flow — migrations, batch jobs, infrastructure, performance — is a standalone issue in `qlink-backend` with no parent.
+
+## Project automation
+
+One organization-level Project holds both repos; filter views by the built-in `Repository` field. Add issues only, not pull requests.
+
+Three built-in workflows carry the stages that have a GitHub event behind them. All three fire on the issue item, so pull requests never need to be in the project:
+
+- Item added to project → `Status: Requirement`
+- Pull request linked to an issue → `Status: PR`
+- Issue closed → `Status: Complete`
+
+`- Resolves #n` in the PR body is what links the PR and later closes the issue. `- Refs #n` does neither, so a split Issue stays in `Implementation` until its last PR opens. The four stages in between — `Design`, `Test Criteria`, `Breakdown`, `Implementation` — have no event and are moved by hand as each one is confirmed.
+
+A server sub-issue is created at `Breakdown` and moved straight to `Implementation`, since its requirement and design live in the parent.
 
 ## Resuming
 
