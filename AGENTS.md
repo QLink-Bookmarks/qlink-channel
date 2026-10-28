@@ -117,6 +117,11 @@ const isStorybookVite = typeof process !== "undefined" && process.env.STORYBOOK_
 - Use spring animations for natural movement
 - Avoid animating layout properties (width, height) when possible — prefer transforms
 
+## API Server Connection
+
+- Regardless of the BASE_URL in the env var, check `http://localhost:8080/openapi` for API info.
+- If local server is not alive, check `https://dev.api.archivelink.app/openapi`.
+
 ## References
 
 Consult these resources as needed:
