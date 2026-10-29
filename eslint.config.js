@@ -11,6 +11,8 @@ module.exports = defineConfig([
     "**/storybook.requires.ts",
     "docs/**",
     ".playwright-cli/**",
+    ".agents/skills/impeccable/**",
+    ".claude/skills/impeccable/**",
     "build/**",
     "coverage/**",
     "dist/**",

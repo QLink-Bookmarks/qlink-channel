@@ -2,6 +2,8 @@
 
 How to present design options at the `Design` stage of `references/project-management-workflow.md`.
 
+Use the `impeccable` skill to create and critique design candidates. Apply its `adapt` guidance when checking responsive layouts.
+
 ## How many
 
 Two or three. One is not a choice; four or more stops being comparable.
@@ -16,6 +18,10 @@ Vary exactly one axis across the candidates and say which one: layout, informati
 - Use the repo's theme tokens. Never hardcode a color.
 - Mirror the existing `components/ui` primitives instead of inventing new ones.
 - Show the states section 2 names — at minimum the empty and error states, not only the filled happy path.
+
+## Breakpoint
+
+Use the viewport width as the breakpoint: `768px` or less uses the web mobile layout (including an iPad at `768px` in portrait); more than `768px` uses the web wide layout. Check both layouts at the breakpoint boundary.
 
 ## Theme toggle
 

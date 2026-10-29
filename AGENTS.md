@@ -79,6 +79,16 @@ const isStorybookVite = typeof process !== "undefined" && process.env.STORYBOOK_
 - `bun storybook:web` runs Vite-based Storybook.
 - Vite-only errors should be handled with a targeted `isStorybookVite` branch.
 
+## Testing and Captures
+
+- Use Playwright as the primary automated test tool for web user flows. Derive durable behavior tests for new or changed flows from the confirmed Test Criteria and keep them in `tests/e2e/` with `playwright.config.ts` tracked in Git. Do not backfill unrelated existing features solely to add coverage.
+- Run durable web tests with `bun test:e2e`; Playwright starts the Expo web server through `bun web`. Assert observable behavior after user actions; a screenshot alone does not establish that a Test Criterion passed.
+- Make loading, empty, error, and retry cases repeatable with controlled API responses. Also exercise the real server for server-dependent success paths when relevant.
+- Test web wide and web mobile for affected flows. When a responsive breakpoint changes, check both `768px` and `769px` viewport widths.
+- For each UI change, inspect and capture the affected screens on web wide, web mobile, and iOS when those platforms are in scope. Verify relevant iOS interactions in a simulator; Playwright browser tests do not verify native iOS behavior.
+- Keep one-off Playwright scripts for detailed UI inspection or screenshots, and their captures, under ignored `e2e/`, `.playwright-cli/`, or `output/`. Do not commit screenshot-only scripts or visual snapshot baselines as durable tests.
+- Report test results and capture filenames in the PR, following the issue workflow's image handling rules. Mark only Test Criteria that were actually verified as passed.
+
 ## Hooks and API
 
 - Use custom hooks for reusable stateful logic.
