@@ -45,6 +45,7 @@ function LinkTodoCard({
     <TodoItem
       done={done}
       overdue={schedule.overdue}
+      pressHint="고치기"
       reminderLabel={schedule.label}
       scheduleKind={schedule.kind}
       text={getLinkTodoTitle(todo)}
